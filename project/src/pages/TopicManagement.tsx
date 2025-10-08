@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Search, Plus, Trash2 } from 'lucide-react';
+import { Search, Plus, Trash2, CreditCard as Edit } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import Loader from '../components/Loader';
 import EmptyState from '../components/EmptyState';
@@ -19,6 +19,7 @@ const TopicManagement = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({ name: '', order: 1 });
   const [submitting, setSubmitting] = useState(false);
 
@@ -47,35 +48,43 @@ const TopicManagement = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (formData.name.length < 2) {
       toast.error('Topic name must be at least 2 characters');
       return;
     }
-
     if (formData.order < 1) {
       toast.error('Order must be at least 1');
       return;
     }
-
     setSubmitting(true);
-
     try {
-      await api.post('/api/topics/', formData);
-      toast.success('Topic added successfully');
-      setFormData({ name: '', order: 1 });
-      setShowForm(false);
+      if (editingId) {
+        await api.put(`/api/topics/${editingId}/`, formData);
+        toast.success('Topic updated successfully');
+      } else {
+        await api.post('/api/topics/', formData);
+        toast.success('Topic added successfully');
+      }
+      resetForm();
       fetchTopics();
     } catch (error) {
-      toast.error('Failed to add topic');
+      toast.error(editingId ? 'Failed to update topic' : 'Failed to add topic');
     } finally {
       setSubmitting(false);
     }
   };
 
+  const handleEdit = (topic: Topic) => {
+    setFormData({
+      name: topic.name,
+      order: topic.order,
+    });
+    setEditingId(topic.id);
+    setShowForm(true);
+  };
+
   const handleDelete = async (id: number) => {
     if (!confirm('Are you sure you want to delete this topic?')) return;
-
     try {
       await api.delete(`/api/topics/${id}/`);
       toast.success('Topic deleted successfully');
@@ -83,6 +92,12 @@ const TopicManagement = () => {
     } catch (error) {
       toast.error('Failed to delete topic');
     }
+  };
+
+  const resetForm = () => {
+    setFormData({ name: '', order: 1 });
+    setEditingId(null);
+    setShowForm(false);
   };
 
   if (loading) return <Loader />;
@@ -101,10 +116,11 @@ const TopicManagement = () => {
             Add Topic
           </button>
         </div>
-
         {showForm && (
           <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Add New Topic</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              {editingId ? 'Edit Topic' : 'Add New Topic'}
+            </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -136,11 +152,11 @@ const TopicManagement = () => {
                   disabled={submitting}
                   className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
                 >
-                  {submitting ? 'Adding...' : 'Add Topic'}
+                  {submitting ? 'Saving...' : editingId ? 'Update Topic' : 'Add Topic'}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setShowForm(false)}
+                  onClick={resetForm}
                   className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition"
                 >
                   Cancel
@@ -149,7 +165,6 @@ const TopicManagement = () => {
             </form>
           </div>
         )}
-
         <div className="bg-white rounded-xl shadow-sm p-6">
           <div className="mb-4">
             <div className="relative">
@@ -163,7 +178,6 @@ const TopicManagement = () => {
               />
             </div>
           </div>
-
           {filteredTopics.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -184,12 +198,20 @@ const TopicManagement = () => {
                       <td className="py-3 px-4">{topic.order}</td>
                       <td className="py-3 px-4">{new Date(topic.created_at).toLocaleDateString()}</td>
                       <td className="py-3 px-4">
-                        <button
-                          onClick={() => handleDelete(topic.id)}
-                          className="text-red-600 hover:text-red-800 transition"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEdit(topic)}
+                            className="text-blue-600 hover:text-blue-800 transition"
+                          >
+                            <Edit className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(topic.id)}
+                            className="text-red-600 hover:text-red-800 transition"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

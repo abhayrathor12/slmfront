@@ -242,7 +242,7 @@ const PageDetail = () => {
         totalPages={pages.length}
       />
 
-      <div className="flex max-w-7xl ">
+      <div className="flex max-w-full ">
         {/* Sidebar */}
         <div className="w-80 bg-white shadow-lg border-r border-gray-100 sticky overflow-y-auto hide-scrollbar" style={{ top: '4rem', height: 'calc(100vh - 4rem)' }}>
           {/* Progress Card */}
@@ -356,17 +356,18 @@ const PageDetail = () => {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-8">
+        <div className="flex-1 p-4">
           <div className="max-w-5xl mx-auto">
-            {!showQuiz ? (
+          {!showQuiz ? (
               <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-                {/* Page Header */}
-                <div className="p-8 border-b border-gray-200" style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #f0f5ff 100%)' }}>
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
+                {/* Page Header - single row layout */}
+                <div className="p-4 border-b border-gray-200" style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #f0f5ff 100%)' }}>
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
                       <span className="text-sm font-semibold px-3 py-1 rounded-lg" style={{ backgroundColor: '#203f78', color: 'white' }}>
-                         {currentIndex + 1}
+                        {currentIndex + 1}
                       </span>
+                      <h1 className="text-2xl font-bold text-gray-900">{page.title}</h1>
                     </div>
                     {page.completed && (
                       <div className="flex items-center gap-2 bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg border border-emerald-300">
@@ -375,11 +376,10 @@ const PageDetail = () => {
                       </div>
                     )}
                   </div>
-                  <h1 className="text-4xl font-bold text-gray-900 mt-4">{page.title}</h1>
                 </div>
 
                 {/* Content */}
-                <div className="p-8">
+                <div className="p-4">
                   <div className="w-full border-2 border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
                     <iframe
                       ref={iframeRef}

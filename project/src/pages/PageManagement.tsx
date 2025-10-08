@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Search, Plus, Trash2, Eye } from 'lucide-react';
+import { Search, Plus, Trash2, Eye, Edit2 } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import Loader from '../components/Loader';
 import EmptyState from '../components/EmptyState';
@@ -27,10 +27,11 @@ const PageManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [previewContent, setPreviewContent] = useState<string | null>(null);
+  const [editingPage, setEditingPage] = useState<Page | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     content: '',
-    main_content: '',
+    main_content: '', // Keep as string for form handling
     order: 1,
   });
   const [submitting, setSubmitting] = useState(false);
@@ -53,7 +54,6 @@ const PageManagement = () => {
         api.get('/api/maincontents/'),
       ]);
   
-      // Clean pages: make sure title/content are always strings
       const cleanedPages: Page[] = pagesRes.data.map((p: any) => ({
         ...p,
         title: p.title || '',
@@ -69,8 +69,6 @@ const PageManagement = () => {
       setLoading(false);
     }
   };
-  
-  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,16 +80,38 @@ const PageManagement = () => {
 
     setSubmitting(true);
 
+    // Convert main_content to number for API request
+    const payload = {
+      ...formData,
+      main_content: parseInt(formData.main_content),
+    };
+
     try {
-      await api.post('/api/pages/', formData);
-      toast.success('Page added successfully');
+      if (editingPage) {
+        await api.put(`/api/pages/${editingPage.id}/`, payload);
+        toast.success('Page updated successfully');
+      } else {
+        await api.post('/api/pages/', payload);
+        toast.success('Page added successfully');
+      }
       resetForm();
       fetchData();
     } catch (error) {
-      toast.error('Failed to add page');
+      toast.error(`Failed to ${editingPage ? 'update' : 'add'} page`);
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleEdit = (page: Page) => {
+    setEditingPage(page);
+    setFormData({
+      title: page.title,
+      content: page.content,
+      main_content: page.main_content.toString(), // Convert to string for form
+      order: page.order,
+    });
+    setShowForm(true);
   };
 
   const handleDelete = async (id: number) => {
@@ -114,6 +134,7 @@ const PageManagement = () => {
       order: 1,
     });
     setShowForm(false);
+    setEditingPage(null);
   };
 
   const escapeHtml = (html: string) => {
@@ -131,7 +152,10 @@ const PageManagement = () => {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-800">Page Management</h1>
           <button
-            onClick={() => setShowForm(!showForm)}
+            onClick={() => {
+              setEditingPage(null);
+              setShowForm(!showForm);
+            }}
             className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
           >
             <Plus className="w-5 h-5" />
@@ -141,7 +165,9 @@ const PageManagement = () => {
 
         {showForm && (
           <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Add New Page</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              {editingPage ? 'Edit Page' : 'Add New Page'}
+            </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -196,7 +222,7 @@ const PageManagement = () => {
                   disabled={submitting}
                   className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
                 >
-                  {submitting ? 'Adding...' : 'Add Page'}
+                  {submitting ? (editingPage ? 'Updating...' : 'Adding...') : (editingPage ? 'Update Page' : 'Add Page')}
                 </button>
                 <button
                   type="button"
@@ -254,6 +280,12 @@ const PageManagement = () => {
                             className="text-blue-600 hover:text-blue-800 transition"
                           >
                             <Eye className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => handleEdit(page)}
+                            className="text-green-600 hover:text-green-800 transition"
+                          >
+                            <Edit2 className="w-5 h-5" />
                           </button>
                           <button
                             onClick={() => handleDelete(page.id)}
