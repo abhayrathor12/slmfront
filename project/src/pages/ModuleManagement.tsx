@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Search, Plus, Trash2, CreditCard as Edit } from 'lucide-react';
+import { Search, Plus, Trash2, Edit, ChevronDown, ChevronRight } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import Loader from '../components/Loader';
-import EmptyState from '../components/EmptyState';
 import api from '../utils/api';
 import { toast } from 'react-toastify';
 
@@ -18,16 +17,18 @@ interface Module {
 interface Topic {
   id: number;
   name: string;
+  order?: number;
 }
 
 const ModuleManagement = () => {
   const [modules, setModules] = useState<Module[]>([]);
-  const [filteredModules, setFilteredModules] = useState<Module[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
+  const [filteredTopics, setFilteredTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [expandedTopics, setExpandedTopics] = useState<Set<number>>(new Set());
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -42,11 +43,18 @@ const ModuleManagement = () => {
   }, []);
 
   useEffect(() => {
-    const filtered = modules.filter((module) =>
-      module.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    setFilteredModules(filtered);
-  }, [searchQuery, modules]);
+    if (searchQuery) {
+      const filteredModules = modules.filter((module) =>
+        module.title.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      const topicIdsWithMatches = new Set(filteredModules.map((module) => module.topic));
+      setFilteredTopics(topics.filter((topic) => topicIdsWithMatches.has(topic.id)));
+      setExpandedTopics(new Set(topicIdsWithMatches));
+    } else {
+      setFilteredTopics(topics);
+      setExpandedTopics(new Set());
+    }
+  }, [searchQuery, modules, topics]);
 
   const fetchData = async () => {
     try {
@@ -55,8 +63,8 @@ const ModuleManagement = () => {
         api.get('/api/topics/'),
       ]);
       setModules(modulesRes.data);
-      setFilteredModules(modulesRes.data);
       setTopics(topicsRes.data);
+      setFilteredTopics(topicsRes.data);
     } catch (error) {
       toast.error('Failed to fetch data');
     } finally {
@@ -66,14 +74,11 @@ const ModuleManagement = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!formData.title || !formData.topic) {
       toast.error('Please fill in all required fields');
       return;
     }
-
     setSubmitting(true);
-
     try {
       if (editingId) {
         await api.put(`/api/modules/${editingId}/`, formData);
@@ -105,7 +110,6 @@ const ModuleManagement = () => {
 
   const handleDelete = async (id: number) => {
     if (!confirm('Are you sure you want to delete this module?')) return;
-
     try {
       await api.delete(`/api/modules/${id}/`);
       toast.success('Module deleted successfully');
@@ -127,6 +131,23 @@ const ModuleManagement = () => {
     setShowForm(false);
   };
 
+  const toggleTopic = (topicId: number) => {
+    const newExpanded = new Set(expandedTopics);
+    if (newExpanded.has(topicId)) {
+      newExpanded.delete(topicId);
+    } else {
+      newExpanded.add(topicId);
+    }
+    setExpandedTopics(newExpanded);
+  };
+
+  const getModulesByTopic = (topicId: number) => {
+    return modules
+      .filter((m) => m.topic === topicId)
+      .filter((m) => m.title.toLowerCase().includes(searchQuery.toLowerCase()))
+      .sort((a, b) => a.order - b.order);
+  };
+
   if (loading) return <Loader />;
 
   return (
@@ -143,7 +164,6 @@ const ModuleManagement = () => {
             Add Module
           </button>
         </div>
-
         {showForm && (
           <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
@@ -186,9 +206,7 @@ const ModuleManagement = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Difficulty Level
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Difficulty Level</label>
                 <select
                   value={formData.difficulty_level}
                   onChange={(e) => setFormData({ ...formData, difficulty_level: e.target.value })}
@@ -228,7 +246,6 @@ const ModuleManagement = () => {
             </form>
           </div>
         )}
-
         <div className="bg-white rounded-xl shadow-sm p-6">
           <div className="mb-4">
             <div className="relative">
@@ -242,55 +259,96 @@ const ModuleManagement = () => {
               />
             </div>
           </div>
+          {filteredTopics.length > 0 ? (
+            <div className="space-y-2">
+              {filteredTopics.map((topic) => {
+                const topicModules = getModulesByTopic(topic.id);
+                const isExpanded = expandedTopics.has(topic.id);
 
-          {filteredModules.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 text-gray-700 font-semibold">ID</th>
-                    <th className="text-left py-3 px-4 text-gray-700 font-semibold">Title</th>
-                    <th className="text-left py-3 px-4 text-gray-700 font-semibold">Description</th>
-                    <th className="text-left py-3 px-4 text-gray-700 font-semibold">Difficulty</th>
-                    <th className="text-left py-3 px-4 text-gray-700 font-semibold">Order</th>
-                    <th className="text-left py-3 px-4 text-gray-700 font-semibold">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredModules.map((module) => (
-                    <tr key={module.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3 px-4">{module.id}</td>
-                      <td className="py-3 px-4 font-medium">{module.title}</td>
-                      <td className="py-3 px-4">{module.description.substring(0, 50)}...</td>
-                      <td className="py-3 px-4">
-                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                          {module.difficulty_level}
+                return (
+                  <div key={topic.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div
+                      onClick={() => toggleTopic(topic.id)}
+                      className="flex items-center justify-between bg-gray-50 hover:bg-gray-100 cursor-pointer p-4 transition"
+                    >
+                      <div className="flex items-center gap-3">
+                        {isExpanded ? (
+                          <ChevronDown className="w-5 h-5 text-gray-600" />
+                        ) : (
+                          <ChevronRight className="w-5 h-5 text-gray-600" />
+                        )}
+                        <h3 className="text-lg font-semibold text-gray-800">{topic.name}</h3>
+                        <span className="text-sm text-gray-500 bg-white px-2 py-1 rounded">
+                          {topicModules.length} module{topicModules.length !== 1 ? 's' : ''}
                         </span>
-                      </td>
-                      <td className="py-3 px-4">{module.order}</td>
-                      <td className="py-3 px-4">
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleEdit(module)}
-                            className="text-blue-600 hover:text-blue-800 transition"
-                          >
-                            <Edit className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(module.id)}
-                            className="text-red-600 hover:text-red-800 transition"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </div>
+                    </div>
+                    {isExpanded && topicModules.length > 0 && (
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="border-b border-gray-200 bg-gray-50">
+                              <th className="text-left py-3 px-4 text-gray-700 font-semibold text-sm">ID</th>
+                              <th className="text-left py-3 px-4 text-gray-700 font-semibold text-sm">Title</th>
+                              <th className="text-left py-3 px-4 text-gray-700 font-semibold text-sm">Description</th>
+                              <th className="text-left py-3 px-4 text-gray-700 font-semibold text-sm">Difficulty</th>
+                              <th className="text-left py-3 px-4 text-gray-700 font-semibold text-sm">Order</th>
+                              <th className="text-left py-3 px-4 text-gray-700 font-semibold text-sm">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {topicModules.map((module) => (
+                              <tr key={module.id} className="border-b border-gray-100 hover:bg-gray-50">
+                                <td className="py-3 px-4 text-sm">{module.id}</td>
+                                <td className="py-3 px-4 font-medium text-sm">{module.title}</td>
+                                <td className="py-3 px-4 text-sm text-gray-600">
+                                  {module.description.length > 50
+                                    ? module.description.substring(0, 50) + '...'
+                                    : module.description}
+                                </td>
+                                <td className="py-3 px-4">
+                                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                                    {module.difficulty_level}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-4 text-sm">{module.order}</td>
+                                <td className="py-3 px-4">
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => handleEdit(module)}
+                                      className="text-blue-600 hover:text-blue-800 transition"
+                                      title="Edit"
+                                    >
+                                      <Edit className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDelete(module.id)}
+                                      className="text-red-600 hover:text-red-800 transition"
+                                      title="Delete"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                    {isExpanded && topicModules.length === 0 && (
+                      <div className="p-8 text-center text-gray-500">
+                        No modules found for this topic
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           ) : (
-            <EmptyState message="No modules found" />
+            <div className="p-8 text-center text-gray-500">
+              No topics found
+            </div>
           )}
         </div>
       </div>

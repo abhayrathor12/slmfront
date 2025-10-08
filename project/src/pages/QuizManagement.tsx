@@ -159,7 +159,9 @@ const handleSubmit = async (e: React.FormEvent) => {
   const handleDeleteQuestion = async (questionId: number) => {
     if (!confirm('Are you sure you want to delete this question?')) return;
     try {
-      await api.delete(`/api/questions/${questionId}/`);
+      await api.delete(`/api/quizzes/${quizId}/delete_question/`, {
+        data: { question_id: questionId }
+      });
       toast.success('Question deleted successfully');
       if (selectedMainContent) {
         handleMainContentSelect(selectedMainContent);
