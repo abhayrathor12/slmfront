@@ -45,22 +45,21 @@ const Navbar: React.FC<NavbarProps> = ({ user, handleLogout, showBackButton = fa
           <div className="flex items-center gap-3">
             {showBackButton ? (
               <>
-              <button
+                 <button
                   onClick={onBackClick}
-                  className="flex items-center gap-2 text-white px-4 py-2 rounded-lg font-medium shadow-md hover:shadow-lg transition-all"
+                  className="flex items-center gap-2 text-white px-3 sm:px-4 py-2 rounded-lg font-medium shadow-md hover:shadow-lg transition-all"
                   style={{
                     background: 'linear-gradient(135deg, #203f78 0%, #2d5aa0 100%)',
                   }}
                 >
                   <ArrowLeft className="w-5 h-5" />
                   <span className="hidden sm:inline">Back to Module</span>
-                  <span className="sm:hidden">Back</span>
                 </button>
                 {currentPage !== undefined && totalPages !== undefined && (
-                  <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200 shadow-sm">
-                    <Target className="w-4 h-4" style={{ color: '#203f78' }} />
-                    <span className="text-sm font-semibold text-gray-700">
-                      {currentPage} of {totalPages}
+                  <div className="flex items-center gap-1.5 sm:gap-2 bg-gray-50 px-2 sm:px-3 py-2 rounded-lg border border-gray-200 shadow-sm">
+                    <Target className="w-4 h-4 hidden sm:block" style={{ color: '#203f78' }} />
+                    <span className="text-xs sm:text-sm font-semibold text-gray-700">
+                      {currentPage}/{totalPages}
                     </span>
                   </div>
                 )}

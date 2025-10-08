@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { BookOpen, GraduationCap, Target, Sparkles, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'react-toastify';
 import api from '../utils/api';
-
+import smallogo from '../public/logo-.png'
+import biglogo from  '../public/logo1.png'
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -65,8 +66,12 @@ const Login = () => {
         <div className="hidden lg:flex flex-col space-y-8 max-w-lg">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="p-3 rounded-2xl shadow-lg" style={{ background: 'linear-gradient(to bottom right, #203f78, #2c5a9e)' }}>
-                <GraduationCap className="w-10 h-10 text-white" />
+              <div className="p-3 rounded-2xl " >
+              <img
+                  src={smallogo} // your desktop logo path
+                  alt="Company Logo"
+                  className="w-20 h-20 object-contain" // adjust size as needed
+                />
               </div>
               <h1 className="text-5xl font-bold text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(to right, #203f78, #2c5a9e)' }}>
                 Technoviz Automation
@@ -118,8 +123,12 @@ const Login = () => {
         <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl w-full max-w-md p-8 lg:p-10 border border-white/20">
           {/* Mobile header */}
           <div className="lg:hidden flex justify-center mb-6">
-            <div className="p-3 rounded-2xl shadow-lg" style={{ background: 'linear-gradient(to bottom right, #203f78, #2c5a9e)' }}>
-              <GraduationCap className="w-10 h-10 text-white" />
+            <div className="p-3 rounded-2xl ">
+            <img
+              src={biglogo} // your mobile logo path
+              alt="Company Logo"
+              className="w-25 h-25 object-contain"
+            />
             </div>
           </div>
 
