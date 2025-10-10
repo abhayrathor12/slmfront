@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Search, Plus, Trash2, Eye, Edit2 } from 'lucide-react';
+import { Search, Plus, Trash2, Eye, Edit2, ChevronDown, ChevronRight } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import Loader from '../components/Loader';
 import EmptyState from '../components/EmptyState';
@@ -10,28 +10,45 @@ interface Page {
   id: number;
   title: string;
   content: string;
-  main_content: number;
+  main_content: number | { id: number; title: string; module: number }; // Support both number and object
   order: number;
 }
 
 interface MainContent {
   id: number;
   title: string;
+  module: number;
+}
+
+interface Module {
+  id: number;
+  title: string;
+  topic: number;
+}
+
+interface Topic {
+  id: number;
+  name: string;
 }
 
 const PageManagement = () => {
   const [pages, setPages] = useState<Page[]>([]);
-  const [filteredPages, setFilteredPages] = useState<Page[]>([]);
   const [mainContents, setMainContents] = useState<MainContent[]>([]);
+  const [modules, setModules] = useState<Module[]>([]);
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [filteredTopics, setFilteredTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [previewContent, setPreviewContent] = useState<string | null>(null);
   const [editingPage, setEditingPage] = useState<Page | null>(null);
+  const [expandedTopics, setExpandedTopics] = useState<Set<number>>(new Set());
+  const [expandedModules, setExpandedModules] = useState<Set<number>>(new Set());
+  const [expandedMainContents, setExpandedMainContents] = useState<Set<number>>(new Set());
   const [formData, setFormData] = useState({
     title: '',
     content: '',
-    main_content: '', // Keep as string for form handling
+    main_content: '',
     order: 1,
   });
   const [submitting, setSubmitting] = useState(false);
@@ -41,28 +58,54 @@ const PageManagement = () => {
   }, []);
 
   useEffect(() => {
-    const filtered = pages.filter((page) =>
-      page.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    setFilteredPages(filtered);
-  }, [searchQuery, pages]);
+    if (searchQuery) {
+      const filteredPages = pages.filter((page) =>
+        page.title.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      const mainContentIdsWithMatches = new Set(
+        filteredPages.map((page) =>
+          typeof page.main_content === 'number' ? page.main_content : page.main_content.id
+        )
+      );
+      const moduleIdsWithMatches = new Set(
+        mainContents.filter((content) => mainContentIdsWithMatches.has(content.id)).map((content) => content.module)
+      );
+      const topicIdsWithMatches = new Set(
+        modules.filter((module) => moduleIdsWithMatches.has(module.id)).map((module) => module.topic)
+      );
+      setFilteredTopics(topics.filter((topic) => topicIdsWithMatches.has(topic.id)));
+      setExpandedTopics(new Set(topicIdsWithMatches));
+      setExpandedModules(new Set(moduleIdsWithMatches));
+      setExpandedMainContents(new Set(mainContentIdsWithMatches));
+    } else {
+      setFilteredTopics(topics);
+      setExpandedTopics(new Set());
+      setExpandedModules(new Set());
+      setExpandedMainContents(new Set());
+    }
+  }, [searchQuery, pages, mainContents, modules, topics]);
 
   const fetchData = async () => {
     try {
-      const [pagesRes, mainContentsRes] = await Promise.all([
+      const [pagesRes, mainContentsRes, modulesRes, topicsRes] = await Promise.all([
         api.get('/api/pages/'),
         api.get('/api/maincontents/'),
+        api.get('/api/modules/'),
+        api.get('/api/topics/'),
       ]);
-  
+
       const cleanedPages: Page[] = pagesRes.data.map((p: any) => ({
         ...p,
         title: p.title || '',
         content: p.content || '',
+        main_content: p.main_content?.id || p.main_content, // Handle nested main_content
       }));
-  
+
       setPages(cleanedPages);
-      setFilteredPages(cleanedPages);
       setMainContents(mainContentsRes.data);
+      setModules(modulesRes.data);
+      setTopics(topicsRes.data);
+      setFilteredTopics(topicsRes.data);
     } catch (error) {
       toast.error('Failed to fetch data');
     } finally {
@@ -72,20 +115,15 @@ const PageManagement = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!formData.title || !formData.content || !formData.main_content) {
       toast.error('Please fill in all required fields');
       return;
     }
-
     setSubmitting(true);
-
-    // Convert main_content to number for API request
     const payload = {
       ...formData,
       main_content: parseInt(formData.main_content),
     };
-
     try {
       if (editingPage) {
         await api.put(`/api/pages/${editingPage.id}/`, payload);
@@ -108,7 +146,7 @@ const PageManagement = () => {
     setFormData({
       title: page.title,
       content: page.content,
-      main_content: page.main_content.toString(), // Convert to string for form
+      main_content: (typeof page.main_content === 'number' ? page.main_content : page.main_content.id).toString(),
       order: page.order,
     });
     setShowForm(true);
@@ -116,7 +154,6 @@ const PageManagement = () => {
 
   const handleDelete = async (id: number) => {
     if (!confirm('Are you sure you want to delete this page?')) return;
-
     try {
       await api.delete(`/api/pages/${id}/`);
       toast.success('Page deleted successfully');
@@ -143,6 +180,74 @@ const PageManagement = () => {
     return div.innerHTML;
   };
 
+  const toggleTopic = (topicId: number) => {
+    const newExpanded = new Set(expandedTopics);
+    if (newExpanded.has(topicId)) {
+      newExpanded.delete(topicId);
+    } else {
+      newExpanded.add(topicId);
+    }
+    setExpandedTopics(newExpanded);
+  };
+
+  const toggleModule = (moduleId: number) => {
+    const newExpanded = new Set(expandedModules);
+    if (newExpanded.has(moduleId)) {
+      newExpanded.delete(moduleId);
+    } else {
+      newExpanded.add(moduleId);
+    }
+    setExpandedModules(newExpanded);
+  };
+
+  const toggleMainContent = (mainContentId: number) => {
+    const newExpanded = new Set(expandedMainContents);
+    if (newExpanded.has(mainContentId)) {
+      newExpanded.delete(mainContentId);
+    } else {
+      newExpanded.add(mainContentId);
+    }
+    setExpandedMainContents(newExpanded);
+  };
+
+  const getModulesByTopic = (topicId: number) => {
+    return modules
+      .filter((module) => module.topic === topicId)
+      .filter((module) =>
+        searchQuery
+          ? pages
+              .filter((page) =>
+                mainContents
+                  .filter((content) => content.module === module.id)
+                  .map((content) => content.id)
+                  .includes(typeof page.main_content === 'number' ? page.main_content : page.main_content.id)
+              )
+              .some((page) => page.title.toLowerCase().includes(searchQuery.toLowerCase()))
+          : true
+      )
+      .sort((a, b) => a.order - b.order);
+  };
+
+  const getMainContentsByModule = (moduleId: number) => {
+    return mainContents
+      .filter((content) => content.module === moduleId)
+      .filter((content) =>
+        searchQuery
+          ? pages
+              .filter((page) => (typeof page.main_content === 'number' ? page.main_content : page.main_content.id) === content.id)
+              .some((page) => page.title.toLowerCase().includes(searchQuery.toLowerCase()))
+          : true
+      )
+      .sort((a, b) => a.order - b.order);
+  };
+
+  const getPagesByMainContent = (mainContentId: number) => {
+    return pages
+      .filter((page) => (typeof page.main_content === 'number' ? page.main_content : page.main_content.id) === mainContentId)
+      .filter((page) => page.title.toLowerCase().includes(searchQuery.toLowerCase()))
+      .sort((a, b) => a.order - b.order);
+  };
+
   if (loading) return <Loader />;
 
   return (
@@ -162,7 +267,6 @@ const PageManagement = () => {
             Add Page
           </button>
         </div>
-
         {showForm && (
           <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
@@ -235,7 +339,6 @@ const PageManagement = () => {
             </form>
           </div>
         )}
-
         <div className="bg-white rounded-xl shadow-sm p-6">
           <div className="mb-4">
             <div className="relative">
@@ -249,62 +352,160 @@ const PageManagement = () => {
               />
             </div>
           </div>
-
-          {filteredPages.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 text-gray-700 font-semibold">ID</th>
-                    <th className="text-left py-3 px-4 text-gray-700 font-semibold">Title</th>
-                    <th className="text-left py-3 px-4 text-gray-700 font-semibold">Content Preview</th>
-                    <th className="text-left py-3 px-4 text-gray-700 font-semibold">Order</th>
-                    <th className="text-left py-3 px-4 text-gray-700 font-semibold">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredPages.map((page) => (
-                    <tr key={page.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3 px-4">{page.id}</td>
-                      <td className="py-3 px-4 font-medium">{page.title}</td>
-                      <td className="py-3 px-4">
-                        <span className="text-gray-600">
-                          {escapeHtml(page.content.substring(0, 50))}...
+          {filteredTopics.length > 0 ? (
+            <div className="space-y-4">
+              {filteredTopics.map((topic) => {
+                const topicModules = getModulesByTopic(topic.id);
+                const isTopicExpanded = expandedTopics.has(topic.id);
+                return (
+                  <div key={topic.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div
+                      onClick={() => toggleTopic(topic.id)}
+                      className="flex items-center justify-between bg-gray-50 hover:bg-gray-100 cursor-pointer p-4 transition"
+                    >
+                      <div className="flex items-center gap-3">
+                        {isTopicExpanded ? (
+                          <ChevronDown className="w-5 h-5 text-gray-600" />
+                        ) : (
+                          <ChevronRight className="w-5 h-5 text-gray-600" />
+                        )}
+                        <h3 className="text-lg font-semibold text-gray-800">{topic.name}</h3>
+                        <span className="text-sm text-gray-500 bg-white px-2 py-1 rounded">
+                          {topicModules.length} module{topicModules.length !== 1 ? 's' : ''}
                         </span>
-                      </td>
-                      <td className="py-3 px-4">{page.order}</td>
-                      <td className="py-3 px-4">
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => setPreviewContent(page.content)}
-                            className="text-blue-600 hover:text-blue-800 transition"
-                          >
-                            <Eye className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={() => handleEdit(page)}
-                            className="text-green-600 hover:text-green-800 transition"
-                          >
-                            <Edit2 className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(page.id)}
-                            className="text-red-600 hover:text-red-800 transition"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </div>
+                    </div>
+                    {isTopicExpanded && topicModules.length > 0 && (
+                      <div className="pl-6 space-y-2 py-2">
+                        {topicModules.map((module) => {
+                          const moduleMainContents = getMainContentsByModule(module.id);
+                          const isModuleExpanded = expandedModules.has(module.id);
+                          return (
+                            <div key={module.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                              <div
+                                onClick={() => toggleModule(module.id)}
+                                className="flex items-center justify-between bg-gray-100 hover:bg-gray-200 cursor-pointer p-3 transition"
+                              >
+                                <div className="flex items-center gap-3">
+                                  {isModuleExpanded ? (
+                                    <ChevronDown className="w-5 h-5 text-gray-600" />
+                                  ) : (
+                                    <ChevronRight className="w-5 h-5 text-gray-600" />
+                                  )}
+                                  <h4 className="text-md font-medium text-gray-700">{module.title}</h4>
+                                  <span className="text-sm text-gray-500 bg-white px-2 py-1 rounded">
+                                    {moduleMainContents.length} content{moduleMainContents.length !== 1 ? 's' : ''}
+                                  </span>
+                                </div>
+                              </div>
+                              {isModuleExpanded && moduleMainContents.length > 0 && (
+                                <div className="pl-6 space-y-2 py-2">
+                                  {moduleMainContents.map((mainContent) => {
+                                    const mainContentPages = getPagesByMainContent(mainContent.id);
+                                    const isMainContentExpanded = expandedMainContents.has(mainContent.id);
+                                    return (
+                                      <div key={mainContent.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                                        <div
+                                          onClick={() => toggleMainContent(mainContent.id)}
+                                          className="flex items-center justify-between bg-gray-50 hover:bg-gray-100 cursor-pointer p-3 transition"
+                                        >
+                                          <div className="flex items-center gap-3">
+                                            {isMainContentExpanded ? (
+                                              <ChevronDown className="w-5 h-5 text-gray-600" />
+                                            ) : (
+                                              <ChevronRight className="w-5 h-5 text-gray-600" />
+                                            )}
+                                            <h5 className="text-md font-medium text-gray-700">{mainContent.title}</h5>
+                                            <span className="text-sm text-gray-500 bg-white px-2 py-1 rounded">
+                                              {mainContentPages.length} page{mainContentPages.length !== 1 ? 's' : ''}
+                                            </span>
+                                          </div>
+                                        </div>
+                                        {isMainContentExpanded && mainContentPages.length > 0 && (
+                                          <div className="overflow-x-auto">
+                                            <table className="w-full">
+                                              <thead>
+                                                <tr className="border-b border-gray-200 bg-gray-50">
+                                                  <th className="text-left py-3 px-4 text-gray-700 font-semibold text-sm">ID</th>
+                                                  <th className="text-left py-3 px-4 text-gray-700 font-semibold text-sm">Title</th>
+                                                  <th className="text-left py-3 px-4 text-gray-700 font-semibold text-sm">Content Preview</th>
+                                                  <th className="text-left py-3 px-4 text-gray-700 font-semibold text-sm">Order</th>
+                                                  <th className="text-left py-3 px-4 text-gray-700 font-semibold text-sm">Actions</th>
+                                                </tr>
+                                              </thead>
+                                              <tbody>
+                                                {mainContentPages.map((page) => (
+                                                  <tr key={page.id} className="border-b border-gray-100 hover:bg-gray-50">
+                                                    <td className="py-3 px-4 text-sm">{page.id}</td>
+                                                    <td className="py-3 px-4 font-medium text-sm">{page.title}</td>
+                                                    <td className="py-3 px-4 text-sm text-gray-600">
+                                                      {escapeHtml(page.content.substring(0, 50))}...
+                                                    </td>
+                                                    <td className="py-3 px-4 text-sm">{page.order}</td>
+                                                    <td className="py-3 px-4">
+                                                      <div className="flex gap-2">
+                                                        <button
+                                                          onClick={() => setPreviewContent(page.content)}
+                                                          className="text-blue-600 hover:text-blue-800 transition"
+                                                          title="Preview"
+                                                        >
+                                                          <Eye className="w-4 h-4" />
+                                                        </button>
+                                                        <button
+                                                          onClick={() => handleEdit(page)}
+                                                          className="text-green-600 hover:text-green-800 transition"
+                                                          title="Edit"
+                                                        >
+                                                          <Edit2 className="w-4 h-4" />
+                                                        </button>
+                                                        <button
+                                                          onClick={() => handleDelete(page.id)}
+                                                          className="text-red-600 hover:text-red-800 transition"
+                                                          title="Delete"
+                                                        >
+                                                          <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                      </div>
+                                                    </td>
+                                                  </tr>
+                                                ))}
+                                              </tbody>
+                                            </table>
+                                          </div>
+                                        )}
+                                        {isMainContentExpanded && mainContentPages.length === 0 && (
+                                          <div className="p-8 text-center text-gray-500">
+                                            No pages found for this main content
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                              {isModuleExpanded && moduleMainContents.length === 0 && (
+                                <div className="p-8 text-center text-gray-500">
+                                  No main contents found for this module
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                    {isTopicExpanded && topicModules.length === 0 && (
+                      <div className="p-8 text-center text-gray-500">
+                        No modules found for this topic
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           ) : (
-            <EmptyState message="No pages found" />
+            <EmptyState message="No topics found" />
           )}
         </div>
-
         {previewContent && (
           <div
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"

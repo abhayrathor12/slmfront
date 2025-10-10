@@ -10,6 +10,7 @@ interface Module {
   title: string;
   description: string;
   difficulty_level: string;
+  time_duration: string | null; // Added time_duration
   topic: number;
   order: number;
 }
@@ -33,6 +34,7 @@ const ModuleManagement = () => {
     title: '',
     description: '',
     difficulty_level: 'beginner',
+    time_duration: '', // Added time_duration
     topic: '',
     order: 1,
   });
@@ -80,11 +82,15 @@ const ModuleManagement = () => {
     }
     setSubmitting(true);
     try {
+      const submitData = {
+        ...formData,
+        time_duration: formData.time_duration || null, // Handle empty time_duration
+      };
       if (editingId) {
-        await api.put(`/api/modules/${editingId}/`, formData);
+        await api.put(`/api/modules/${editingId}/`, submitData);
         toast.success('Module updated successfully');
       } else {
-        await api.post('/api/modules/', formData);
+        await api.post('/api/modules/', submitData);
         toast.success('Module added successfully');
       }
       resetForm();
@@ -101,6 +107,7 @@ const ModuleManagement = () => {
       title: module.title,
       description: module.description,
       difficulty_level: module.difficulty_level,
+      time_duration: module.time_duration || '', // Handle null time_duration
       topic: module.topic.toString(),
       order: module.order,
     });
@@ -124,6 +131,7 @@ const ModuleManagement = () => {
       title: '',
       description: '',
       difficulty_level: 'beginner',
+      time_duration: '',
       topic: '',
       order: 1,
     });
@@ -214,8 +222,18 @@ const ModuleManagement = () => {
                 >
                   <option value="beginner">Beginner</option>
                   <option value="intermediate">Intermediate</option>
-                  <option value="advanced">Advanced</option>
+                  <option value="hard">Hard</option> {/* Updated to match new model */}
                 </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Time Duration (HH:MM:SS)</label>
+                <input
+                  type="text"
+                  value={formData.time_duration}
+                  onChange={(e) => setFormData({ ...formData, time_duration: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  placeholder="e.g., 01:30:00"
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Order</label>
@@ -264,7 +282,6 @@ const ModuleManagement = () => {
               {filteredTopics.map((topic) => {
                 const topicModules = getModulesByTopic(topic.id);
                 const isExpanded = expandedTopics.has(topic.id);
-
                 return (
                   <div key={topic.id} className="border border-gray-200 rounded-lg overflow-hidden">
                     <div
@@ -292,6 +309,7 @@ const ModuleManagement = () => {
                               <th className="text-left py-3 px-4 text-gray-700 font-semibold text-sm">Title</th>
                               <th className="text-left py-3 px-4 text-gray-700 font-semibold text-sm">Description</th>
                               <th className="text-left py-3 px-4 text-gray-700 font-semibold text-sm">Difficulty</th>
+                              <th className="text-left py-3 px-4 text-gray-700 font-semibold text-sm">Duration</th>
                               <th className="text-left py-3 px-4 text-gray-700 font-semibold text-sm">Order</th>
                               <th className="text-left py-3 px-4 text-gray-700 font-semibold text-sm">Actions</th>
                             </tr>
@@ -310,6 +328,9 @@ const ModuleManagement = () => {
                                   <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
                                     {module.difficulty_level}
                                   </span>
+                                </td>
+                                <td className="py-3 px-4 text-sm">
+                                  {module.time_duration || 'Not set'}
                                 </td>
                                 <td className="py-3 px-4 text-sm">{module.order}</td>
                                 <td className="py-3 px-4">

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Search, Plus, Trash2, CreditCard as Edit } from 'lucide-react';
+import { Search, Plus, Trash2, Edit  } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import Loader from '../components/Loader';
 import EmptyState from '../components/EmptyState';
@@ -10,7 +10,7 @@ interface Topic {
   id: number;
   name: string;
   order: number;
-  created_at: string;
+  prize: string;
 }
 
 const TopicManagement = () => {
@@ -20,7 +20,7 @@ const TopicManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [formData, setFormData] = useState({ name: '', order: 1 });
+  const [formData, setFormData] = useState({ name: '', order: 1, prize: '' });
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -56,6 +56,11 @@ const TopicManagement = () => {
       toast.error('Order must be at least 1');
       return;
     }
+    if (!formData.prize || isNaN(Number(formData.prize))) {
+      toast.error('Please enter a valid prize amount');
+      return;
+    }
+
     setSubmitting(true);
     try {
       if (editingId) {
@@ -78,6 +83,7 @@ const TopicManagement = () => {
     setFormData({
       name: topic.name,
       order: topic.order,
+      prize: topic.prize.toString(),
     });
     setEditingId(topic.id);
     setShowForm(true);
@@ -95,7 +101,7 @@ const TopicManagement = () => {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', order: 1 });
+    setFormData({ name: '', order: 1, prize: '' });
     setEditingId(null);
     setShowForm(false);
   };
@@ -116,12 +122,14 @@ const TopicManagement = () => {
             Add Topic
           </button>
         </div>
+
         {showForm && (
           <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
               {editingId ? 'Edit Topic' : 'Add New Topic'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Topic Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Topic Name
@@ -134,6 +142,8 @@ const TopicManagement = () => {
                   placeholder="Enter topic name"
                 />
               </div>
+
+              {/* Order */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Order
@@ -142,10 +152,29 @@ const TopicManagement = () => {
                   type="number"
                   min="1"
                   value={formData.order}
-                  onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, order: parseInt(e.target.value) })
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 />
               </div>
+
+              {/* Prize */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Prize (₹)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.prize}
+                  onChange={(e) => setFormData({ ...formData, prize: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  placeholder="Enter prize amount"
+                />
+              </div>
+
               <div className="flex gap-3">
                 <button
                   type="submit"
@@ -165,6 +194,8 @@ const TopicManagement = () => {
             </form>
           </div>
         )}
+
+        {/* Table */}
         <div className="bg-white rounded-xl shadow-sm p-6">
           <div className="mb-4">
             <div className="relative">
@@ -178,6 +209,7 @@ const TopicManagement = () => {
               />
             </div>
           </div>
+
           {filteredTopics.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -186,7 +218,7 @@ const TopicManagement = () => {
                     <th className="text-left py-3 px-4 text-gray-700 font-semibold">ID</th>
                     <th className="text-left py-3 px-4 text-gray-700 font-semibold">Name</th>
                     <th className="text-left py-3 px-4 text-gray-700 font-semibold">Order</th>
-                    <th className="text-left py-3 px-4 text-gray-700 font-semibold">Created At</th>
+                    <th className="text-left py-3 px-4 text-gray-700 font-semibold">Prize (₹)</th>
                     <th className="text-left py-3 px-4 text-gray-700 font-semibold">Actions</th>
                   </tr>
                 </thead>
@@ -196,7 +228,7 @@ const TopicManagement = () => {
                       <td className="py-3 px-4">{topic.id}</td>
                       <td className="py-3 px-4 font-medium">{topic.name}</td>
                       <td className="py-3 px-4">{topic.order}</td>
-                      <td className="py-3 px-4">{new Date(topic.created_at).toLocaleDateString()}</td>
+                      <td className="py-3 px-4">₹{parseFloat(topic.prize).toFixed(2)}</td>
                       <td className="py-3 px-4">
                         <div className="flex gap-2">
                           <button

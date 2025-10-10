@@ -14,6 +14,7 @@ import ModuleDetail from './pages/ModuleDetail';
 import PageDetail from './pages/PageDetail';
 import Unauthorized from './pages/Unauthorized';
 import ProtectedRoute from './components/ProtectedRoute';
+import Registration from './pages/Registration';
 
 function App() {
   return (
@@ -33,7 +34,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
-
+        <Route path="/register" element={<Registration />} />
         <Route
           path="/admin_home"
           element={

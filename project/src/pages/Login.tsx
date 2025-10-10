@@ -237,7 +237,7 @@ const Login = () => {
           <div className="mt-6 pt-6 border-t border-gray-200">
             <p className="text-center text-sm text-gray-600">
               New to Technoviz?{' '}
-              <a href="#" className="font-semibold hover:underline transition-colors" style={{ color: '#203f78' }}>
+              <a href="/register" className="font-semibold hover:underline transition-colors" style={{ color: '#203f78' }}>
                 Create an account
               </a>
             </p>
