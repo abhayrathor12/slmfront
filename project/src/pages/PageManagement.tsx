@@ -10,14 +10,15 @@ interface Page {
   id: number;
   title: string;
   content: string;
-  main_content: number | { id: number; title: string; module: number }; // Support both number and object
+  main_content: number | { id: number; title: string; module: number };
   order: number;
+  time_duration: number;
 }
-
 interface MainContent {
   id: number;
   title: string;
-  module: number;
+  module: number; // Changed to number (primary key)
+  module_detail: { id: number; title: string }; // Added for module details
 }
 
 interface Module {
@@ -50,6 +51,7 @@ const PageManagement = () => {
     content: '',
     main_content: '',
     order: 1,
+    time_duration: 0,
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -68,7 +70,7 @@ const PageManagement = () => {
         )
       );
       const moduleIdsWithMatches = new Set(
-        mainContents.filter((content) => mainContentIdsWithMatches.has(content.id)).map((content) => content.module)
+        mainContents.filter((content) => mainContentIdsWithMatches.has(content.id)).map((content) => content.module_detail.id) // Use module_detail.id
       );
       const topicIdsWithMatches = new Set(
         modules.filter((module) => moduleIdsWithMatches.has(module.id)).map((module) => module.topic)
@@ -93,14 +95,13 @@ const PageManagement = () => {
         api.get('/api/modules/'),
         api.get('/api/topics/'),
       ]);
-
       const cleanedPages: Page[] = pagesRes.data.map((p: any) => ({
         ...p,
         title: p.title || '',
         content: p.content || '',
-        main_content: p.main_content?.id || p.main_content, // Handle nested main_content
+        main_content: p.main_content?.id || p.main_content,
+        time_duration: p.time_duration || 0,
       }));
-
       setPages(cleanedPages);
       setMainContents(mainContentsRes.data);
       setModules(modulesRes.data);
@@ -123,6 +124,7 @@ const PageManagement = () => {
     const payload = {
       ...formData,
       main_content: parseInt(formData.main_content),
+      time_duration: parseInt(formData.time_duration.toString()),
     };
     try {
       if (editingPage) {
@@ -148,6 +150,7 @@ const PageManagement = () => {
       content: page.content,
       main_content: (typeof page.main_content === 'number' ? page.main_content : page.main_content.id).toString(),
       order: page.order,
+      time_duration: page.time_duration,
     });
     setShowForm(true);
   };
@@ -169,6 +172,7 @@ const PageManagement = () => {
       content: '',
       main_content: '',
       order: 1,
+      time_duration: 0,
     });
     setShowForm(false);
     setEditingPage(null);
@@ -218,7 +222,7 @@ const PageManagement = () => {
           ? pages
               .filter((page) =>
                 mainContents
-                  .filter((content) => content.module === module.id)
+                  .filter((content) => content.module_detail.id === module.id) // Use module_detail.id
                   .map((content) => content.id)
                   .includes(typeof page.main_content === 'number' ? page.main_content : page.main_content.id)
               )
@@ -230,7 +234,7 @@ const PageManagement = () => {
 
   const getMainContentsByModule = (moduleId: number) => {
     return mainContents
-      .filter((content) => content.module === moduleId)
+      .filter((content) => content.module_detail.id === moduleId) // Use module_detail.id
       .filter((content) =>
         searchQuery
           ? pages
@@ -251,11 +255,11 @@ const PageManagement = () => {
   if (loading) return <Loader />;
 
   return (
-    <div className="flex">
+    <div className="flex min-h-screen">
       <Sidebar />
-      <div className="flex-1 p-8 bg-gray-50 min-h-screen">
+      <div className="flex-1 lg:ml-64 pt-16 lg:pt-0 p-4 md:p-6 lg:p-8 bg-gray-50 min-h-screen overflow-y-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">Page Management</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6 md:mb-8 mt-4">Page Management</h1>
           <button
             onClick={() => {
               setEditingPage(null);
@@ -285,8 +289,8 @@ const PageManagement = () => {
                   <option value="">Select a main content</option>
                   {mainContents.map((content) => (
                     <option key={content.id} value={content.id}>
-                      {content.title}
-                    </option>
+                    {content.title} || Module: {content.module_detail.title} 
+                  </option>
                   ))}
                 </select>
               </div>
@@ -318,6 +322,17 @@ const PageManagement = () => {
                   value={formData.order}
                   onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Time Duration (minutes)</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={formData.time_duration}
+                  onChange={(e) => setFormData({ ...formData, time_duration: parseInt(e.target.value) })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  placeholder="Enter duration in minutes"
                 />
               </div>
               <div className="flex gap-3">
@@ -430,6 +445,7 @@ const PageManagement = () => {
                                                   <th className="text-left py-3 px-4 text-gray-700 font-semibold text-sm">Title</th>
                                                   <th className="text-left py-3 px-4 text-gray-700 font-semibold text-sm">Content Preview</th>
                                                   <th className="text-left py-3 px-4 text-gray-700 font-semibold text-sm">Order</th>
+                                                  <th className="text-left py-3 px-4 text-gray-700 font-semibold text-sm">Duration (min)</th>
                                                   <th className="text-left py-3 px-4 text-gray-700 font-semibold text-sm">Actions</th>
                                                 </tr>
                                               </thead>
@@ -442,6 +458,7 @@ const PageManagement = () => {
                                                       {escapeHtml(page.content.substring(0, 50))}...
                                                     </td>
                                                     <td className="py-3 px-4 text-sm">{page.order}</td>
+                                                    <td className="py-3 px-4 text-sm">{page.time_duration}</td>
                                                     <td className="py-3 px-4">
                                                       <div className="flex gap-2">
                                                         <button

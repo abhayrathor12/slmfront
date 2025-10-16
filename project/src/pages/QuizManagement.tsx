@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Trash2, Edit2, BookOpen, ArrowLeft } from 'lucide-react';
+import { Plus,Save, Trash2, Edit2, BookOpen, ArrowLeft } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import Loader from '../components/Loader';
 import api from '../utils/api';
@@ -8,6 +8,8 @@ import { toast } from 'react-toastify';
 interface MainContent {
   id: number;
   title: string;
+  module: number;
+  module_detail: { id: number; title: string };
 }
 
 interface Choice {
@@ -186,7 +188,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   return (
     <div className="flex">
       <Sidebar />
-      <div className="flex-1 p-8 bg-gray-50 min-h-screen">
+      <div className="ml-64  flex-1 p-8 bg-gray-50 min-h-screen overflow-y-auto">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
             {selectedMainContent && (
@@ -204,21 +206,32 @@ const handleSubmit = async (e: React.FormEvent) => {
           </div>
           {!selectedMainContent ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {mainContents.map((content) => (
+                {mainContents.map((content) => (
                 <div
                   key={content.id}
                   onClick={() => handleMainContentSelect(content)}
-                  className="bg-white rounded-xl shadow-sm p-6 cursor-pointer hover:shadow-md transition-all duration-200 border-2 border-transparent hover:border-blue-500"
+                  className="group relative bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-md p-6 cursor-pointer hover:shadow-xl transition-all duration-300 border border-blue-100 hover:border-blue-300 hover:scale-105 overflow-hidden"
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 bg-blue-100 rounded-lg">
-                      <BookOpen className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                        {content.title}
-                      </h3>
-                      <p className="text-sm text-gray-500">Click to manage quiz</p>
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-blue-200 rounded-full opacity-20 -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500"></div>
+                  <div className="relative z-10">
+                    <div className="flex items-start gap-4">
+                      <div className="p-3 bg-[#203f78] rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                        <BookOpen className="w-6 h-6 text-white bg-[#203f78]" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg font-bold text-gray-800 mb-2 group-hover:text-blue-700 transition-colors">
+                          {content.title}
+                        </h3>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="px-3 py-1 bg-white rounded-full text-xs font-semibold text-blue-600 shadow-sm">
+                            {content.module_detail.title}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 font-medium flex items-center gap-1">
+                          <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                          Click to manage quiz
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -298,8 +311,8 @@ const handleSubmit = async (e: React.FormEvent) => {
                         disabled={submitting}
                         className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
                       >
-                        {editingQuestion ? <Edit2 className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
-                        {submitting ? 'Saving...' : editingQuestion ? 'Update Question' : 'Add Question'}
+                        {editingQuestion ? <Edit2 className="w-5 h-5" /> : <Save className="w-5 h-5" />}
+                        {submitting ? 'Saving...' : editingQuestion ? 'Update Question' : 'Save  Question'}
                       </button>
                       <button
                         type="button"

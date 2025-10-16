@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronDown, ChevronUp, CheckCircle, FileText, ClipboardList, Award, Trophy, Target } from 'lucide-react';
+import { ChevronDown, ChevronUp, CheckCircle, FileText, ClipboardList, Award, Trophy, Target, Clock } from 'lucide-react';
 import api from '../utils/api';
 import { toast } from 'react-toastify';
 import Navbar from '../components/navbar';
 
-// Define interfaces for type safety
 interface Page {
   id: number;
   title: string;
   order: number;
   completed: boolean;
+  formatted_duration: string;
 }
 
 interface MainContent {
@@ -22,6 +22,7 @@ interface MainContent {
   has_quiz: boolean;
   completed: boolean;
   quizId?: number;
+  formatted_duration: string;
 }
 
 interface Module {
@@ -30,6 +31,7 @@ interface Module {
   description: string;
   difficulty_level: string;
   main_contents: MainContent[];
+  formatted_duration: string;
 }
 
 interface User {
@@ -63,14 +65,11 @@ const ModuleDetail = () => {
       setLoading(true);
       const response = await api.get(`/api/modules/${id}/`);
       const moduleData = response.data;
-
-      // For each main_content, check if it has a quiz
       const updatedContents = await Promise.all(
         moduleData.main_contents.map(async (content: MainContent) => {
           try {
             const quizRes = await api.get(`/api/quizzes/?main_content=${content.id}`);
             if (quizRes.data && quizRes.data.length > 0) {
-              // If quiz exists, attach quizId
               return { ...content, quizId: quizRes.data[0].id, has_quiz: true };
             }
           } catch (err) {
@@ -79,7 +78,6 @@ const ModuleDetail = () => {
           return content;
         })
       );
-
       setModule({ ...moduleData, main_contents: updatedContents });
     } catch (error) {
       toast.error('Failed to fetch module');
@@ -107,15 +105,14 @@ const ModuleDetail = () => {
   };
 
   const handleQuizClick = (content: MainContent) => {
-    // Navigate to the last page of the main content with a flag to show the quiz
     const lastPage = content.pages.sort((a, b) => a.order - b.order)[content.pages.length - 1];
     if (lastPage && content.quizId) {
-      navigate(`/page/${lastPage.id}`, { 
-        state: { 
-          moduleId: module?.id, 
-          showQuiz: true, 
-          mainContentId: content.id 
-        } 
+      navigate(`/page/${lastPage.id}`, {
+        state: {
+          moduleId: module?.id,
+          showQuiz: true,
+          mainContentId: content.id
+        }
       });
     } else {
       toast.error('No quiz or pages available for this content');
@@ -170,20 +167,16 @@ const ModuleDetail = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      {/* Navbar */}
-      <Navbar 
-        user={user} 
-        handleLogout={handleLogout} 
+      <Navbar
+        user={user}
+        handleLogout={handleLogout}
         showBackButton={true}
         onBackClick={() => navigate('/user_home')}
       />
-
-      {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="rounded-3xl mt-6 p-6 sm:p-8 shadow-lg border border-opacity-20 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #203f78 0%, #2d5aa0 100%)', borderColor: '#ffffff' }}>
           <div className="absolute top-0 right-0 w-96 h-96 bg-white opacity-5 rounded-full -mr-48 -mt-48"></div>
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-white opacity-5 rounded-full -ml-32 -mb-32"></div>
-         
           <div className="relative z-10">
             <div className="flex flex-col md:flex-row justify-between items-start gap-6 mb-6">
               <div className="flex-1 w-full">
@@ -194,6 +187,10 @@ const ModuleDetail = () => {
                   <div className="flex items-center gap-2 bg-white bg-opacity-20 backdrop-blur-sm rounded-lg px-3 py-1.5 border border-white border-opacity-30">
                     <Target className="w-4 h-4 text-white" />
                     <span className="text-xs font-semibold text-white">{totalContents} Sections</span>
+                  </div>
+                  <div className="flex items-center gap-2 bg-white bg-opacity-20 backdrop-blur-sm rounded-lg px-3 py-1.5 border border-white border-opacity-30">
+                    <Clock className="w-4 h-4 text-white" />
+                    <span className="text-xs font-semibold text-white">{module.formatted_duration}</span>
                   </div>
                 </div>
                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3">{module.title}</h1>
@@ -209,7 +206,6 @@ const ModuleDetail = () => {
                 </div>
               </div>
             </div>
-            {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-4 border border-white border-opacity-20">
                 <div className="flex items-center gap-3 mb-2">
@@ -239,7 +235,6 @@ const ModuleDetail = () => {
                 <p className="text-sm font-medium text-blue-100">Knowledge Checks</p>
               </div>
             </div>
-            {/* Progress Bar */}
             <div className="mt-6">
               <div className="flex justify-between items-center text-sm text-white mb-2">
                 <span className="font-medium">Overall Progress</span>
@@ -258,8 +253,6 @@ const ModuleDetail = () => {
           </div>
         </div>
       </div>
-
-      {/* Content Sections */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
           <h2 className="text-xl sm:text-2xl font-bold mb-2" style={{ color: '#203f78' }}>Course Content</h2>
@@ -278,7 +271,6 @@ const ModuleDetail = () => {
                 key={content.id}
                 className="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all overflow-hidden border border-gray-100"
               >
-                {/* Section Header */}
                 <div
                   onClick={() => toggleContent(content.id)}
                   className="flex items-start sm:items-center justify-between p-4 sm:p-6 cursor-pointer hover:bg-gray-50 transition gap-3"
@@ -317,6 +309,10 @@ const ModuleDetail = () => {
                         <span className="flex items-center gap-1">
                           <CheckCircle className="w-3 h-3" />
                           {completedPagesInContent} completed
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {content.formatted_duration}
                         </span>
                       </div>
                     </div>
@@ -376,7 +372,7 @@ const ModuleDetail = () => {
                       </div>
                     </div>
                     <div className="md:hidden">
-                      <span className="text-xs font-bold px-2 py-1 rounded-lg" style={{ 
+                      <span className="text-xs font-bold px-2 py-1 rounded-lg" style={{
                         color: content.completed ? '#10b981' : '#203f78',
                         backgroundColor: content.completed ? '#d1fae5' : '#f0f5ff'
                       }}>
@@ -390,7 +386,6 @@ const ModuleDetail = () => {
                     )}
                   </div>
                 </div>
-                {/* Expanded Content */}
                 {isExpanded && (
                   <div className="border-t border-gray-200 bg-gray-50 p-4 sm:p-6 space-y-2">
                     {content.pages.map((page, pageIndex) => (
@@ -413,9 +408,17 @@ const ModuleDetail = () => {
                             </div>
                           )}
                         </div>
-                        <span className="font-medium text-sm sm:text-base text-gray-800 flex-1 group-hover:text-opacity-80 transition-colors break-words" style={{ color: page.completed ? '#10b981' : '#203f78' }}>
-                          {page.title || `Lesson ${pageIndex + 1}`}
-                        </span>
+                        <div className="flex-1 min-w-0">
+                          <span className="font-medium text-sm sm:text-base text-gray-800 group-hover:text-opacity-80 transition-colors break-words" style={{ color: page.completed ? '#10b981' : '#203f78' }}>
+                            {page.title || `Lesson ${pageIndex + 1}`}
+                          </span>
+                          <div className="text-xs text-gray-500 mt-1">
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {page.formatted_duration}
+                            </span>
+                          </div>
+                        </div>
                         {page.completed && (
                           <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg flex-shrink-0">
                             Completed
@@ -440,7 +443,6 @@ const ModuleDetail = () => {
                     )}
                   </div>
                 )}
-                {/* Progress Bar at Bottom */}
                 <div className="h-1.5 bg-gray-100">
                   <div
                     className="h-full transition-all duration-500"

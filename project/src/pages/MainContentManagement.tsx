@@ -10,7 +10,8 @@ interface MainContent {
   id: number;
   title: string;
   description: string;
-  module: number;
+  module: number; // Changed to number (primary key)
+  module_detail: { id: number; title: string }; // Added for module details
   order: number;
 }
 
@@ -53,7 +54,7 @@ const MainContentManagement = () => {
       const filteredMainContents = mainContents.filter((content) =>
         content.title.toLowerCase().includes(searchQuery.toLowerCase())
       );
-      const moduleIdsWithMatches = new Set(filteredMainContents.map((content) => content.module));
+      const moduleIdsWithMatches = new Set(filteredMainContents.map((content) => content.module_detail.id)); // Use module_detail.id
       const topicIdsWithMatches = new Set(
         modules.filter((module) => moduleIdsWithMatches.has(module.id)).map((module) => module.topic)
       );
@@ -66,7 +67,6 @@ const MainContentManagement = () => {
       setExpandedModules(new Set());
     }
   }, [searchQuery, mainContents, modules, topics]);
-
   const fetchData = async () => {
     try {
       const [mainContentsRes, modulesRes, topicsRes] = await Promise.all([
@@ -113,7 +113,7 @@ const MainContentManagement = () => {
     setFormData({
       title: content.title,
       description: content.description,
-      module: content.module.toString(),
+      module: content.module.toString(), // Use module (primary key)
       order: content.order,
     });
     setEditingId(content.id);
@@ -177,7 +177,7 @@ const MainContentManagement = () => {
 
   const getMainContentsByModule = (moduleId: number) => {
     return mainContents
-      .filter((content) => content.module === moduleId)
+      .filter((content) => content.module_detail.id === moduleId) // Use module_detail.id
       .filter((content) => content.title.toLowerCase().includes(searchQuery.toLowerCase()))
       .sort((a, b) => a.order - b.order);
   };
@@ -185,11 +185,11 @@ const MainContentManagement = () => {
   if (loading) return <Loader />;
 
   return (
-    <div className="flex">
+    <div className="flex min-h-screen">
       <Sidebar />
-      <div className="flex-1 p-8 bg-gray-50 min-h-screen">
+      <div className="flex-1 lg:ml-64 pt-16 lg:pt-0 p-4 md:p-6 lg:p-8 bg-gray-50 min-h-screen overflow-y-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">MainContent Management</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6 md:mb-8 mt-4">MainContent Management</h1>
           <button
             onClick={() => setShowForm(!showForm)}
             className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"

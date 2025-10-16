@@ -13,7 +13,7 @@ interface Module {
   difficulty_level: string;
   topic: number;
   order: number;
-  time_duration?: string;
+  formatted_duration: string;
   completion_percentage?: number;
   main_contents?: {
     pages?: {
@@ -99,7 +99,7 @@ const StudentHome = () => {
           ...m,
           difficulty_level: m.difficulty_level || '',
           completion_percentage: m.completion_percentage || 0,
-          time_duration: m.time_duration || '',
+          time_duration: m.formatted_duration || '',
         }))
       );
 
@@ -110,7 +110,7 @@ const StudentHome = () => {
             ...m,
             difficulty_level: m.difficulty_level || '',
             completion_percentage: m.completion_percentage || 0,
-            time_duration: m.time_duration || '',
+            time_duration: m.formatted_duration || '',
           }))
           .sort((a: Module, b: Module) => a.order - b.order),
       }));

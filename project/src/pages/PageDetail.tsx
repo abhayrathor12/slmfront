@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, CheckCircle, FileText, Award, Target, Trophy, Menu, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, FileText, Award, Target, Trophy, Menu, X, Clock } from 'lucide-react';
 import Loader from '../components/Loader';
 import api from '../utils/api';
 import { toast } from 'react-toastify';
@@ -12,9 +12,18 @@ interface Page {
   title: string;
   content: string;
   order: number;
-  main_content: { id: number };
   completed: boolean;
+  formatted_duration: string;
+  main_content: {
+    id: number;
+    module?: number; // optional (if backend sometimes gives just module ID)
+    module_detail?: {
+      id: number;
+      title: string;
+    };
+  };
 }
+
 
 interface Choice {
   id: number;
@@ -81,7 +90,7 @@ const PageDetail = () => {
     try {
       const response = await api.get(`/pages/${id}/`);
       setPage(response.data);
-
+      console.log(response.data);
       const allPagesRes = await api.get(`/api/pages/`);
       const relatedPages = allPagesRes.data
         .filter((p: Page) => p.main_content.id === response.data.main_content.id)
@@ -139,6 +148,7 @@ const PageDetail = () => {
   const handleIframeLoad = () => {
     const iframe = iframeRef.current;
     if (iframe && iframe.contentWindow && iframe.contentDocument) {
+      iframe.style.height = 'auto';
       const doc = iframe.contentDocument;
       iframe.style.height = doc?.body.scrollHeight + 20 + "px";
     }
@@ -209,13 +219,13 @@ const PageDetail = () => {
   const handleBack = () => {
     if (moduleId) {
       navigate(`/module/${moduleId}`);
-    } else if (page?.main_content?.id) {
-      navigate(`/module/${page.main_content.id}`);
+    } else if (page?.main_content?.module_detail?.id || page?.main_content?.module) {
+      navigate(`/module/${page.main_content.module_detail?.id || page.main_content.module}`);
     } else {
       navigate(-1);
     }
   };
-
+  
   const handleSidebarItemClick = (pageId: number) => {
     navigate(`/page/${pageId}`, { state: { moduleId } });
     setShowQuiz(false);
@@ -296,10 +306,11 @@ const PageDetail = () => {
                 <span className={`text-xs md:text-sm font-semibold block truncate ${
                   activeItem === p.id ? 'text-gray-900' : p.completed ? 'text-emerald-700' : 'text-gray-700'
                 }`}>
-                  {p.title || ` ${index + 1}`}
+                  {p.title || `Lesson ${index + 1}`}
                 </span>
-                <span className="text-xs text-gray-500">
-                  {index + 1}
+                <span className="text-xs text-gray-500 flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  {p.formatted_duration} {/* Display formatted_duration */}
                 </span>
               </div>
             </div>
@@ -392,7 +403,13 @@ const PageDetail = () => {
                       <span className="text-xs sm:text-sm font-semibold px-2 sm:px-3 py-1 rounded-lg" style={{ backgroundColor: '#203f78', color: 'white' }}>
                         {currentIndex + 1}
                       </span>
-                      <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{page.title}</h1>
+                      <div>
+                        <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{page.title}</h1>
+                        <span className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                          <Clock className="w-3 h-3" />
+                          {page.formatted_duration} {/* Display formatted_duration */}
+                        </span>
+                      </div>
                     </div>
                     {page.completed && (
                       <div className="flex items-center gap-2 bg-emerald-100 text-emerald-700 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-emerald-300">

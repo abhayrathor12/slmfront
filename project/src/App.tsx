@@ -15,7 +15,7 @@ import PageDetail from './pages/PageDetail';
 import Unauthorized from './pages/Unauthorized';
 import ProtectedRoute from './components/ProtectedRoute';
 import Registration from './pages/Registration';
-
+import PageDesign from './pages/page_design';
 function App() {
   return (
     <BrowserRouter>
@@ -40,6 +40,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+         <Route
+          path="/page_design"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <PageDesign />
             </ProtectedRoute>
           }
         />
