@@ -10,7 +10,7 @@ interface Module {
   title: string;
   description: string;
   difficulty_level: string;
-  time_duration: string | null; // Added time_duration
+  time_duration: string | null;
   topic: number;
   order: number;
 }
@@ -34,7 +34,6 @@ const ModuleManagement = () => {
     title: '',
     description: '',
     difficulty_level: 'beginner',
-    time_duration: '', // Added time_duration
     topic: '',
     order: 1,
   });
@@ -84,7 +83,6 @@ const ModuleManagement = () => {
     try {
       const submitData = {
         ...formData,
-        time_duration: formData.time_duration || null, // Handle empty time_duration
       };
       if (editingId) {
         await api.put(`/api/modules/${editingId}/`, submitData);
@@ -107,7 +105,6 @@ const ModuleManagement = () => {
       title: module.title,
       description: module.description,
       difficulty_level: module.difficulty_level,
-      time_duration: module.time_duration || '', // Handle null time_duration
       topic: module.topic.toString(),
       order: module.order,
     });
@@ -131,7 +128,6 @@ const ModuleManagement = () => {
       title: '',
       description: '',
       difficulty_level: 'beginner',
-      time_duration: '',
       topic: '',
       order: 1,
     });
@@ -222,18 +218,8 @@ const ModuleManagement = () => {
                 >
                   <option value="beginner">Beginner</option>
                   <option value="intermediate">Intermediate</option>
-                  <option value="hard">Hard</option> {/* Updated to match new model */}
+                  <option value="hard">Hard</option>
                 </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Time Duration (HH:MM:SS)</label>
-                <input
-                  type="text"
-                  value={formData.time_duration}
-                  onChange={(e) => setFormData({ ...formData, time_duration: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                  placeholder="e.g., 01:30:00"
-                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Order</label>

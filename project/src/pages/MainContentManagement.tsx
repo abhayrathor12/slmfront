@@ -67,6 +67,7 @@ const MainContentManagement = () => {
       setExpandedModules(new Set());
     }
   }, [searchQuery, mainContents, modules, topics]);
+
   const fetchData = async () => {
     try {
       const [mainContentsRes, modulesRes, topicsRes] = await Promise.all([
@@ -212,10 +213,16 @@ const MainContentManagement = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 >
                   <option value="">Select a module</option>
-                  {modules.map((module) => (
-                    <option key={module.id} value={module.id}>
-                      {module.title}
-                    </option>
+                  {topics.map((topic) => (
+                    <optgroup key={topic.id} label={topic.name}>
+                      {modules
+                        .filter((module) => module.topic === topic.id)
+                        .map((module) => (
+                          <option key={module.id} value={module.id}>
+                            {module.title}
+                          </option>
+                        ))}
+                    </optgroup>
                   ))}
                 </select>
               </div>

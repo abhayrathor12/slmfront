@@ -287,10 +287,20 @@ const PageManagement = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 >
                   <option value="">Select a main content</option>
-                  {mainContents.map((content) => (
-                    <option key={content.id} value={content.id}>
-                    {content.title} || Module: {content.module_detail.title} 
-                  </option>
+                  {topics.map((topic) => (
+                    <optgroup key={topic.id} label={topic.name}>
+                      {modules
+                        .filter((module) => module.topic === topic.id)
+                        .map((module) =>
+                          mainContents
+                            .filter((content) => content.module_detail.id === module.id)
+                            .map((content) => (
+                              <option key={content.id} value={content.id}>
+                                {module.title} → {content.title}
+                              </option>
+                            ))
+                        )}
+                    </optgroup>
                   ))}
                 </select>
               </div>
