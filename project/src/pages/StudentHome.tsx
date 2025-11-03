@@ -386,7 +386,7 @@ const StudentHome = () => {
                       </div>
                       <div className="flex-1 h-px bg-gray-200"></div>
                       <span className="text-sm text-gray-500 font-medium">
-                        {topicModules.length} {topicModules.length === 1 ? 'course' : 'courses'}
+                        {topicModules.length} {topicModules.length === 1 ? 'Module' : 'Modules'}
                       </span>
                     </div>
 
