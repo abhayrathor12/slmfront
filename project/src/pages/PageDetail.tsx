@@ -60,6 +60,8 @@ const PageDetail = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [activeItem, setActiveItem] = useState<string | number | null>(null);
+  const [quizResults, setQuizResults] = useState<any>(null);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
   const moduleId = location.state?.moduleId;
 
@@ -179,25 +181,28 @@ const PageDetail = () => {
 
   const handleSubmitQuiz = async () => {
     if (!quiz || !page) return;
-
+  
     if (Object.keys(answers).length < quiz.questions.length) {
       toast.error('Please answer all questions');
       return;
     }
-
+  
     setSubmitting(true);
-
+    setHasSubmitted(true);
+  
     try {
       const response = await api.post(`/api/quizzes/${quiz.id}/submit/`, { answers });
-
+  
+      setQuizResults(response.data); // Save full result
+  
       if (response.data.passed) {
-        toast.success(`Quiz passed! Score: ${response.data.score}%`);
+        toast.success(`Quiz passed! Score: ${response.data.percentage}%`);
         await completeMainContent();
       } else {
-        toast.error(`Quiz failed. Score: ${response.data.score}%. Please try again.`);
+        toast.error(`Quiz failed. Score: ${response.data.percentage}%. Review your answers below.`);
       }
-    } catch (error) {
-      toast.error('Failed to submit quiz');
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || 'Failed to submit quiz');
     } finally {
       setSubmitting(false);
     }
@@ -500,66 +505,139 @@ const PageDetail = () => {
                   </div>
                 </div>
 
+                
                 {/* Quiz Content */}
-                <div className="p-4 sm:p-6 lg:p-8">
-                  <div className="space-y-4 sm:space-y-6">
-                    {quiz?.questions.map((question, index) => (
-                      <div key={question.id} className="border-2 border-gray-200 rounded-lg lg:rounded-xl p-4 sm:p-6 bg-gray-50 hover:border-gray-300 transition-all">
-                        <div className="flex items-start gap-2 sm:gap-3 mb-4">
-                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#203f78' }}>
-                            <span className="text-white font-bold text-sm sm:text-base">{index + 1}</span>
-                          </div>
-                          <h3 className="font-semibold text-gray-900 text-base sm:text-lg">
-                            {question.text}
-                          </h3>
-                        </div>
+{/* Quiz Content */}
+<div className="p-4 sm:p-6 lg:p-8">
+  <div className="space-y-4 sm:space-y-6">
+    {quiz?.questions.map((question, index) => {
+      const result = quizResults?.results?.find((r: any) => r.question_id === question.id);
+      const userAnswerId = answers[question.id];
+      const isSubmitted = hasSubmitted && result;
 
-                        <div className="space-y-2 sm:space-y-3 ml-0 sm:ml-11">
-                          {question.choices.map((choice) => (
-                            <label 
-                              key={choice.id}
-                              className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 border-2 rounded-lg lg:rounded-xl cursor-pointer transition-all ${
-                                answers[question.id] === String(choice.id)
-                                  ? 'border-2 shadow-md'
-                                  : 'border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300'
-                              }`}
-                              style={answers[question.id] === String(choice.id) ? {
-                                borderColor: '#203f78',
-                                backgroundColor: '#f0f5ff'
-                              } : {}}
-                            >
-                              <input
-                                type="radio"
-                                name={`question-${question.id}`}
-                                value={choice.id}
-                                checked={answers[question.id] === String(choice.id)}
-                                onChange={() =>
-                                  setAnswers({ ...answers, [question.id]: String(choice.id) })
-                                }
-                                className="w-4 h-4 sm:w-5 sm:h-5"
-                                style={{ accentColor: '#203f78' }}
-                              />
-                              <span className={`font-medium text-sm sm:text-base ${
-                                answers[question.id] === String(choice.id) ? 'text-gray-900' : 'text-gray-700'
-                              }`}>
-                                {choice.text}
-                              </span>
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+      return (
+        <div
+          key={question.id}
+          className={`border-2 rounded-lg lg:rounded-xl p-4 sm:p-6 transition-all ${
+            isSubmitted
+              ? result.is_correct
+                ? 'border-emerald-500 bg-emerald-50'
+                : 'border-red-500 bg-red-50'
+              : 'border-gray-200 bg-gray-50 hover:border-gray-300'
+          }`}
+        >
+          {/* Question Header */}
+          <div className="flex items-start gap-2 sm:gap-3 mb-4">
+            <div
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: '#203f78' }}
+            >
+              <span className="text-white font-bold text-sm sm:text-base">{index + 1}</span>
+            </div>
+            <h3 className="font-semibold text-gray-900 text-base sm:text-lg">{question.text}</h3>
+          </div>
 
-                  <button
-                    onClick={handleSubmitQuiz}
-                    disabled={submitting || Object.keys(answers).length < quiz.questions.length}
-                    className="mt-6 sm:mt-8 w-full py-3 sm:py-4 rounded-lg lg:rounded-xl font-bold text-base sm:text-lg text-white transition-all hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                    style={{ background: 'linear-gradient(135deg, #203f78 0%, #2d5aa0 100%)' }}
+          {/* Choices */}
+          <div className="space-y-2 sm:space-y-3 ml-0 sm:ml-11">
+            {question.choices.map((choice) => {
+              const isUserAnswer = String(userAnswerId) === String(choice.id);
+              const isCorrect = choice.is_correct;
+
+              // Show green only if user picked the correct one
+              const showCorrect = isSubmitted && isUserAnswer && isCorrect;
+              // Show red only if user picked a wrong one
+              const showWrong = isSubmitted && isUserAnswer && !isCorrect;
+
+              return (
+                <label
+                  key={choice.id}
+                  className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 border-2 rounded-btn-lg lg:rounded-xl cursor-pointer transition-all ${
+                    showCorrect
+                      ? 'border-emerald-500 bg-emerald-100'
+                      : showWrong
+                      ? 'border-red-500 bg-red-100'
+                      : isUserAnswer && !hasSubmitted
+                      ? 'border-2 shadow-md bg-blue-50 border-blue-500'
+                      : 'border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name={`question-${question.id}`}
+                    value={choice.id}
+                    checked={String(answers[question.id]) === String(choice.id)}
+                    onChange={() => !hasSubmitted && setAnswers({ ...answers, [question.id]: String(choice.id) })}
+                    disabled={hasSubmitted}
+                    className="w-4 h-4 sm:w-5 sm:h-5"
+                    style={{ accentColor: '#203f78' }}
+                  />
+                  <span
+                    className={`font-medium text-sm sm:text-base flex items-center gap-2 ${
+                      showCorrect ? 'text-emerald-700' :
+                      showWrong ? 'text-red-700' :
+                      isUserAnswer && !hasSubmitted ? 'text-blue-700' : 'text-gray-700'
+                    }`}
                   >
-                    {submitting ? 'Submitting...' : 'Submit Quiz'}
-                  </button>
-                </div>
+                    {choice.text}
+                    {showCorrect && <CheckCircle className="w-4 h-4 text-emerald-600" />}
+                    {showWrong && <X className="w-4 h-4 text-red-600" />}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+
+          {/* NO correct-answer text – removed completely */}
+        </div>
+      );
+    })}
+  </div>
+
+  {/* Buttons – ONE button at a time */}
+  {hasSubmitted ? (
+    <div className="mt-6 sm:mt-8 flex flex-col gap-3">
+      {/* Try Again – only on failure */}
+      {quizResults && !quizResults.passed && (
+        <button
+          onClick={() => {
+            setAnswers({});
+            setHasSubmitted(false);
+            setQuizResults(null);
+          }}
+          className="w-full py-3 rounded-lg font-bold text-white transition-all hover:shadow-lg"
+          style={{ background: '#203f78' }}
+        >
+          Try Again
+        </button>
+      )}
+
+      {/* Back to Lessons – only on pass */}
+      {quizResults && quizResults.passed && (
+        <button
+          onClick={() => {
+            setShowQuiz(false);
+            setHasSubmitted(false);
+            setAnswers({});
+            setQuizResults(null);
+            setActiveItem(null);
+          }}
+          className="w-full py-3 rounded-lg bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition"
+        >
+          Back to Lessons
+        </button>
+      )}
+    </div>
+  ) : (
+    <button
+      onClick={handleSubmitQuiz}
+      disabled={submitting || Object.keys(answers).length < quiz.questions.length}
+      className="mt-6 sm:mt-8 w-full py-3 sm:py-4 rounded-lg lg:rounded-xl font-bold text-base sm:text-lg text-white transition-all hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+      style={{ background: 'linear-gradient(135deg, #203f78 0%, #2d5aa0 100%)' }}
+    >
+      {submitting ? 'Submitting...' : 'Submit Quiz'}
+    </button>
+  )}
+</div>
               </div>
             )}
           </div>

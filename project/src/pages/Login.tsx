@@ -36,15 +36,12 @@ const Login = () => {
 
       toast.success('Login successful!');
 
-      const role = user.role || user.user_type || 'student';
-
-      if (role === 'admin') {
-        navigate('/admin_home');
-      } else if (role === 'instructor') {
-        navigate('/instructor_home');
-      } else {
-        navigate('/user_home');
-      }
+      setTimeout(() => {
+        const role = user.role || user.user_type || 'student';
+        if (role === 'admin') navigate('/admin_home');
+        else if (role === 'instructor') navigate('/instructor_home');
+        else navigate('/user_home');
+      }, 300); // short 300ms delay
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Invalid credentials');
     } finally {
