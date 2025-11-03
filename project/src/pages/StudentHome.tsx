@@ -363,98 +363,117 @@ const StudentHome = () => {
           <p className="text-gray-600">Choose content that aligns with your goals and skill level</p>
         </div>
 
-        {/* Modules Grid */}
+        {/* Modules Grouped by Topic */}
         {filteredModules.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredModules.map((module) => {
-              const topic = topics.find((t) => t.modules.some((m) => m.id === module.id));
-              const isCompleted = module.completion_percentage === 100;
-              const isInProgress =
-                module.main_contents?.some((mc) => mc.pages?.some((page) => page.completed)) && !isCompleted;
-              const isNotStarted = !isCompleted && !isInProgress;
+          <div className="space-y-8">
+            {topics
+              .filter((topic) => filteredModules.some((m) => topic.modules.some((tm) => tm.id === m.id)))
+              .map((topic) => {
+                const topicModules = filteredModules.filter((m) => topic.modules.some((tm) => tm.id === m.id));
+                if (topicModules.length === 0) return null;
 
-              return (
-                <div
-                  key={module.id}
-                  onClick={() => handleModuleClick(module.id)}
-                  className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all cursor-pointer overflow-hidden group border border-gray-100 hover:border-opacity-50"
-                >
-                  <div className="p-6">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">{getProgressIcon(module.completion_percentage)}</span>
-                        <span
-                          className={`text-xs font-semibold px-3 py-1.5 rounded-lg border ${getDifficultyColor(
-                            module.difficulty_level
-                          )}`}
-                        >
-                          {module.difficulty_level || 'Standard'}
-                        </span>
+                return (
+                  <div key={topic.id}>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl"
+                        style={{ backgroundColor: '#f0f5ff', borderLeft: '4px solid #203f78' }}
+                      >
+                        <BookOpen className="w-5 h-5" style={{ color: '#203f78' }} />
+                        <h4 className="text-lg font-bold" style={{ color: '#203f78' }}>
+                          {topic.name}
+                        </h4>
                       </div>
-                      {isCompleted && (
-                        <div className="flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2 py-1 rounded-lg border border-emerald-200">
-                          <CheckCircle className="w-4 h-4" />
-                          <span className="text-xs font-semibold">Completed</span>
-                        </div>
-                      )}
-                      {isInProgress && (
-                        <div
-                          className="flex items-center gap-1 px-2 py-1 rounded-lg border"
-                          style={{ backgroundColor: '#f0f5ff', color: '#203f78', borderColor: '#203f78' }}
-                        >
-                          <Zap className="w-4 h-4" />
-                          <span className="text-xs font-semibold">{module.completion_percentage}%</span>
-                        </div>
-                      )}
-                      {isNotStarted && (
-                        <div className="flex items-center gap-1 bg-blue-100 text-blue-600 px-2 py-1 rounded-lg border border-blue-300">
-                          <PauseCircle className="w-4 h-4" />
-                          <span className="text-xs font-semibold">Not Started</span>
-                        </div>
-                      )}
+                      <div className="flex-1 h-px bg-gray-200"></div>
+                      <span className="text-sm text-gray-500 font-medium">
+                        {topicModules.length} {topicModules.length === 1 ? 'course' : 'courses'}
+                      </span>
                     </div>
-                    <h3
-                      className="text-lg font-bold mb-2 group-hover:text-opacity-80 transition-colors line-clamp-2"
-                      style={{ color: '#203f78' }}
-                    >
-                      {module.title}
-                    </h3>
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{module.description}</p>
-                    {topic && (
-                      <div
-                        className="flex items-center gap-2 text-sm mb-4 px-3 py-2 rounded-lg border"
-                        style={{ backgroundColor: '#f0f5ff', color: '#203f78', borderColor: '#e0e7ff' }}
-                      >
-                        <BookOpen className="w-4 h-4" />
-                        <span className="font-medium">{topic.name}</span>
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between text-xs text-gray-500 pt-4 border-t border-gray-100">
-                    <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4" />
-                        <span>{module.time_duration}</span>
-                      </div>
-                      <div
-                        className="flex items-center gap-1 font-medium group-hover:translate-x-1 transition-transform"
-                        style={{ color: '#203f78' }}
-                      >
-                        <span>View Details</span>
-                        <ChevronRight className="w-4 h-4" />
-                      </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {topicModules.map((module) => {
+                        const isCompleted = module.completion_percentage === 100;
+                        const isInProgress =
+                          module.main_contents?.some((mc) => mc.pages?.some((page) => page.completed)) && !isCompleted;
+                        const isNotStarted = !isCompleted && !isInProgress;
+
+                        return (
+                          <div
+                            key={module.id}
+                            onClick={() => handleModuleClick(module.id)}
+                            className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all cursor-pointer overflow-hidden group border border-gray-100 hover:border-opacity-50"
+                          >
+                            <div className="p-6">
+                              <div className="flex justify-between items-start mb-4">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-lg">{getProgressIcon(module.completion_percentage)}</span>
+                                  <span
+                                    className={`text-xs font-semibold px-3 py-1.5 rounded-lg border ${getDifficultyColor(
+                                      module.difficulty_level
+                                    )}`}
+                                  >
+                                    {module.difficulty_level || 'Standard'}
+                                  </span>
+                                </div>
+                                {isCompleted && (
+                                  <div className="flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2 py-1 rounded-lg border border-emerald-200">
+                                    <CheckCircle className="w-4 h-4" />
+                                    <span className="text-xs font-semibold">Completed</span>
+                                  </div>
+                                )}
+                                {isInProgress && (
+                                  <div
+                                    className="flex items-center gap-1 px-2 py-1 rounded-lg border"
+                                    style={{ backgroundColor: '#f0f5ff', color: '#203f78', borderColor: '#203f78' }}
+                                  >
+                                    <Zap className="w-4 h-4" />
+                                    <span className="text-xs font-semibold">{module.completion_percentage}%</span>
+                                  </div>
+                                )}
+                                {isNotStarted && (
+                                  <div className="flex items-center gap-1 bg-blue-100 text-blue-600 px-2 py-1 rounded-lg border border-blue-300">
+                                    <PauseCircle className="w-4 h-4" />
+                                    <span className="text-xs font-semibold">Not Started</span>
+                                  </div>
+                                )}
+                              </div>
+                              <h3
+                                className="text-lg font-bold mb-2 group-hover:text-opacity-80 transition-colors line-clamp-2"
+                                style={{ color: '#203f78' }}
+                              >
+                                {module.title}
+                              </h3>
+                              <p className="text-gray-600 text-sm mb-4 line-clamp-2">{module.description}</p>
+                              <div className="flex items-center justify-between text-xs text-gray-500 pt-4 border-t border-gray-100">
+                                <div className="flex items-center gap-2">
+                                  <Clock className="w-4 h-4" />
+                                  <span>{module.time_duration}</span>
+                                </div>
+                                <div
+                                  className="flex items-center gap-1 font-medium group-hover:translate-x-1 transition-transform"
+                                  style={{ color: '#203f78' }}
+                                >
+                                  <span>View Details</span>
+                                  <ChevronRight className="w-4 h-4" />
+                                </div>
+                              </div>
+                            </div>
+                            <div className="h-1.5 bg-gray-100">
+                              <div
+                                className="h-full transition-all"
+                                style={{
+                                  width: `${module.completion_percentage || 0}%`,
+                                  background: isCompleted ? '#10b981' : 'linear-gradient(90deg, #203f78 0%, #2d5aa0 100%)',
+                                }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
-                  <div className="h-1.5 bg-gray-100">
-                    <div
-                      className="h-full transition-all"
-                      style={{
-                        width: `${module.completion_percentage || 0}%`,
-                        background: isCompleted ? '#10b981' : 'linear-gradient(90deg, #203f78 0%, #2d5aa0 100%)',
-                      }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
         ) : (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
