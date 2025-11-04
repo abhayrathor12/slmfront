@@ -360,6 +360,7 @@ const PageDetail = () => {
         onBackClick={handleBack}
         currentPage={currentIndex + 1}
         totalPages={pages.length}
+        backButtonText="Back to Content"
       />
 
       {/* Toggle Button for All Screens */}
@@ -391,7 +392,7 @@ const PageDetail = () => {
 
         {/* Main Content */}
         <div className="flex-1 p-2 sm:p-4 lg:p-4">
-          <div className="max-w-5xl mx-auto">
+          <div className="max-w-7xl mx-auto">
             {!showQuiz ? (
               <div className="bg-white rounded-xl lg:rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
                 <div className="p-3 sm:p-4 border-b border-gray-200" style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #f0f5ff 100%)' }}>
