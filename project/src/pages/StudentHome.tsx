@@ -222,7 +222,7 @@ const StudentHome = () => {
                     </div>
                     <span className="text-2xl font-bold text-white">{progressSummary.total_modules}</span>
                   </div>
-                  <p className="text-sm font-medium text-blue-100">Total Courses</p>
+                  <p className="text-sm font-medium text-blue-100">Total Modules</p>
                 </div>
                 <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-4 border border-white border-opacity-20">
                   <div className="flex items-center gap-3 mb-2">
@@ -399,11 +399,12 @@ const StudentHome = () => {
 
                         return (
                           <div
-                            key={module.id}
-                            onClick={() => handleModuleClick(module.id)}
-                            className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all cursor-pointer overflow-hidden group border border-gray-100 hover:border-opacity-50"
-                          >
-                            <div className="p-6">
+                          key={module.id}
+                          onClick={() => handleModuleClick(module.id)}
+                          className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all cursor-pointer overflow-hidden group border border-gray-100 hover:border-opacity-50 flex flex-col"
+                        >
+                          <div className="p-6 flex flex-col flex-1">
+                        
                               <div className="flex justify-between items-start mb-4">
                                 <div className="flex items-center gap-2">
                                   <span className="text-lg">{getProgressIcon(module.completion_percentage)}</span>
@@ -444,17 +445,19 @@ const StudentHome = () => {
                                 {module.title}
                               </h3>
                               <p className="text-gray-600 text-sm mb-4 line-clamp-2">{module.description}</p>
-                              <div className="flex items-center justify-between text-xs text-gray-500 pt-4 border-t border-gray-100">
-                                <div className="flex items-center gap-2">
-                                  <Clock className="w-4 h-4" />
-                                  <span>{module.time_duration}</span>
-                                </div>
-                                <div
-                                  className="flex items-center gap-1 font-medium group-hover:translate-x-1 transition-transform"
-                                  style={{ color: '#203f78' }}
-                                >
-                                  <span>View Details</span>
-                                  <ChevronRight className="w-4 h-4" />
+                              <div className='mt-auto'>
+                                <div className="flex items-center justify-between text-xs text-gray-500 pt-4 border-t border-gray-100">
+                                  <div className="flex items-center gap-2">
+                                    <Clock className="w-4 h-4" />
+                                    <span>{module.time_duration}</span>
+                                  </div>
+                                  <div
+                                    className="flex items-center gap-1 font-medium group-hover:translate-x-1 transition-transform"
+                                    style={{ color: '#203f78' }}
+                                  >
+                                    <span>View Details</span>
+                                    <ChevronRight className="w-4 h-4" />
+                                  </div>
                                 </div>
                               </div>
                             </div>
