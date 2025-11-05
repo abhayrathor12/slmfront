@@ -146,14 +146,7 @@ const PageDetail = () => {
     }
   };
 
-  const handleIframeLoad = () => {
-    const iframe = iframeRef.current;
-    if (iframe && iframe.contentWindow && iframe.contentDocument) {
-      iframe.style.height = 'auto';
-      const doc = iframe.contentDocument;
-      iframe.style.height = doc?.body.scrollHeight + 20 + "px";
-    }
-  };
+ 
 
   const handlePrevious = () => {
     const currentIndex = pages.findIndex((p) => p.id === page?.id);
@@ -420,13 +413,14 @@ const PageDetail = () => {
 
                 <div className="p-2 sm:p-4">
                   <div className="w-full border-2 border-gray-200 rounded-lg lg:rounded-xl overflow-hidden bg-white shadow-sm">
-                    <iframe
+                  <iframe
                       ref={iframeRef}
                       srcDoc={page.content}
                       className="w-full border-0"
                       sandbox="allow-same-origin allow-scripts"
                       title="Page Content"
-                      onLoad={handleIframeLoad}
+                      style={{ height: '310px' }}
+                      scrolling="auto"
                     />
                   </div>
                 </div>
