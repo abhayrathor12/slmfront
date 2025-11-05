@@ -387,60 +387,108 @@ const ModuleDetail = () => {
                   </div>
                 </div>
                 {isExpanded && (
-                  <div className="border-t border-gray-200 bg-gray-50 p-4 sm:p-6 space-y-2">
-                    {content.pages.map((page, pageIndex) => (
-                      <div
-                        key={page.id}
-                        onClick={() => handlePageClick(page.id)}
-                        className="flex items-center gap-3 p-3 sm:p-4 rounded-xl bg-white hover:shadow-md cursor-pointer transition-all group border border-gray-100"
-                      >
-                        <div className="flex-shrink-0">
-                          {page.completed ? (
-                            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-100">
-                              <CheckCircle className="w-5 h-5 text-emerald-600" />
-                            </div>
-                          ) : (
+                  <div className="border-t border-gray-200 bg-gradient-to-br from-gray-50 to-blue-50 p-4 sm:p-6">
+                    <div className="relative">
+                      {/* Vertical connecting line */}
+                      <div 
+                        className="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-200 to-blue-300"
+                        style={{ height: '100%' }}
+                      />
+                      
+                      <div className="space-y-3 relative">
+                        {content.pages.map((page, pageIndex) => (
+                          <div key={page.id} className="relative">
+                            {/* Horizontal connecting line */}
+                            <div 
+                              className="absolute left-6 top-1/2 w-8 h-0.5"
+                              style={{ 
+                                background: page.completed ? '#10b981' : '#203f78',
+                                opacity: 0.3
+                              }}
+                            />
+                            
                             <div
-                              className="w-8 h-8 rounded-lg flex items-center justify-center"
-                              style={{ backgroundColor: '#f0f5ff' }}
+                              onClick={() => handlePageClick(page.id)}
+                              className="ml-14 flex items-center gap-3 p-3 sm:p-4 rounded-xl bg-white hover:shadow-md cursor-pointer transition-all group border-2 relative"
+                              style={{
+                                borderColor: page.completed ? '#10b981' : '#e5e7eb',
+                                transform: 'translateX(0)',
+                                transition: 'all 0.2s ease'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateX(4px)';
+                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(32, 63, 120, 0.15)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'translateX(0)';
+                              }}
                             >
-                              <FileText className="w-5 h-5" style={{ color: '#203f78' }} />
+                              <div className="flex-shrink-0">
+                                {page.completed ? (
+                                  <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-100 border-2 border-emerald-500">
+                                    <CheckCircle className="w-5 h-5 text-emerald-600" />
+                                  </div>
+                                ) : (
+                                  <div
+                                    className="w-8 h-8 rounded-lg flex items-center justify-center border-2"
+                                    style={{ backgroundColor: '#f0f5ff', borderColor: '#203f78' }}
+                                  >
+                                    <span className="text-xs font-bold" style={{ color: '#203f78' }}>
+                                      {pageIndex + 1}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <span className="font-semibold text-sm sm:text-base text-gray-800 group-hover:text-opacity-80 transition-colors break-words block" style={{ color: page.completed ? '#10b981' : '#203f78' }}>
+                                  {page.title || `Lesson ${pageIndex + 1}`}
+                                </span>
+                                <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                                  <Clock className="w-3 h-3" />
+                                  {page.formatted_duration}
+                                </div>
+                              </div>
+                              {page.completed && (
+                                <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg flex-shrink-0 border border-emerald-200">
+                                  ✓ Done
+                                </span>
+                              )}
                             </div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <span className="font-medium text-sm sm:text-base text-gray-800 group-hover:text-opacity-80 transition-colors break-words" style={{ color: page.completed ? '#10b981' : '#203f78' }}>
-                            {page.title || `Lesson ${pageIndex + 1}`}
-                          </span>
-                          <div className="text-xs text-gray-500 mt-1">
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              {page.formatted_duration}
-                            </span>
                           </div>
-                        </div>
-                        {page.completed && (
-                          <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg flex-shrink-0">
-                            Completed
-                          </span>
+                        ))}
+                        
+                        {content.quizId && (
+                          <div className="relative">
+                            {/* Horizontal connecting line for quiz */}
+                            <div 
+                              className="absolute left-6 top-1/2 w-8 h-0.5 bg-yellow-400"
+                              style={{ opacity: 0.4 }}
+                            />
+                            
+                            <div
+                              className="ml-14 flex items-center gap-3 p-3 sm:p-4 rounded-xl bg-gradient-to-br from-yellow-50 via-orange-50 to-yellow-50 hover:shadow-md cursor-pointer transition-all group border-2 border-yellow-300 relative"
+                              onClick={() => handleQuizClick(content)}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateX(4px)';
+                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(234, 179, 8, 0.2)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'translateX(0)';
+                              }}
+                            >
+                              <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-yellow-100 border-2 border-yellow-400 flex-shrink-0">
+                                <ClipboardList className="w-5 h-5 text-yellow-600" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <span className="font-bold text-sm sm:text-base text-gray-800 block">Knowledge Check</span>
+                                <span className="text-xs text-gray-600">Test your understanding of this section</span>
+                              </div>
+                              <Award className="w-5 h-5 text-yellow-600 group-hover:scale-110 transition-transform flex-shrink-0" />
+                            </div>
+                          </div>
                         )}
                       </div>
-                    ))}
-                    {content.quizId && (
-                      <div
-                        className="flex items-center gap-3 p-3 sm:p-4 rounded-xl bg-gradient-to-r from-yellow-50 to-orange-50 hover:shadow-md cursor-pointer transition-all group border border-yellow-200"
-                        onClick={() => handleQuizClick(content)}
-                      >
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-yellow-100 flex-shrink-0">
-                          <ClipboardList className="w-5 h-5 text-yellow-600" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <span className="font-semibold text-sm sm:text-base text-gray-800 block">Knowledge Check</span>
-                          <span className="text-xs text-gray-600">Test your understanding</span>
-                        </div>
-                        <Award className="w-5 h-5 text-yellow-600 group-hover:scale-110 transition-transform flex-shrink-0" />
-                      </div>
-                    )}
+                    </div>
                   </div>
                 )}
                 <div className="h-1.5 bg-gray-100">
