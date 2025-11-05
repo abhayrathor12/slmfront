@@ -384,7 +384,7 @@ const PageDetail = () => {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-2 sm:p-4 lg:p-4">
+        <div className="flex-1 p-1 sm:p-3 lg:p-3">
           <div className="max-w-7xl mx-auto">
             {!showQuiz ? (
               <div className="bg-white rounded-xl lg:rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
