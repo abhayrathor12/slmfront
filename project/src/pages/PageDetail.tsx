@@ -395,28 +395,7 @@ const PageDetail = () => {
             {!showQuiz ? (
               <div className="bg-white rounded-xl lg:rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
                 {/* Page Header */}
-                <div className="p-2 sm:p-3 border-b border-gray-200" style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #f0f5ff 100%)' }}>
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <span className="text-xs sm:text-sm font-semibold px-2 sm:px-3 py-1 rounded-lg" style={{ backgroundColor: '#203f78', color: 'white' }}>
-                        {currentIndex + 1}
-                      </span>
-                      <div>
-                        <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{page.title}</h1>
-                        <span className="text-xs text-gray-500 flex items-center gap-1 mt-1">
-                          <Clock className="w-3 h-3" />
-                          {page.formatted_duration} {/* Display formatted_duration */}
-                        </span>
-                      </div>
-                    </div>
-                    {page.completed && (
-                      <div className="flex items-center gap-2 bg-emerald-100 text-emerald-700 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-emerald-300">
-                        <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                        <span className="text-xs sm:text-sm font-semibold">Completed</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                
 
                 {/* Content */}
                 <div className="p-2 sm:p-4">
