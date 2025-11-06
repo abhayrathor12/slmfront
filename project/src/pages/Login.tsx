@@ -14,40 +14,47 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+  
     if (!username || !password) {
       toast.error('Please fill in all fields');
       return;
     }
-
+  
     setLoading(true);
-
+  
     try {
+      // ✅ Clear old expired tokens before trying to log in again
+      localStorage.removeItem('access');
+      localStorage.removeItem('refresh');
+      localStorage.removeItem('user');
+  
+      // ✅ Now safely call login API
       const response = await api.post('/accounts/login/', {
         username,
         password,
       });
-
+  
       const { user, access, refresh } = response.data;
-
+  
       localStorage.setItem('access', access);
       localStorage.setItem('refresh', refresh);
       localStorage.setItem('user', JSON.stringify(user));
-
+  
       toast.success('Login successful!');
-
+  
       setTimeout(() => {
         const role = user.role || user.user_type || 'student';
         if (role === 'admin') navigate('/admin_home');
         else if (role === 'instructor') navigate('/instructor_home');
         else navigate('/user_home');
-      }, 300); // short 300ms delay
+      }, 300);
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Invalid credentials');
     } finally {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100 flex items-center justify-center p-4 relative overflow-hidden">

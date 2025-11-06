@@ -1,7 +1,8 @@
 import axios from 'axios';
 
-const API_BASE_URL =  'https://slmpro.pythonanywhere.com';
-// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+// const API_BASE_URL =  'https://slmpro.pythonanywhere.com';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -9,27 +10,32 @@ const api = axios.create({
   },
 });
 
+// ✅ Do NOT attach token for login/register endpoints
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('access');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const noAuthEndpoints = ['/accounts/login/', '/accounts/register/'];
+    if (!noAuthEndpoints.includes(config.url || '')) {
+      const token = localStorage.getItem('access');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
+// ✅ Handle 401 unauthorized globally
 api.interceptors.response.use(
   (response) => response,
-  async (error) => {
+  (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('access');
       localStorage.removeItem('refresh');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
