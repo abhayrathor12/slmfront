@@ -376,7 +376,7 @@ const PageDetail = () => {
 
       <div className="flex max-w-full">
         {/* Sidebar - Desktop */}
-        <div className="hidden lg:block w-80 bg-white shadow-lg border-r border-gray-100 sticky overflow-y-auto hide-scrollbar" style={{ top: '4rem', height: 'calc(100vh - 4rem)' }}>
+        <div className="hidden lg:block w-80 bg-white shadow-lg border-r border-gray-100 sticky overflow-y-auto hide-scrollbar" style={{ top: '4rem', height: 'calc(100vh - 4.2rem)' }}>
           <SidebarContent />
         </div>
 
@@ -401,24 +401,24 @@ const PageDetail = () => {
                 <div className="p-2 sm:p-4">
                   <div className="w-full border-2 border-gray-200 rounded-lg lg:rounded-xl overflow-hidden bg-white shadow-sm">
                   <iframe
-                      ref={iframeRef}
-                      srcDoc={page.content}
-                      className="w-full border-0"
-                      sandbox="allow-same-origin allow-scripts"
-                      title="Page Content"
-                      style={{ height: '300px' }}
-                      scrolling="auto"
-                    />
+                    ref={iframeRef}
+                    srcDoc={page.content}
+                    className="w-full h-[calc(100vh-190px)] min-h-[400px] border-0"
+                    sandbox="allow-same-origin allow-scripts"
+                    title="Page Content"
+                    scrolling="auto"
+                  />
+
                   </div>
                 </div>
 
                 {/* Navigation Footer */}
-                <div className="p-3 sm:p-4 lg:p-6 bg-gray-50 border-t border-gray-200">
+                <div className="p-3 sm:p-3 lg:p-1 bg-gray-50 border-t border-gray-200">
                   <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
                     <button
                       onClick={handlePrevious}
                       disabled={currentIndex === 0}
-                      className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-white text-gray-700 rounded-lg lg:rounded-xl hover:bg-gray-100 transition-all font-semibold border-2 border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-md text-sm sm:text-base"
+                      className="flex items-center justify-center gap-2 px-4 sm:px-5 py-2 sm:py-2 bg-white text-gray-700 rounded-lg lg:rounded-xl hover:bg-gray-100 transition-all font-semibold border-2 border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-md text-sm sm:text-base"
                     >
                       <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                       Previous
@@ -428,7 +428,7 @@ const PageDetail = () => {
                       quiz && quiz.questions.length > 0 ? (
                         <button
                           onClick={handleComplete}
-                          className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 text-white rounded-lg lg:rounded-xl transition-all font-semibold hover:shadow-lg text-sm sm:text-base"
+                          className="flex items-center justify-center gap-2 px-4 sm:px-5 py-2 sm:py-2 text-white rounded-lg lg:rounded-xl transition-all font-semibold hover:shadow-lg text-sm sm:text-base"
                           style={{ background: 'linear-gradient(135deg, #203f78 0%, #2d5aa0 100%)' }}
                         >
                           Continue to Quiz
@@ -437,7 +437,7 @@ const PageDetail = () => {
                       ) : (
                         <button
                           onClick={completeMainContent}
-                          className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 text-white rounded-lg lg:rounded-xl transition-all font-semibold hover:shadow-lg text-sm sm:text-base"
+                          className="flex items-center justify-center gap-2 px-4 sm:px-5 py-2 sm:py-2 text-white rounded-lg lg:rounded-xl transition-all font-semibold hover:shadow-lg text-sm sm:text-base"
                           style={{ background: 'linear-gradient(135deg, #203f78 0%, #2d5aa0 100%)' }}
                         >
                           Finish
@@ -447,7 +447,7 @@ const PageDetail = () => {
                     ) : (
                       <button
                         onClick={handleNext}
-                        className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 text-white rounded-lg lg:rounded-xl transition-all font-semibold hover:shadow-lg text-sm sm:text-base"
+                        className="flex items-center justify-center gap-2 px-4 sm:px-5 py-2 sm:py-2 text-white rounded-lg lg:rounded-xl transition-all font-semibold hover:shadow-lg text-sm sm:text-base"
                         style={{ background: 'linear-gradient(135deg, #203f78 0%, #2d5aa0 100%)' }}
                       >
                         Next
