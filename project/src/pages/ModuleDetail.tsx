@@ -262,12 +262,13 @@ const ModuleDetail = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4">
-        <div className="mb-3">
-          <h2 className="text-lg sm:text-xl font-bold mb-1" style={{ color: '#203f78' }}>Course Content</h2>
-          <p className="text-xs sm:text-sm text-gray-600">Click on any section to expand and view lessons</p>
+      {/* Course Content Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+        <div className="mb-1">
+          <h2 className="text-xl sm:text-2xl font-bold " style={{ color: '#203f78' }}>Course Content</h2>
+          <p className="text-sm sm:text-base text-gray-600">Click on any section to expand and view lessons</p>
         </div>
-        <div className="space-y-3 pb-6">
+        <div className="space-y-4 pb-8">
           {module.main_contents.map((content, index) => {
             const isExpanded = expandedContents.includes(content.id);
             const completedPagesInContent = content.pages.filter(p => p.completed).length;
@@ -278,46 +279,46 @@ const ModuleDetail = () => {
             return (
               <div
                 key={content.id}
-                className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all overflow-hidden border border-gray-100"
+                className="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all overflow-hidden border border-gray-100"
               >
                 <div
                   onClick={() => toggleContent(content.id)}
-                  className="flex items-start sm:items-center justify-between p-3 sm:p-4 cursor-pointer hover:bg-gray-50 transition gap-2"
+                  className="flex items-start sm:items-center justify-between p-4 sm:p-6 cursor-pointer hover:bg-gray-50 transition gap-3"
                 >
-                  <div className="flex items-start sm:items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                  <div className="flex items-start sm:items-center gap-3 sm:gap-4 flex-1 min-w-0">
                     <div className="flex-shrink-0">
                       {content.completed ? (
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center bg-emerald-100 border-2 border-emerald-500">
-                          <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center bg-emerald-100 border-2 border-emerald-500">
+                          <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
                         </div>
                       ) : (
                         <div
-                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center border-2"
+                          className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center border-2"
                           style={{ backgroundColor: '#f0f5ff', borderColor: '#203f78' }}
                         >
-                          <span className="text-sm sm:text-base font-bold" style={{ color: '#203f78' }}>{index + 1}</span>
+                          <span className="text-base sm:text-lg font-bold" style={{ color: '#203f78' }}>{index + 1}</span>
                         </div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
-                        <h3 className="text-sm sm:text-base font-bold text-gray-900 break-words">{content.title}</h3>
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <h3 className="text-base sm:text-lg font-bold text-gray-900 break-words">{content.title}</h3>
                         {content.has_quiz && (
-                          <div className="flex items-center gap-0.5 bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded border border-yellow-300">
+                          <div className="flex items-center gap-1 bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-lg border border-yellow-300">
                             <ClipboardList className="w-3 h-3" />
                             <span className="text-xs font-semibold">Quiz</span>
                           </div>
                         )}
                       </div>
-                      <p className="text-xs text-gray-600 mb-1 break-words line-clamp-1">{content.description}</p>
-                      <div className="flex items-center gap-2 sm:gap-3 text-xs text-gray-500 flex-wrap">
+                      <p className="text-xs sm:text-sm text-gray-600 mb-2 break-words">{content.description}</p>
+                      <div className="flex items-center gap-3 sm:gap-4 text-xs text-gray-500 flex-wrap">
                         <span className="flex items-center gap-1">
                           <FileText className="w-3 h-3" />
                           {totalPagesInContent} lessons
                         </span>
                         <span className="flex items-center gap-1">
                           <CheckCircle className="w-3 h-3" />
-                          {completedPagesInContent} done
+                          {completedPagesInContent} completed
                         </span>
                         <span className="flex items-center gap-1">
                           <Clock className="w-3 h-3" />
@@ -326,33 +327,88 @@ const ModuleDetail = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
-                    <span className="text-xs font-bold px-2 py-1 rounded" style={{
-                      color: content.completed ? '#10b981' : '#203f78',
-                      backgroundColor: content.completed ? '#d1fae5' : '#f0f5ff'
-                    }}>
-                      {Math.round(contentProgress)}%
-                    </span>
+                  <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                    <div className="hidden md:block">
+                      <div className="w-14 h-14 lg:w-16 lg:h-16 relative">
+                        <svg className="transform -rotate-90 w-14 h-14 lg:w-16 lg:h-16">
+                          <circle
+                            cx="28"
+                            cy="28"
+                            r="24"
+                            stroke="#e5e7eb"
+                            strokeWidth="4"
+                            fill="transparent"
+                            className="lg:hidden"
+                          />
+                          <circle
+                            cx="28"
+                            cy="28"
+                            r="24"
+                            stroke={content.completed ? '#10b981' : '#203f78'}
+                            strokeWidth="4"
+                            fill="transparent"
+                            strokeDasharray={`${2 * Math.PI * 24}`}
+                            strokeDashoffset={`${2 * Math.PI * 24 * (1 - contentProgress / 100)}`}
+                            strokeLinecap="round"
+                            className="lg:hidden"
+                          />
+                          <circle
+                            cx="32"
+                            cy="32"
+                            r="28"
+                            stroke="#e5e7eb"
+                            strokeWidth="4"
+                            fill="transparent"
+                            className="hidden lg:block"
+                          />
+                          <circle
+                            cx="32"
+                            cy="32"
+                            r="28"
+                            stroke={content.completed ? '#10b981' : '#203f78'}
+                            strokeWidth="4"
+                            fill="transparent"
+                            strokeDasharray={`${2 * Math.PI * 28}`}
+                            strokeDashoffset={`${2 * Math.PI * 28 * (1 - contentProgress / 100)}`}
+                            strokeLinecap="round"
+                            className="hidden lg:block"
+                          />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-xs font-bold" style={{ color: content.completed ? '#10b981' : '#203f78' }}>
+                            {Math.round(contentProgress)}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="md:hidden">
+                      <span className="text-xs font-bold px-2 py-1 rounded-lg" style={{
+                        color: content.completed ? '#10b981' : '#203f78',
+                        backgroundColor: content.completed ? '#d1fae5' : '#f0f5ff'
+                      }}>
+                        {Math.round(contentProgress)}%
+                      </span>
+                    </div>
                     {isExpanded ? (
-                      <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
+                      <ChevronUp className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
                     ) : (
-                      <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
+                      <ChevronDown className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
                     )}
                   </div>
                 </div>
                 {isExpanded && (
-                  <div className="border-t border-gray-200 bg-gradient-to-br from-gray-50 to-blue-50 p-3 sm:p-4">
+                  <div className="border-t border-gray-200 bg-gradient-to-br from-gray-50 to-blue-50 p-4 sm:p-6">
                     <div className="relative">
                       <div 
-                        className="absolute left-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-200 to-blue-300"
+                        className="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-200 to-blue-300"
                         style={{ height: '100%' }}
                       />
                       
-                      <div className="space-y-2 relative">
+                      <div className="space-y-3 relative">
                         {content.pages.map((page, pageIndex) => (
                           <div key={page.id} className="relative">
                             <div 
-                              className="absolute left-4 top-1/2 w-6 h-0.5"
+                              className="absolute left-6 top-1/2 w-8 h-0.5"
                               style={{ 
                                 background: page.completed ? '#10b981' : '#203f78',
                                 opacity: 0.3
@@ -361,7 +417,7 @@ const ModuleDetail = () => {
                             
                             <div
                               onClick={() => handlePageClick(page.id)}
-                              className="ml-10 flex items-center gap-2 p-2 sm:p-3 rounded-lg bg-white hover:shadow-md cursor-pointer transition-all group border-2 relative"
+                              className="ml-14 flex items-center gap-3 p-3 sm:p-4 rounded-xl bg-white hover:shadow-md cursor-pointer transition-all group border-2 relative"
                               style={{
                                 borderColor: page.completed ? '#10b981' : '#e5e7eb',
                                 transform: 'translateX(0)',
@@ -377,12 +433,12 @@ const ModuleDetail = () => {
                             >
                               <div className="flex-shrink-0">
                                 {page.completed ? (
-                                  <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-emerald-100 border-2 border-emerald-500">
-                                    <CheckCircle className="w-4 h-4 text-emerald-600" />
+                                  <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-100 border-2 border-emerald-500">
+                                    <CheckCircle className="w-5 h-5 text-emerald-600" />
                                   </div>
                                 ) : (
                                   <div
-                                    className="w-7 h-7 rounded-lg flex items-center justify-center border-2"
+                                    className="w-8 h-8 rounded-lg flex items-center justify-center border-2"
                                     style={{ backgroundColor: '#f0f5ff', borderColor: '#203f78' }}
                                   >
                                     <span className="text-xs font-bold" style={{ color: '#203f78' }}>
@@ -392,17 +448,17 @@ const ModuleDetail = () => {
                                 )}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <span className="font-semibold text-xs sm:text-sm text-gray-800 group-hover:text-opacity-80 transition-colors break-words block" style={{ color: page.completed ? '#10b981' : '#203f78' }}>
+                                <span className="font-semibold text-sm sm:text-base text-gray-800 group-hover:text-opacity-80 transition-colors break-words block" style={{ color: page.completed ? '#10b981' : '#203f78' }}>
                                   {page.title || `Lesson ${pageIndex + 1}`}
                                 </span>
-                                <div className="text-xs text-gray-500 flex items-center gap-1">
+                                <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
                                   <Clock className="w-3 h-3" />
                                   {page.formatted_duration}
                                 </div>
                               </div>
                               {page.completed && (
-                                <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded flex-shrink-0 border border-emerald-200">
-                                  ✓
+                                <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg flex-shrink-0 border border-emerald-200">
+                                  ✓ Done
                                 </span>
                               )}
                             </div>
@@ -412,12 +468,12 @@ const ModuleDetail = () => {
                         {content.quizId && (
                           <div className="relative">
                             <div 
-                              className="absolute left-4 top-1/2 w-6 h-0.5 bg-yellow-400"
+                              className="absolute left-6 top-1/2 w-8 h-0.5 bg-yellow-400"
                               style={{ opacity: 0.4 }}
                             />
                             
                             <div
-                              className="ml-10 flex items-center gap-2 p-2 sm:p-3 rounded-lg bg-gradient-to-br from-yellow-50 via-orange-50 to-yellow-50 hover:shadow-md cursor-pointer transition-all group border-2 border-yellow-300 relative"
+                              className="ml-14 flex items-center gap-3 p-3 sm:p-4 rounded-xl bg-gradient-to-br from-yellow-50 via-orange-50 to-yellow-50 hover:shadow-md cursor-pointer transition-all group border-2 border-yellow-300 relative"
                               onClick={() => handleQuizClick(content)}
                               onMouseEnter={(e) => {
                                 e.currentTarget.style.transform = 'translateX(4px)';
@@ -427,14 +483,14 @@ const ModuleDetail = () => {
                                 e.currentTarget.style.transform = 'translateX(0)';
                               }}
                             >
-                              <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-yellow-100 border-2 border-yellow-400 flex-shrink-0">
-                                <ClipboardList className="w-4 h-4 text-yellow-600" />
+                              <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-yellow-100 border-2 border-yellow-400 flex-shrink-0">
+                                <ClipboardList className="w-5 h-5 text-yellow-600" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <span className="font-bold text-xs sm:text-sm text-gray-800 block">Knowledge Check</span>
-                                <span className="text-xs text-gray-600">Test your understanding</span>
+                                <span className="font-bold text-sm sm:text-base text-gray-800 block">Knowledge Check</span>
+                                <span className="text-xs text-gray-600">Test your understanding of this section</span>
                               </div>
-                              <Award className="w-4 h-4 text-yellow-600 group-hover:scale-110 transition-transform flex-shrink-0" />
+                              <Award className="w-5 h-5 text-yellow-600 group-hover:scale-110 transition-transform flex-shrink-0" />
                             </div>
                           </div>
                         )}
@@ -442,7 +498,7 @@ const ModuleDetail = () => {
                     </div>
                   </div>
                 )}
-                <div className="h-1 bg-gray-100">
+                <div className="h-1.5 bg-gray-100">
                   <div
                     className="h-full transition-all duration-500"
                     style={{
