@@ -355,6 +355,7 @@ const PageDetail = () => {
         onBackClick={handleBack}
         currentPage={currentIndex + 1}
         totalPages={pages.length}
+        backButtonText="Back to Content"
       />
 
       {/* Mobile Menu Button */}
