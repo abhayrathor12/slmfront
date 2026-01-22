@@ -30,6 +30,8 @@ const ModuleManagement = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [expandedTopics, setExpandedTopics] = useState<Set<number>>(new Set());
+  const [submitting, setSubmitting] = useState(false);
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -37,12 +39,26 @@ const ModuleManagement = () => {
     topic: '',
     order: 1,
   });
-  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     fetchData();
   }, []);
 
+  // Auto-set order when topic changes (only in Add mode)
+  useEffect(() => {
+    if (formData.topic && !editingId) {
+      const topicId = parseInt(formData.topic);
+      const topicModules = modules
+        .filter(m => m.topic === topicId)
+        .sort((a, b) => a.order - b.order);
+      const maxOrder = topicModules.length > 0
+        ? Math.max(...topicModules.map(m => m.order))
+        : 0;
+      setFormData(prev => ({ ...prev, order: maxOrder + 1 }));
+    }
+  }, [formData.topic, editingId, modules]);
+
+  // Search filter
   useEffect(() => {
     if (searchQuery) {
       const filteredModules = modules.filter((module) =>
@@ -82,8 +98,13 @@ const ModuleManagement = () => {
     setSubmitting(true);
     try {
       const submitData = {
-        ...formData,
+        title: formData.title,
+        description: formData.description,
+        difficulty_level: formData.difficulty_level,
+        topic: parseInt(formData.topic),
+        order: formData.order,
       };
+
       if (editingId) {
         await api.put(`/api/modules/${editingId}/`, submitData);
         toast.success('Module updated successfully');
@@ -93,8 +114,8 @@ const ModuleManagement = () => {
       }
       resetForm();
       fetchData();
-    } catch (error) {
-      toast.error(editingId ? 'Failed to update module' : 'Failed to add module');
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || 'Operation failed');
     } finally {
       setSubmitting(false);
     }
@@ -110,6 +131,13 @@ const ModuleManagement = () => {
     });
     setEditingId(module.id);
     setShowForm(true);
+
+    setTimeout(() => {
+      document.getElementById('module-form')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+    }, 100);
   };
 
   const handleDelete = async (id: number) => {
@@ -152,6 +180,44 @@ const ModuleManagement = () => {
       .sort((a, b) => a.order - b.order);
   };
 
+  // Smart Order Options
+  const getOrderOptions = () => {
+    const topicId = parseInt(formData.topic);
+    if (!topicId) return [];
+
+    const topicModules = modules
+      .filter(m => m.topic === topicId)
+      .sort((a, b) => a.order - b.order);
+
+    const maxOrder = topicModules.length > 0
+      ? Math.max(...topicModules.map(m => m.order))
+      : 0;
+
+    const options: { value: number; label: string }[] = [];
+
+    // First position
+    options.push({ value: 1, label: '1 (First position)' });
+
+    // After each existing module
+    topicModules.forEach((mod, idx) => {
+      const nextOrder = mod.order + 1;
+      if (nextOrder <= maxOrder + 1) {
+        options.push({
+          value: nextOrder,
+          label: `${nextOrder} (After "${mod.title}")`
+        });
+      }
+    });
+
+    // Last position
+    options.push({ value: maxOrder + 1, label: `${maxOrder + 1} (Last position)` });
+
+    // Dedupe
+    return options.filter((opt, idx) =>
+      options.findIndex(o => o.value === opt.value) === idx
+    );
+  };
+
   if (loading) return <Loader />;
 
   return (
@@ -168,18 +234,21 @@ const ModuleManagement = () => {
             Add Module
           </button>
         </div>
+
+        {/* FORM */}
         {showForm && (
-          <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+          <div id="module-form" className="bg-white rounded-xl shadow-sm p-6 mb-6 border-2 border-blue-200">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
               {editingId ? 'Edit Module' : 'Add New Module'}
             </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Topic</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Topic <span className="text-red-500">*</span></label>
                 <select
+                  required
                   value={formData.topic}
                   onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                 >
                   <option value="">Select a topic</option>
                   {topics.map((topic) => (
@@ -189,49 +258,72 @@ const ModuleManagement = () => {
                   ))}
                 </select>
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Title <span className="text-red-500">*</span></label>
                 <input
                   type="text"
+                  required
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                   placeholder="Enter module title"
                 />
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                   rows={3}
                   placeholder="Enter module description"
                 />
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Difficulty Level</label>
                 <select
                   value={formData.difficulty_level}
                   onChange={(e) => setFormData({ ...formData, difficulty_level: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                 >
                   <option value="beginner">Beginner</option>
                   <option value="intermediate">Intermediate</option>
                   <option value="hard">Hard</option>
                 </select>
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Order</label>
-                <input
-                  type="number"
-                  min="1"
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Order Position
+                  <span className="text-xs text-gray-500 ml-2">
+                    (Others will shift automatically)
+                  </span>
+                </label>
+                <select
                   value={formData.order}
                   onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                />
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-medium"
+                >
+                  {formData.topic ? (
+                    getOrderOptions().length > 0 ? (
+                      getOrderOptions().map(opt => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))
+                    ) : (
+                      <option value={1}>1 (First position)</option>
+                    )
+                  ) : (
+                    <option value="">Select topic first</option>
+                  )}
+                </select>
               </div>
-              <div className="flex gap-3">
+
+              <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
                   disabled={submitting}
@@ -250,8 +342,10 @@ const ModuleManagement = () => {
             </form>
           </div>
         )}
+
+        {/* SEARCH + LIST */}
         <div className="bg-white rounded-xl shadow-sm p-6">
-          <div className="mb-4">
+          <div className="mb-6">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
@@ -259,12 +353,13 @@ const ModuleManagement = () => {
                 placeholder="Search modules..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
               />
             </div>
           </div>
+
           {filteredTopics.length > 0 ? (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {filteredTopics.map((topic) => {
                 const topicModules = getModulesByTopic(topic.id);
                 const isExpanded = expandedTopics.has(topic.id);
@@ -272,80 +367,82 @@ const ModuleManagement = () => {
                   <div key={topic.id} className="border border-gray-200 rounded-lg overflow-hidden">
                     <div
                       onClick={() => toggleTopic(topic.id)}
-                      className="flex items-center justify-between bg-gray-50 hover:bg-gray-100 cursor-pointer p-4 transition"
+                      className="flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 cursor-pointer p-4 transition"
                     >
                       <div className="flex items-center gap-3">
                         {isExpanded ? (
-                          <ChevronDown className="w-5 h-5 text-gray-600" />
+                          <ChevronDown className="w-5 h-5 text-blue-600" />
                         ) : (
-                          <ChevronRight className="w-5 h-5 text-gray-600" />
+                          <ChevronRight className="w-5 h-5 text-blue-600" />
                         )}
-                        <h3 className="text-lg font-semibold text-gray-800">{topic.name}</h3>
-                        <span className="text-sm text-gray-500 bg-white px-2 py-1 rounded">
+                        <h3 className="text-lg font-bold text-gray-800">{topic.name}</h3>
+                        <span className="text-sm font-medium text-blue-700 bg-white px-3 py-1 rounded-full">
                           {topicModules.length} module{topicModules.length !== 1 ? 's' : ''}
                         </span>
                       </div>
                     </div>
-                    {isExpanded && topicModules.length > 0 && (
+
+                    {isExpanded && (
                       <div className="overflow-x-auto">
-                        <table className="w-full">
-                          <thead>
-                            <tr className="border-b border-gray-200 bg-gray-50">
-                              <th className="text-left py-3 px-4 text-gray-700 font-semibold text-sm">ID</th>
-                              <th className="text-left py-3 px-4 text-gray-700 font-semibold text-sm">Title</th>
-                              <th className="text-left py-3 px-4 text-gray-700 font-semibold text-sm">Description</th>
-                              <th className="text-left py-3 px-4 text-gray-700 font-semibold text-sm">Difficulty</th>
-                              <th className="text-left py-3 px-4 text-gray-700 font-semibold text-sm">Duration</th>
-                              <th className="text-left py-3 px-4 text-gray-700 font-semibold text-sm">Order</th>
-                              <th className="text-left py-3 px-4 text-gray-700 font-semibold text-sm">Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {topicModules.map((module) => (
-                              <tr key={module.id} className="border-b border-gray-100 hover:bg-gray-50">
-                                <td className="py-3 px-4 text-sm">{module.id}</td>
-                                <td className="py-3 px-4 font-medium text-sm">{module.title}</td>
-                                <td className="py-3 px-4 text-sm text-gray-600">
-                                  {module.description.length > 50
-                                    ? module.description.substring(0, 50) + '...'
-                                    : module.description}
-                                </td>
-                                <td className="py-3 px-4">
-                                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                                    {module.difficulty_level}
-                                  </span>
-                                </td>
-                                <td className="py-3 px-4 text-sm">
-                                  {module.time_duration || 'Not set'}
-                                </td>
-                                <td className="py-3 px-4 text-sm">{module.order}</td>
-                                <td className="py-3 px-4">
-                                  <div className="flex gap-2">
-                                    <button
-                                      onClick={() => handleEdit(module)}
-                                      className="text-blue-600 hover:text-blue-800 transition"
-                                      title="Edit"
-                                    >
-                                      <Edit className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                      onClick={() => handleDelete(module.id)}
-                                      className="text-red-600 hover:text-red-800 transition"
-                                      title="Delete"
-                                    >
-                                      <Trash2 className="w-4 h-4" />
-                                    </button>
-                                  </div>
-                                </td>
+                        {topicModules.length > 0 ? (
+                          <table className="w-full">
+                            <thead>
+                              <tr className="border-b-2 border-gray-200 bg-gray-50">
+                                <th className="text-left py-3 px-4 text-gray-700 font-bold text-sm">Order</th>
+                                <th className="text-left py-3 px-4 text-gray-700 font-bold text-sm">Title</th>
+                                <th className="text-left py-3 px-4 text-gray-700 font-bold text-sm">Description</th>
+                                <th className="text-left py-3 px-4 text-gray-700 font-bold text-sm">Difficulty</th>
+                                <th className="text-left py-3 px-4 text-gray-700 font-bold text-sm">Actions</th>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                    {isExpanded && topicModules.length === 0 && (
-                      <div className="p-8 text-center text-gray-500">
-                        No modules found for this topic
+                            </thead>
+                            <tbody>
+                              {topicModules.map((module) => (
+                                <tr key={module.id} className="border-b hover:bg-blue-50 transition">
+                                  <td className="py-4 px-4">
+                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800">
+                                      #{module.order}
+                                    </span>
+                                  </td>
+                                  <td className="py-4 px-4 font-semibold text-gray-800">{module.title}</td>
+                                  <td className="py-4 px-4 text-sm text-gray-600 max-w-xs">
+                                    {module.description.substring(0, 80)}{module.description.length > 80 ? '...' : ''}
+                                  </td>
+                                  <td className="py-4 px-4">
+                                    <span className={`text-xs px-3 py-1 rounded-full font-medium ${
+                                      module.difficulty_level === 'beginner' ? 'bg-green-100 text-green-800' :
+                                      module.difficulty_level === 'intermediate' ? 'bg-yellow-100 text-yellow-800' :
+                                      'bg-red-100 text-red-800'
+                                    }`}>
+                                      {module.difficulty_level}
+                                    </span>
+                                  </td>
+                                  <td className="py-4 px-4">
+                                    <div className="flex gap-3">
+                                      <button
+                                        onClick={() => handleEdit(module)}
+                                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 p-2 rounded-lg transition"
+                                        title="Edit"
+                                      >
+                                        <Edit className="w-4 h-4" />
+                                      </button>
+                                      <button
+                                        onClick={() => handleDelete(module.id)}
+                                        className="text-red-600 hover:text-red-800 hover:bg-red-100 p-2 rounded-lg transition"
+                                        title="Delete"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        ) : (
+                          <div className="p-12 text-center text-gray-500">
+                            No modules found
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -353,8 +450,8 @@ const ModuleManagement = () => {
               })}
             </div>
           ) : (
-            <div className="p-8 text-center text-gray-500">
-              No topics found
+            <div className="p-12 text-center text-gray-500 text-lg">
+              {searchQuery ? 'No modules match your search' : 'No topics available'}
             </div>
           )}
         </div>
