@@ -37,7 +37,7 @@ const Registration = () => {
     const fetchTopics = async () => {
       try {
         const response = await api.get("/public/topics/");
-        console.log(response.data);
+        // console.log(response.data);
         setTopics(response.data);
       } catch (error) {
         console.error(error);

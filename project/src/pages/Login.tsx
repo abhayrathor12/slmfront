@@ -1,268 +1,189 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, GraduationCap, Target, Sparkles, Eye, EyeOff } from 'lucide-react';
+import { GraduationCap, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'react-toastify';
 import api from '../utils/api';
-import smallogo from '../public/logo-.png'
-import biglogo from  '../public/logo1.png'
+
+import smallogo from '../public/logo-.png';
+import biglogo from '../public/logo1.png';
+import loginImage from '../public/roadmap_no_white_bg_v2.png';
+import loginVideo from '../public/SLM Roadmap Presentation (1).mp4';
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     if (!username || !password) {
       toast.error('Please fill in all fields');
       return;
     }
-  
+
     setLoading(true);
-  
     try {
-      // ✅ Clear old expired tokens before trying to log in again
-      localStorage.removeItem('access');
-      localStorage.removeItem('refresh');
-      localStorage.removeItem('user');
-  
-      // ✅ Now safely call login API
+      localStorage.clear();
+
       const response = await api.post('/accounts/login/', {
         username,
         password,
       });
-  
+
       const { user, access, refresh } = response.data;
-  
+
       localStorage.setItem('access', access);
       localStorage.setItem('refresh', refresh);
       localStorage.setItem('user', JSON.stringify(user));
-  
+
       toast.success('Login successful!');
-  
+
       setTimeout(() => {
         const role = user.role || user.user_type || 'student';
         if (role === 'admin') navigate('/admin_home');
         else if (role === 'instructor') navigate('/instructor_home');
         else navigate('/user_home');
       }, 300);
-    } catch (error: any) {
+    } catch (error) {
       toast.error(error.response?.data?.message || 'Invalid credentials');
     } finally {
       setLoading(false);
     }
   };
-  
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style={{ backgroundColor: '#203f78' }}></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style={{ backgroundColor: '#2c5a9e', animationDelay: '1s' }}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full mix-blend-multiply filter blur-3xl opacity-15 animate-pulse" style={{ backgroundColor: '#203f78', animationDelay: '2s' }}></div>
+    <div className="min-h-screen bg-white relative overflow-hidden">
+      
+      {/* Background blobs */}
+      {/* <div className="absolute inset-0 pointer-events-none">
+        <div
+          className="absolute -top-32 -right-32 w-64 h-64 rounded-full blur-xl opacity-20 animate-pulse"
+          style={{ backgroundColor: '#203f78' }}
+        />
+        <div
+          className="absolute -bottom-32 -left-32 w-64 h-64 rounded-full blur-xl opacity-20 animate-pulse"
+          style={{ backgroundColor: '#2c5a9e', animationDelay: '1s' }}
+        />
+      </div> */}
+
+      {/* Top Left Logo */}
+      <div className="absolute top-4 left-6 z-30 flex items-center gap-2">
+        <img src={smallogo} alt="Technoviz Logo" className="w-10 h-10 object-contain" />
+        <h1
+          className="text-xl font-bold text-transparent bg-clip-text"
+          style={{ backgroundImage: 'linear-gradient(to right, #203f78, #2c5a9e)' }}
+        >
+          Technoviz Automation
+        </h1>
       </div>
 
-      <div className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12 w-full max-w-6xl relative z-10">
-        {/* Left side - Inspirational content */}
-        <div className="hidden lg:flex flex-col space-y-8 max-w-lg">
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-2xl " >
-              <img
-                  src={smallogo} // your desktop logo path
-                  alt="Company Logo"
-                  className="w-20 h-20 object-contain" // adjust size as needed
-                />
-              </div>
-              <h1 className="text-5xl font-bold text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(to right, #203f78, #2c5a9e)' }}>
-                Technoviz Automation
-              </h1>
-            </div>
-            <p className="text-xl text-gray-700 font-medium">
-              Your Journey to Self-Mastery Begins Here
-            </p>
-            <p className="text-gray-600 leading-relaxed">
-              Empower yourself with personalized learning experiences, track your progress, and unlock your full potential at your own pace.
-            </p>
-          </div>
+      {/* Main Content */}
+      <div className="relative z-10 flex h-screen">
+        
+        {/* LEFT SIDE IMAGE */}
+        <div className="hidden lg:flex lg:w-3/5 xl:w-2/3 items-center justify-center pl-4 xl:pl-2">
+  <video
+    src={loginVideo}
+    autoPlay
+    loop
+    muted
+    playsInline
+    className="w-full max-w-[1000px] xl:max-w-[900px] object-contain rounded-xl"
+  />
+</div>
 
-          {/* Feature highlights */}
-          <div className="space-y-4">
-            <div className="flex items-start gap-4 bg-white/60 backdrop-blur-sm rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow" style={{ borderWidth: '1px', borderColor: '#203f7833' }}>
-              <div className="p-2 rounded-lg flex-shrink-0" style={{ backgroundColor: '#203f7820' }}>
-                <BookOpen className="w-6 h-6" style={{ color: '#203f78' }} />
-              </div>
+
+        {/* RIGHT SIDE FORM */}
+        <div className="w-full lg:w-1/2 flex items-center justify-end px-4 lg:px-16">
+          <div className="w-full max-w-[420px] bg-white/85 backdrop-blur-md rounded-2xl shadow-xl drop-shadow-2xl p-8 border border-white/30">
+            
+            {/* Mobile Logo */}
+            <div className="lg:hidden flex justify-center mb-4">
+              <img src={biglogo} alt="Logo" className="w-20 h-20 object-contain" />
+            </div>
+
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-1">
+                Welcome Back!
+              </h2>
+              <p className="text-sm text-gray-600">
+                Continue your learning journey
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              
+              {/* Username */}
               <div>
-                <h3 className="font-semibold text-gray-800 mb-1">Learn at Your Pace</h3>
-                <p className="text-sm text-gray-600">Access courses anytime, anywhere with our flexible learning modules</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4 bg-white/60 backdrop-blur-sm rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow" style={{ borderWidth: '1px', borderColor: '#2c5a9e33' }}>
-              <div className="p-2 rounded-lg flex-shrink-0" style={{ backgroundColor: '#2c5a9e20' }}>
-                <Target className="w-6 h-6" style={{ color: '#2c5a9e' }} />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-800 mb-1">Track Your Progress</h3>
-                <p className="text-sm text-gray-600">Monitor achievements and stay motivated with detailed analytics</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4 bg-white/60 backdrop-blur-sm rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow" style={{ borderWidth: '1px', borderColor: '#203f7833' }}>
-              <div className="p-2 rounded-lg flex-shrink-0" style={{ backgroundColor: '#203f7820' }}>
-                <Sparkles className="w-6 h-6" style={{ color: '#203f78' }} />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-800 mb-1">Personalized Learning</h3>
-                <p className="text-sm text-gray-600">AI-powered recommendations tailored to your learning style</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Right side - Login form */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl w-full max-w-md p-8 lg:p-10 border border-white/20">
-          {/* Mobile header */}
-          <div className="lg:hidden flex justify-center mb-6">
-            <div className="p-3 rounded-2xl ">
-            <img
-              src={biglogo} // your mobile logo path
-              alt="Company Logo"
-              className="w-25 h-25 object-contain"
-            />
-            </div>
-          </div>
-
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">
-              Welcome Back!
-            </h2>
-            <p className="text-gray-600">
-              Continue your learning journey
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Username
-              </label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl outline-none transition-all placeholder:text-gray-400"
-                style={{ 
-                  transition: 'border-color 0.2s, box-shadow 0.2s'
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = '#203f78';
-                  e.target.style.boxShadow = '0 0 0 3px rgba(32, 63, 120, 0.1)';
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = '#e5e7eb';
-                  e.target.style.boxShadow = 'none';
-                }}
-                placeholder="Enter your username"
-                disabled={loading}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Password
-              </label>
-              <div className="relative">
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Username
+                </label>
                 <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl outline-none transition-all placeholder:text-gray-400 pr-12"
-                  style={{ 
-                    transition: 'border-color 0.2s, box-shadow 0.2s'
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = '#203f78';
-                    e.target.style.boxShadow = '0 0 0 3px rgba(32, 63, 120, 0.1)';
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#e5e7eb';
-                    e.target.style.boxShadow = 'none';
-                  }}
-                  placeholder="Enter your password"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   disabled={loading}
+                  placeholder="Enter your username"
+                  className="w-full px-5 py-2.5 border border-gray-200 rounded-lg text-sm focus:border-[#203f78] focus:ring-2 focus:ring-[#203f78]/10 outline-none"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
-                  disabled={loading}
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
               </div>
+
+              {/* Password */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={loading}
+                    placeholder="Enter your password"
+                    className="w-full px-5 py-2.5 pr-12 border border-gray-200 rounded-lg text-sm focus:border-[#203f78] focus:ring-2 focus:ring-[#203f78]/10 outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#203f78]"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Submit */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full h-11 bg-gradient-to-r from-[#203f78] to-[#2c5a9e] text-white rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  <>
+                    Sign In <GraduationCap className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </form>
+
+            {/* Register */}
+            <div className="mt-6 pt-4 border-t border-gray-100 text-center">
+              <p className="text-xs text-gray-600">
+                New to Technoviz?{' '}
+                <a href="/register" className="font-semibold text-[#203f78] hover:underline">
+                  Create account
+                </a>
+              </p>
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full text-white py-3.5 rounded-xl font-semibold transform hover:scale-[1.02] transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
-              style={{ 
-                background: loading ? '#6b7280' : 'linear-gradient(to right, #203f78, #2c5a9e)',
-              }}
-              onMouseEnter={(e) => {
-                if (!loading) {
-                  e.currentTarget.style.background = 'linear-gradient(to right, #1a3461, #234d85)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!loading) {
-                  e.currentTarget.style.background = 'linear-gradient(to right, #203f78, #2c5a9e)';
-                }
-              }}
-            >
-              {loading ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Signing in...</span>
-                </>
-              ) : (
-                <>
-                  <span>Sign In</span>
-                  <GraduationCap className="w-5 h-5" />
-                </>
-              )}
-            </button>
-          </form>
-
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <p className="text-center text-sm text-gray-600">
-              New to Technoviz?{' '}
-              <a href="/register" className="font-semibold hover:underline transition-colors" style={{ color: '#203f78' }}>
-                Create an account
-              </a>
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile feature highlights */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-200 p-4 z-20">
-        <div className="flex justify-around max-w-md mx-auto">
-          <div className="text-center">
-            <BookOpen className="w-6 h-6 mx-auto mb-1" style={{ color: '#203f78' }} />
-            <p className="text-xs text-gray-600">Self-Paced</p>
-          </div>
-          <div className="text-center">
-            <Target className="w-6 h-6 mx-auto mb-1" style={{ color: '#2c5a9e' }} />
-            <p className="text-xs text-gray-600">Track Progress</p>
-          </div>
-          <div className="text-center">
-            <Sparkles className="w-6 h-6 mx-auto mb-1" style={{ color: '#203f78' }} />
-            <p className="text-xs text-gray-600">Personalized</p>
           </div>
         </div>
       </div>

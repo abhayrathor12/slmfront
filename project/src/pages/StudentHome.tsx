@@ -130,7 +130,26 @@ const StudentHome = () => {
     navigate('/login');
   };
 
-  const handleModuleClick = (id: number) => navigate(`/module/${id}`);
+  const handleModuleClick = async (moduleId: number) => {
+    try {
+      const res = await api.get(`/api/modules/${moduleId}/`);
+      const firstContent = res.data.main_contents?.[0];
+      const firstPage = firstContent?.pages?.sort(
+        (a: any, b: any) => a.order - b.order
+      )[0];
+  
+      if (!firstPage) {
+        toast.error('No pages found in this module');
+        return;
+      }
+  
+      navigate(`/page/${firstPage.id}`, {
+        state: { moduleId }
+      });
+    } catch {
+      toast.error('Failed to open module');
+    }
+  };
 
   const getProgressIcon = (p?: number) =>
     p === 100 ? '🟢' : p && p > 0 ? '🟡' : '🔵';

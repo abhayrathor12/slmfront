@@ -1,12 +1,12 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, CheckCircle, FileText, Award, Target, Trophy, Menu, X, Clock } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle,   ChevronDown,FileText, Award, Target, Trophy, Menu, X, Clock } from 'lucide-react';
 import Loader from '../components/Loader';
 import api from '../utils/api';
 import { toast } from 'react-toastify';
 import { useLocation } from 'react-router-dom';
 import Navbar from '../components/navbar';
-
+import { Layers } from 'lucide-react';
 interface Page {
   id: number;
   title: string;
@@ -45,6 +45,10 @@ interface User {
   username?: string;
 }
 
+interface Module {
+  id: number;
+  title: string;
+}
 const PageDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -62,8 +66,12 @@ const PageDetail = () => {
   const [activeItem, setActiveItem] = useState<string | number | null>(null);
   const [quizResults, setQuizResults] = useState<any>(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
-
+  const [module, setModule] = useState<Module | null>(null);
   const moduleId = location.state?.moduleId;
+  const [totalModules, setTotalModules] = useState(0);
+const [currentModuleIndex, setCurrentModuleIndex] = useState(1);
+const [allModules, setAllModules] = useState<Module[]>([]);
+const [showModuleDropdown, setShowModuleDropdown] = useState(false);
 
   useEffect(() => {
     const state = location.state as { showQuiz?: boolean; mainContentId?: number } | null;
@@ -78,6 +86,40 @@ const PageDetail = () => {
       setShowQuiz(false);
     }
   }, [id, location.state]);
+  useEffect(() => {
+    const fetchModules = async () => {
+      try {
+        const res = await api.get('/api/modules/');
+        setAllModules(res.data || []);
+      } catch (err) {
+        console.error('Failed to fetch modules');
+      }
+    };
+  
+    fetchModules();
+  }, []);
+
+  const handleModuleSwitch = async (moduleId: number) => {
+    try {
+      const res = await api.get(`/api/modules/${moduleId}/`);
+      const firstContent = res.data.main_contents?.[0];
+      const firstPage = firstContent?.pages
+        ?.sort((a: any, b: any) => a.order - b.order)[0];
+  
+      if (!firstPage) {
+        toast.error('No pages found in this module');
+        return;
+      }
+  
+      setShowModuleDropdown(false);
+      navigate(`/page/${firstPage.id}`, {
+        state: { moduleId },
+      });
+    } catch {
+      toast.error('Failed to open module');
+    }
+  };
+  
 
   const fetchUserData = async () => {
     try {
@@ -90,26 +132,75 @@ const PageDetail = () => {
 
   const fetchPage = async () => {
     try {
-      const response = await api.get(`/pages/${id}/`);
-      setPage(response.data);
-      console.log(response.data);
-      const allPagesRes = await api.get(`/api/pages/`);
+      setLoading(true);
+  
+      // 1️⃣ Fetch current page
+      const pageRes = await api.get(`/pages/${id}/`);
+      const pageData = pageRes.data;
+      setPage(pageData);
+  
+      // 2️⃣ Extract MODULE ID
+      const moduleIdFromPage =
+        pageData.main_content.module_detail?.id ||
+        pageData.main_content.module;
+  
+      // 3️⃣ Fetch ALL MODULES (for 1 / 8 calculation)
+      let modulesList: any[] = [];
+      try {
+        const modulesRes = await api.get('/api/modules/');
+        modulesList = modulesRes.data || [];
+        setTotalModules(modulesList.length);
+      } catch {
+        setTotalModules(0);
+      }
+  
+      // 4️⃣ Fetch CURRENT MODULE
+      if (moduleIdFromPage) {
+        const moduleRes = await api.get(`/api/modules/${moduleIdFromPage}/`);
+        setModule({
+          id: moduleRes.data.id,
+          title: moduleRes.data.title,
+        });
+  
+        // Find module position (1 / N)
+        const index = modulesList.findIndex(
+          (m) => m.id === moduleIdFromPage
+        );
+        setCurrentModuleIndex(index !== -1 ? index + 1 : 1);
+      }
+  
+      // 5️⃣ Fetch ALL pages
+      const allPagesRes = await api.get('/api/pages/');
       const relatedPages = allPagesRes.data
-        .filter((p: Page) => p.main_content.id === response.data.main_content.id)
+        .filter(
+          (p: Page) =>
+            p.main_content.module === moduleIdFromPage ||
+            p.main_content.module_detail?.id === moduleIdFromPage
+        )
         .sort((a: Page, b: Page) => a.order - b.order);
+  
       setPages(relatedPages);
-
-      const quizRes = await api.get(`/api/quizzes/?main_content=${response.data.main_content.id}`);
+  
+      // 6️⃣ Fetch quiz for current main content
+      const quizRes = await api.get(
+        `/api/quizzes/?main_content=${pageData.main_content.id}`
+      );
+  
       if (quizRes.data.length > 0) {
         setQuiz(quizRes.data[0]);
+      } else {
+        setQuiz(null);
       }
+  
     } catch (error) {
+      console.error(error);
       toast.error('Failed to fetch page');
     } finally {
       setLoading(false);
     }
   };
-
+  
+  
   const handleLogout = () => {
     localStorage.removeItem('token');
     navigate('/login');
@@ -215,13 +306,7 @@ const PageDetail = () => {
   };
 
   const handleBack = () => {
-    if (moduleId) {
-      navigate(`/module/${moduleId}`);
-    } else if (page?.main_content?.module_detail?.id || page?.main_content?.module) {
-      navigate(`/module/${page.main_content.module_detail?.id || page.main_content.module}`);
-    } else {
-      navigate(-1);
-    }
+    navigate('/user_home'); 
   };
   
   const handleSidebarItemClick = (pageId: number) => {
@@ -241,33 +326,66 @@ const PageDetail = () => {
 
   const SidebarContent = () => (
     <>
-      {/* Progress Card */}
-      <div className="p-4 md:p-6 border-b border-gray-200" style={{ background: 'linear-gradient(135deg, #203f78 0%, #2d5aa0 100%)' }}>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
-            <Trophy className="w-5 h-5 md:w-6 md:h-6 text-white" />
-          </div>
-          <div>
-            <p className="text-xs md:text-sm font-medium text-blue-100">Progress</p>
-            <span className="text-xl md:text-2xl font-bold text-white">{Math.round(progress)}%</span>
-          </div>
+      {/* ───────── TOP : Module Header ───────── */}
+      {module && (
+  <div
+    className="p-4 border-b border-blue-200 relative"
+    style={{
+      background: 'linear-gradient(135deg, #203f78 0%, #2d5aa0 100%)',
+    }}
+  >
+    {/* Button */}
+    <button
+      onClick={() => setShowModuleDropdown(!showModuleDropdown)}
+      className="w-full flex items-center justify-between gap-3 text-left"
+    >
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-white bg-opacity-20">
+          <Layers className="w-5 h-5 text-white" />
         </div>
-        <div className="h-2 bg-white bg-opacity-20 rounded-full overflow-hidden">
-          <div 
-            className="h-full rounded-full transition-all duration-500" 
-            style={{ 
-              width: `${progress}%`,
-              background: 'linear-gradient(90deg, #10b981 0%, #34d399 100%)'
-            }}
-          />
+
+        <div>
+          <h2 className="text-sm font-bold text-white leading-tight">
+            {module.title}
+          </h2>
+          <p className="text-xs text-blue-100">
+            Module {currentModuleIndex} / {totalModules}
+          </p>
         </div>
-        <p className="text-xs text-blue-100 mt-2">
-          {completedPages} of {pages.length} completed
-        </p>
       </div>
 
-      {/* Contents */}
-      <div className="p-3 md:p-4">
+      <ChevronDown
+        className={`w-5 h-5 text-white transition-transform ${
+          showModuleDropdown ? 'rotate-180' : ''
+        }`}
+      />
+    </button>
+
+    {/* Dropdown */}
+    {showModuleDropdown && (
+      <div className="absolute left-3 right-3 top-[90%] mt-2 bg-white rounded-xl shadow-xl border border-gray-200 z-50 max-h-64 overflow-y-auto">
+        {allModules.map((m) => (
+          <button
+            key={m.id}
+            onClick={() => handleModuleSwitch(m.id)}
+            className={`w-full px-4 py-3 text-left text-sm font-medium transition hover:bg-blue-50 ${
+              m.id === module.id
+                ? 'bg-blue-100 text-blue-800'
+                : 'text-gray-700'
+            }`}
+          >
+            {m.title}
+          </button>
+        ))}
+      </div>
+    )}
+  </div>
+)}
+
+
+  
+      {/* ───────── MIDDLE : Scrollable Lessons ───────── */}
+      <div className="flex-1 overflow-y-auto hide-scrollbar p-3 md:p-4">
         <div className="space-y-2">
           {pages.map((p, index) => (
             <div
@@ -286,65 +404,87 @@ const PageDetail = () => {
                   : {}
               }
             >
+              {/* icon */}
               <div className="flex-shrink-0">
                 {p.completed ? (
                   <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center bg-emerald-100">
                     <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-emerald-600" />
                   </div>
                 ) : (
-                  <div 
+                  <div
                     className="w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center"
                     style={{ backgroundColor: activeItem === p.id ? '#203f78' : '#f0f5ff' }}
                   >
-                    <FileText className="w-4 h-4 md:w-5 md:h-5" style={{ color: activeItem === p.id ? '#ffffff' : '#203f78' }} />
+                    <FileText
+                      className="w-4 h-4 md:w-5 md:h-5"
+                      style={{ color: activeItem === p.id ? '#fff' : '#203f78' }}
+                    />
                   </div>
                 )}
               </div>
+  
+              {/* text */}
               <div className="flex-1 min-w-0">
-                <span className={`text-xs md:text-sm font-semibold block truncate ${
-                  activeItem === p.id ? 'text-gray-900' : p.completed ? 'text-emerald-700' : 'text-gray-700'
-                }`}>
+                <span className="text-xs md:text-sm font-semibold block truncate">
                   {p.title || `Lesson ${index + 1}`}
                 </span>
                 <span className="text-xs text-gray-500 flex items-center gap-1">
                   <Clock className="w-3 h-3" />
-                  {p.formatted_duration} {/* Display formatted_duration */}
+                  {p.formatted_duration}
                 </span>
               </div>
             </div>
           ))}
-
-          {/* Knowledge Check */}
-          {quiz && quiz.questions.length > 0 && (
-            <div
-              onClick={() => {
-                setShowQuiz(true);
-                setActiveItem('quiz');
-                setSidebarOpen(false);
-              }}
-              className={`group flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-xl cursor-pointer transition-all border ${
-                showQuiz
-                  ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-400 shadow-md'
-                  : 'bg-yellow-50 hover:bg-yellow-100 border-yellow-300'
-              }`}
-            >
-              <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center bg-yellow-100">
-                <Award className="w-4 h-4 md:w-5 md:h-5 text-yellow-600" />
-              </div>
-              <div className="flex-1">
-                <span className="text-xs md:text-sm font-semibold text-yellow-900 block">
-                  Knowledge Check
-                </span>
-                <span className="text-xs text-yellow-700">
-                  {quiz.questions.length} questions
-                </span>
-              </div>
-            </div>
-          )}
         </div>
       </div>
+  
+      {/* ───────── BOTTOM : FIXED PROGRESS BAR ───────── */}
+{/* ───────── BOTTOM : FIXED PROGRESS BAR ───────── */}
+<div
+  className="p-4 border-t"
+  style={{
+    background: 'linear-gradient(135deg, #203f78 0%, #2d5aa0 100%)',
+  }}
+>
+  {/* Row 1 */}
+  <div className="flex items-center gap-3">
+    {/* Icon */}
+    <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-white bg-opacity-20">
+      <Trophy className="w-5 h-5 text-white" />
+    </div>
+
+    {/* Progress + Bar */}
+    <div className="flex-1">
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-sm font-semibold text-white">
+          Progress
+        </span>
+        <span className="text-sm font-bold text-white">
+          {Math.round(progress)}%
+        </span>
+      </div>
+
+      <div className="h-2 bg-white bg-opacity-30 rounded-full overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all duration-500"
+          style={{
+            width: `${progress}%`,
+            background: 'linear-gradient(90deg, #10b981, #34d399)',
+          }}
+        />
+      </div>
+    </div>
+  </div>
+
+  {/* Row 2 */}
+  <p className="mt-2 text-xs text-blue-100">
+    {completedPages} of {pages.length} lessons completed
+  </p>
+</div>
+
     </>
   );
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -355,7 +495,7 @@ const PageDetail = () => {
         onBackClick={handleBack}
         currentPage={currentIndex + 1}
         totalPages={pages.length}
-        backButtonText="Back to Content"
+        backButtonText="Back to Modules"
       />
 
       {/* Mobile Menu Button */}
@@ -377,7 +517,10 @@ const PageDetail = () => {
 
       <div className="flex max-w-full">
         {/* Sidebar - Desktop */}
-        <div className="hidden lg:block w-80 bg-white shadow-lg border-r border-gray-100 sticky overflow-y-auto hide-scrollbar" style={{ top: '4rem', height: 'calc(100vh - 4.2rem)' }}>
+        <div
+  className="hidden lg:flex flex-col w-80 bg-white shadow-lg border-r border-gray-100 sticky"
+  style={{ top: '4rem', height: 'calc(100vh - 4.2rem)' }}
+>
           <SidebarContent />
         </div>
 
