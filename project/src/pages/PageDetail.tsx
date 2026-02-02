@@ -293,13 +293,13 @@ useEffect(() => {
 
   
  
-  if (!page) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-gray-600">
-        Page not found
-      </div>
-    );
-  }  
+  {!page && !pageLoading && (
+    <div className="h-[60vh] flex items-center justify-center text-gray-500">
+      Page not found
+    </div>
+  )}
+  
+
 
   const currentIndex = pages.findIndex((p) => p.id === page.id);
   const isLastPage = currentIndex === pages.length - 1;
@@ -538,13 +538,15 @@ useEffect(() => {
 )}
 
 {/* iframe stays mounted */}
-<iframe
-  ref={iframeRef}
-  srcDoc={page.content}
-  className="w-full h-[calc(100vh-190px)] min-h-[400px] border-0"
-  sandbox="allow-same-origin allow-scripts"
-  title="Page Content"
-/>
+{page && (
+  <iframe
+    ref={iframeRef}
+    srcDoc={page.content}
+    className="w-full h-[calc(100vh-190px)] min-h-[400px] border-0"
+    sandbox="allow-same-origin allow-scripts"
+    title="Page Content"
+  />
+)}
 
 </div>
 
