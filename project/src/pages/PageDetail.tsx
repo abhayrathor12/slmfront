@@ -72,32 +72,47 @@ const PageDetail = () => {
 const [currentModuleIndex, setCurrentModuleIndex] = useState(1);
 const [allModules, setAllModules] = useState<Module[]>([]);
 const [showModuleDropdown, setShowModuleDropdown] = useState(false);
+const [pageLoading, setPageLoading] = useState(true);
 
-  useEffect(() => {
-    const state = location.state as { showQuiz?: boolean; mainContentId?: number } | null;
+useEffect(() => {
+  fetchUserData();
+}, []);
+useEffect(() => {
+  if (!moduleId) return;
 
-    fetchPage();
-    fetchUserData();
-    setActiveItem(Number(id));
+  const fetchModuleData = async () => {
+    try {
+      // 1️⃣ All modules (dropdown)
+      const modulesRes = await api.get('/api/modules/');
+      setAllModules(modulesRes.data || []);
+      setTotalModules(modulesRes.data.length);
 
-    if (state?.showQuiz && state?.mainContentId) {
-      setShowQuiz(true);
-    } else {
-      setShowQuiz(false);
+      // 2️⃣ Current module
+      const moduleRes = await api.get(`/api/modules/${moduleId}`);
+      setModule({
+        id: moduleRes.data.id,
+        title: moduleRes.data.title,
+      });
+
+      // 3️⃣ Module index (1 / N)
+      const index = modulesRes.data.findIndex(
+        (m: any) => m.id === moduleId
+      );
+      setCurrentModuleIndex(index !== -1 ? index + 1 : 1);
+
+      // 4️⃣ Sidebar pages (FAST API)
+      const pagesRes = await api.get(`/api/pages/?module=${moduleId}`);
+      setPages(
+        pagesRes.data.sort((a: Page, b: Page) => a.order - b.order)
+      );
+    } catch {
+      toast.error('Failed to load module data');
     }
-  }, [id, location.state]);
-  useEffect(() => {
-    const fetchModules = async () => {
-      try {
-        const res = await api.get('/api/modules/');
-        setAllModules(res.data || []);
-      } catch (err) {
-        console.error('Failed to fetch modules');
-      }
-    };
-  
-    fetchModules();
-  }, []);
+  };
+
+  fetchModuleData();
+}, [moduleId]);
+
 
   const handleModuleSwitch = async (moduleId: number) => {
     try {
@@ -130,75 +145,35 @@ const [showModuleDropdown, setShowModuleDropdown] = useState(false);
     }
   };
 
-  const fetchPage = async () => {
-    try {
-      setLoading(true);
+  useEffect(() => {
+    if (!id) return;
   
-      // 1️⃣ Fetch current page
-      const pageRes = await api.get(`/pages/${id}/`);
-      const pageData = pageRes.data;
-      setPage(pageData);
-  
-      // 2️⃣ Extract MODULE ID
-      const moduleIdFromPage =
-        pageData.main_content.module_detail?.id ||
-        pageData.main_content.module;
-  
-      // 3️⃣ Fetch ALL MODULES (for 1 / 8 calculation)
-      let modulesList: any[] = [];
+    const fetchPageContent = async () => {
       try {
-        const modulesRes = await api.get('/api/modules/');
-        modulesList = modulesRes.data || [];
-        setTotalModules(modulesList.length);
-      } catch {
-        setTotalModules(0);
-      }
+        setPageLoading(true);
   
-      // 4️⃣ Fetch CURRENT MODULE
-      if (moduleIdFromPage) {
-        const moduleRes = await api.get(`/api/modules/${moduleIdFromPage}/`);
-        setModule({
-          id: moduleRes.data.id,
-          title: moduleRes.data.title,
-        });
+        const pageRes = await api.get(`/pages/${id}`);
   
-        // Find module position (1 / N)
-        const index = modulesList.findIndex(
-          (m) => m.id === moduleIdFromPage
+        // 🔥 swap content only when ready
+        setPage(pageRes.data);
+        setActiveItem(Number(id));
+  
+        const quizRes = await api.get(
+          `/api/quizzes/?main_content=${pageRes.data.main_content.id}`
         );
-        setCurrentModuleIndex(index !== -1 ? index + 1 : 1);
+        setQuiz(quizRes.data.length ? quizRes.data[0] : null);
+  
+      } catch {
+        toast.error('Failed to load page');
+      } finally {
+        setPageLoading(false);
       }
+    };
   
-      // 5️⃣ Fetch ALL pages
-      const allPagesRes = await api.get('/api/pages/');
-      const relatedPages = allPagesRes.data
-        .filter(
-          (p: Page) =>
-            p.main_content.module === moduleIdFromPage ||
-            p.main_content.module_detail?.id === moduleIdFromPage
-        )
-        .sort((a: Page, b: Page) => a.order - b.order);
+    fetchPageContent();
+  }, [id]);
   
-      setPages(relatedPages);
   
-      // 6️⃣ Fetch quiz for current main content
-      const quizRes = await api.get(
-        `/api/quizzes/?main_content=${pageData.main_content.id}`
-      );
-  
-      if (quizRes.data.length > 0) {
-        setQuiz(quizRes.data[0]);
-      } else {
-        setQuiz(null);
-      }
-  
-    } catch (error) {
-      console.error(error);
-      toast.error('Failed to fetch page');
-    } finally {
-      setLoading(false);
-    }
-  };
   
   
   const handleLogout = () => {
@@ -316,8 +291,15 @@ const [showModuleDropdown, setShowModuleDropdown] = useState(false);
     setSidebarOpen(false);
   };
 
-  if (loading) return <Loader />;
-  if (!page) return <div>Page not found</div>;
+  
+ 
+  if (!page) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-600">
+        Page not found
+      </div>
+    );
+  }  
 
   const currentIndex = pages.findIndex((p) => p.id === page.id);
   const isLastPage = currentIndex === pages.length - 1;
@@ -543,17 +525,29 @@ const [showModuleDropdown, setShowModuleDropdown] = useState(false);
 
                 {/* Content */}
                 <div className="p-2 sm:p-4">
-                  <div className="w-full border-2 border-gray-200 rounded-lg lg:rounded-xl overflow-hidden bg-white shadow-sm">
-                  <iframe
-                    ref={iframeRef}
-                    srcDoc={page.content}
-                    className="w-full h-[calc(100vh-190px)] min-h-[400px] border-0"
-                    sandbox="allow-same-origin allow-scripts"
-                    title="Page Content"
-                    scrolling="auto"
-                  />
+                <div className="relative w-full border-2 border-gray-200 rounded-lg lg:rounded-xl overflow-hidden bg-white shadow-sm">
 
-                  </div>
+{/* Soft loader overlay */}
+{pageLoading && (
+  <div className="absolute inset-0 z-10 bg-white/70 backdrop-blur-sm flex items-center justify-center">
+    <div
+      className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin"
+      style={{ borderColor: '#203f78' }}
+    />
+  </div>
+)}
+
+{/* iframe stays mounted */}
+<iframe
+  ref={iframeRef}
+  srcDoc={page.content}
+  className="w-full h-[calc(100vh-190px)] min-h-[400px] border-0"
+  sandbox="allow-same-origin allow-scripts"
+  title="Page Content"
+/>
+
+</div>
+
                 </div>
 
                 {/* Navigation Footer */}
