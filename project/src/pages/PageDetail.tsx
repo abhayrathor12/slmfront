@@ -80,31 +80,54 @@ useEffect(() => {
 useEffect(() => {
   if (!moduleId) return;
 
+  const PAGES_CACHE_KEY = `pages_module_${moduleId}`;
+  const MODULES_CACHE_KEY = `modules_all`;
+
   const fetchModuleData = async () => {
     try {
-      // 1️⃣ All modules (dropdown)
+      /* 🔹 1. Load cached modules (dropdown) */
+      const cachedModules = localStorage.getItem(MODULES_CACHE_KEY);
+      if (cachedModules) {
+        const parsed = JSON.parse(cachedModules);
+        setAllModules(parsed);
+        setTotalModules(parsed.length);
+
+        const index = parsed.findIndex((m: any) => m.id === moduleId);
+        setCurrentModuleIndex(index !== -1 ? index + 1 : 1);
+      }
+
+      /* 🔹 2. Load cached pages (sidebar) */
+      const cachedPages = localStorage.getItem(PAGES_CACHE_KEY);
+      if (cachedPages) {
+        setPages(JSON.parse(cachedPages));
+      }
+
+      /* 🔹 3. Fetch fresh modules */
       const modulesRes = await api.get('/api/modules/');
       setAllModules(modulesRes.data || []);
       setTotalModules(modulesRes.data.length);
+      localStorage.setItem(MODULES_CACHE_KEY, JSON.stringify(modulesRes.data));
 
-      // 2️⃣ Current module
+      const index = modulesRes.data.findIndex(
+        (m: any) => m.id === moduleId
+      );
+      setCurrentModuleIndex(index !== -1 ? index + 1 : 1);
+
+      /* 🔹 4. Current module */
       const moduleRes = await api.get(`/api/modules/${moduleId}`);
       setModule({
         id: moduleRes.data.id,
         title: moduleRes.data.title,
       });
 
-      // 3️⃣ Module index (1 / N)
-      const index = modulesRes.data.findIndex(
-        (m: any) => m.id === moduleId
-      );
-      setCurrentModuleIndex(index !== -1 ? index + 1 : 1);
-
-      // 4️⃣ Sidebar pages (FAST API)
+      /* 🔹 5. Fetch fresh pages */
       const pagesRes = await api.get(`/api/pages/?module=${moduleId}`);
-      setPages(
-        pagesRes.data.sort((a: Page, b: Page) => a.order - b.order)
+      const sortedPages = pagesRes.data.sort(
+        (a: Page, b: Page) => a.order - b.order
       );
+
+      setPages(sortedPages);
+      localStorage.setItem(PAGES_CACHE_KEY, JSON.stringify(sortedPages));
     } catch {
       toast.error('Failed to load module data');
     }
@@ -148,21 +171,42 @@ useEffect(() => {
   useEffect(() => {
     if (!id) return;
   
+    const PAGE_CACHE_KEY = `page_${id}`;
+    const QUIZ_CACHE_KEY = `quiz_page_${id}`;
+  
     const fetchPageContent = async () => {
       try {
         setPageLoading(true);
   
-        const pageRes = await api.get(`/pages/${id}`);
+        /* 🔹 1. Load cached page instantly */
+        const cachedPage = localStorage.getItem(PAGE_CACHE_KEY);
+        if (cachedPage) {
+          const parsed = JSON.parse(cachedPage);
+          setPage(parsed);
+          setActiveItem(Number(id));
+          setPageLoading(false); // instant render
+        }
   
-        // 🔥 swap content only when ready
+        /* 🔹 2. Load cached quiz */
+        const cachedQuiz = localStorage.getItem(QUIZ_CACHE_KEY);
+        if (cachedQuiz) {
+          setQuiz(JSON.parse(cachedQuiz));
+        }
+  
+        /* 🔹 3. Fetch fresh page */
+        const pageRes = await api.get(`/pages/${id}`);
         setPage(pageRes.data);
         setActiveItem(Number(id));
+        localStorage.setItem(PAGE_CACHE_KEY, JSON.stringify(pageRes.data));
   
+        /* 🔹 4. Fetch fresh quiz */
         const quizRes = await api.get(
           `/api/quizzes/?main_content=${pageRes.data.main_content.id}`
         );
-        setQuiz(quizRes.data.length ? quizRes.data[0] : null);
   
+        const quizData = quizRes.data.length ? quizRes.data[0] : null;
+        setQuiz(quizData);
+        localStorage.setItem(QUIZ_CACHE_KEY, JSON.stringify(quizData));
       } catch {
         toast.error('Failed to load page');
       } finally {
@@ -172,7 +216,6 @@ useEffect(() => {
   
     fetchPageContent();
   }, [id]);
-  
   
   
   
