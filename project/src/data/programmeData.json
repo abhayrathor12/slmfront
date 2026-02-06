@@ -1,0 +1,199 @@
+{
+    "organization": {
+      "name": "Technoviz Automation Solutions Pvt. Ltd.",
+      "focus": [
+        "Industry 4.0",
+        "Smart Manufacturing",
+        "IIoT",
+        "AI-driven Manufacturing",
+        "Industrial Automation",
+        "Digital Transformation"
+      ]
+    },
+  
+    "coe": {
+      "title": "Centre of Excellence on Smart Manufacturing",
+      "model": "Subscription-Based | Zero Investment for Colleges",
+      "description": "The Centre of Excellence on Smart Manufacturing is designed to prepare students for real industrial environments by focusing on Industry 4.0, IIoT, Smart Automation, AI-driven manufacturing, and digital transformation."
+    },
+  
+    "about": {
+      "overview": "Technoviz Automation is an Industry 4.0 and IIoT solution provider delivering software and industrial automation solutions. The company works with industries, academic institutions, and startups to build future-ready talent and innovation ecosystems."
+    },
+  
+    "zeroInvestmentModel": {
+      "investmentRequired": false,
+      "collegeResponsibilities": [
+        "Provide lab space",
+        "Support student participation",
+        "Nominate faculty coordinator"
+      ],
+      "technovizResponsibilities": [
+        "Hardware procurement",
+        "Lab installation and commissioning",
+        "Maintenance and upgrades",
+        "Training delivery",
+        "Learning portal access"
+      ]
+    },
+  
+    "implementationProcess": [
+      {
+        "step": 1,
+        "title": "Alignment and MoU Signing",
+        "details": [
+          "Define objectives and outcomes",
+          "Finalize technology scope",
+          "Confirm student enrollment",
+          "Agree on lab space and infrastructure",
+          "Sign MoU"
+        ]
+      },
+      {
+        "step": 2,
+        "title": "Student Onboarding and Portal Access",
+        "details": [
+          "Student license activation",
+          "Lifetime access to learning portal",
+          "Access to labs, assessments, and career support"
+        ]
+      },
+      {
+        "step": 3,
+        "title": "Hardware Lab Establishment",
+        "details": [
+          "Design and install Smart Manufacturing & IIoT lab",
+          "Configure industrial hardware and software",
+          "Commission and test lab setup"
+        ]
+      },
+      {
+        "step": 4,
+        "title": "Institutional Revenue Participation",
+        "details": [
+          "Revenue sharing based on student subscriptions",
+          "Transparent and enrollment-based model"
+        ]
+      },
+      {
+        "step": 5,
+        "title": "Faculty Enablement Program",
+        "details": [
+          "Train-the-Trainer sessions",
+          "Faculty acts as facilitator and coordinator",
+          "No content creation burden on faculty"
+        ]
+      },
+      {
+        "step": 6,
+        "title": "DIY Learning Model",
+        "details": [
+          "Self-paced learning modules",
+          "Hands-on lab manuals",
+          "Assignments and assessments"
+        ]
+      },
+      {
+        "step": 7,
+        "title": "Training Completion and Assessment",
+        "details": [
+          "Online assessment",
+          "Evaluation of conceptual and practical knowledge"
+        ]
+      },
+      {
+        "step": 8,
+        "title": "Certification",
+        "details": [
+          "Auto-generated digital certificate",
+          "Verifiable and portal-linked"
+        ]
+      },
+      {
+        "step": 9,
+        "title": "Continuous Learning and Industry Engagement",
+        "details": [
+          "Industrial use cases",
+          "Advanced learning modules",
+          "Industry updates"
+        ]
+      },
+      {
+        "step": 10,
+        "title": "Lifetime Career and Startup Support",
+        "details": [
+          "Job assistance and interview preparation",
+          "Startup mentorship",
+          "Investor and industry network access"
+        ]
+      }
+    ],
+  
+    "curriculum": {
+      "title": "Smart Manufacturing | IIoT | PLC to Cloud",
+      "modules": [
+        "Introduction to Automation",
+        "Industrial Automation Fundamentals",
+        "PLC Fundamentals",
+        "PLC Programming Basics",
+        "Advanced PLC Concepts",
+        "Industrial Networking and Communication",
+        "IIoT Fundamentals",
+        "IIoT Communication Protocols",
+        "PLC to Cloud Integration",
+        "Python Programming for Industrial Applications",
+        "Database and Data Management",
+        "Cloud Computing Fundamentals",
+        "IIoT Dashboards and Visualization",
+        "OEE (Overall Equipment Effectiveness)",
+        "Energy Monitoring and Management",
+        "Control, Monitoring, and Alarm Management",
+        "Cybersecurity Basics for IIoT",
+        "Industry 4.0 and Smart Manufacturing",
+        "Real Industrial Use Cases and Projects",
+        "Career, Startup, and Innovation Orientation"
+      ]
+    },
+  
+    "infrastructureChecklist": {
+      "labSpace": "400–500 sq.ft. for 20–25 students",
+      "requirements": [
+        "Tables and chairs",
+        "Stable power supply with UPS",
+        "PCs with i5 processor, 8GB RAM, SSD",
+        "Internet connectivity",
+        "Faculty coordinator"
+      ]
+    },
+  
+    "programmeDesigner": {
+      "name": "Kapil Khurana",
+      "designation": "Author & Certified SIRI Assessor | IIT Delhi",
+      "experience": "20+ years in Industry 4.0, IIoT, Automation, and Digital Transformation"
+    },
+  
+    "benefits": {
+      "colleges": [
+        "Zero investment",
+        "Revenue sharing",
+        "Industry collaboration",
+        "Improved student outcomes"
+      ],
+      "students": [
+        "Hands-on industrial exposure",
+        "Job-ready skills",
+        "Lifetime learning access",
+        "Career and startup support"
+      ],
+      "industry": [
+        "Job-ready talent",
+        "Industry-aligned skill development"
+      ]
+    },
+  
+    "contact": {
+      "website": "https://www.technovizautomation.com",
+      "email": "support@technovizautomation.com"
+    }
+  }
+  

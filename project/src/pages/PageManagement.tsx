@@ -90,29 +90,45 @@ const PageManagement = () => {
   const fetchData = async () => {
     try {
       const [pagesRes, mainContentsRes, modulesRes, topicsRes] = await Promise.all([
-        api.get('/api/pages/'),
+        api.get('/api/admin/pages/'),
         api.get('/api/maincontents/'),
         api.get('/api/modules/'),
         api.get('/api/topics/'),
       ]);
+  
+      // ✅ Normalize pages
       const cleanedPages: Page[] = pagesRes.data.map((p: any) => ({
         ...p,
         title: p.title || '',
         content: p.content || '',
-        main_content: p.main_content?.id || p.main_content,
+        main_content: p.main_content?.id ?? p.main_content,
         time_duration: p.time_duration || 0,
       }));
+  
+      // ✅ Normalize mainContents (IMPORTANT FIX)
+      const normalizedMainContents: MainContent[] = mainContentsRes.data.map((mc: any) => ({
+        ...mc,
+        module_detail: mc.module_detail
+          ? mc.module_detail
+          : {
+              id: mc.module,
+              title: modulesRes.data.find((m: any) => m.id === mc.module)?.title || '',
+            },
+      }));
+  
       setPages(cleanedPages);
-      setMainContents(mainContentsRes.data);
+      setMainContents(normalizedMainContents);
       setModules(modulesRes.data);
       setTopics(topicsRes.data);
       setFilteredTopics(topicsRes.data);
+  
     } catch (error) {
       toast.error('Failed to fetch data');
     } finally {
       setLoading(false);
     }
   };
+  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
