@@ -80,7 +80,7 @@ const Login = () => {
       <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-3 gap-12">
 
         {/* ================= LEFT CONTENT ================= */}
-        <div className="lg:col-span-2 space-y-12 text-gray-700">
+        <div className="hidden lg:block lg:col-span-2 space-y-12 text-gray-700">
 
           {/* VIDEO */}
           <div className="h-[70vh] min-h-[500px] flex items-center justify-center bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200">
@@ -309,7 +309,7 @@ const Login = () => {
         </div>
 
         {/* ================= RIGHT LOGIN (STICKY, NO SCROLL) ================= */}
-        <div className="lg:sticky lg:top-24 self-start">
+        <div className="w-full flex justify-center lg:sticky lg:top-24 self-start">
           <div className="w-full max-w-[420px] bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
 
             {/* Logo */}
