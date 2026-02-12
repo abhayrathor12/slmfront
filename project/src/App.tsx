@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
+import VideoPage from "./pages/VideoPage";
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
 import TopicManagement from './pages/TopicManagement';
@@ -43,7 +43,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-         <Route
+        <Route
           path="/page_design"
           element={
             <ProtectedRoute allowedRoles={['admin']}>
@@ -100,6 +100,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/video-page/:id" element={<VideoPage />} />
         <Route
           path="/module/:id"
           element={

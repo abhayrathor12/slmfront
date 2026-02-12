@@ -697,10 +697,9 @@ const StudentHome = () => {
                         )}
                         {selectedPage && (
                           <iframe
-                            srcDoc={selectedPage.content}
+                            src={`/video-page/${selectedPage.id}`}
                             className="w-full h-full border-0"
-
-                            title="Page Content"
+                            title="Video Content"
                           />
                         )}
                       </div>
