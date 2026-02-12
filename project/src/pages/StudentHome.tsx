@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import {
-  
   Search,
   BookOpen,
   Clock,
@@ -19,13 +18,14 @@ import {
   Target,
   Lock,
   Layers,
-  FolderOpen,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
-import { toast } from 'react-toastify';
 import { logout, getUser } from '../utils/auth';
 import Navbar from '../components/navbar';
+
+// Assuming you already have toast imported & configured globally or here
+import { toast } from 'react-toastify';// ← adjust if you're using react-toastify
 
 interface Page {
   id: number;
@@ -121,6 +121,7 @@ const StudentHome = () => {
   const [canGoNext, setCanGoNext] = useState(true);
   const [hasVideo, setHasVideo] = useState(false);
 
+  const [defaultOpened, setDefaultOpened] = useState(false);
   const navigate = useNavigate();
   const user = getUser();
 
@@ -188,16 +189,6 @@ const StudentHome = () => {
     navigate('/login');
   };
 
-  const isPageLocked = (page: Page, module: Module) => {
-    if (!module.main_contents) return false;
-    const allPages = module.main_contents
-      .flatMap((mc) => mc.pages || [])
-      .sort((a, b) => a.order - b.order);
-    const pageIndex = allPages.findIndex((p) => p.id === page.id);
-    if (pageIndex <= 0) return false;
-    return allPages.slice(0, pageIndex).some((p) => !p.completed);
-  };
-
   const isModuleLocked = (module: Module) => {
     const topic = topics.find((t) => t.modules.some((m) => m.id === module.id));
     if (!topic) return false;
@@ -252,7 +243,7 @@ const StudentHome = () => {
 
   const handleModuleClick = (module: Module) => {
     if (!expandedModules.has(module.id)) {
-      toggleModuleExpand(module.id, { stopPropagation: () => {} } as React.MouseEvent);
+      toggleModuleExpand(module.id, { stopPropagation: () => { } } as React.MouseEvent);
     }
   };
 
@@ -263,14 +254,17 @@ const StudentHome = () => {
     try {
       const pageRes = await api.get(`/pages/${pageId}`);
       setSelectedPage(pageRes.data);
+
       const quizRes = await api.get(`/api/quizzes/?main_content=${pageRes.data.main_content.id}`);
       const quizData = quizRes.data.length ? quizRes.data[0] : null;
       setQuiz(quizData);
+
       setAnswers({});
       setHasSubmitted(false);
       setQuizResults(null);
-    } catch {
-      toast.error('Failed to load page');
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || 'Failed to load page');
+      throw err;
     } finally {
       setPageLoading(false);
     }
@@ -279,6 +273,7 @@ const StudentHome = () => {
   const completePage = async (pageId: number) => {
     try {
       await api.post(`/pages/${pageId}/complete/`);
+
       setTopics((prevTopics) =>
         prevTopics.map((topic) => ({
           ...topic,
@@ -293,25 +288,32 @@ const StudentHome = () => {
           })),
         }))
       );
+
+      await fetchData();
+      await fetchProgressSummary();
+
       toast.success('Page marked as completed!');
     } catch (error) {
       console.error('Failed to complete page', error);
       toast.error('Failed to complete page');
+      throw error;
     }
   };
 
   const handleNext = async () => {
     if (!selectedPage || !selectedModuleId || !canGoNext) return;
+
     await completePage(selectedPage.id);
 
     const currentModule = topics
       .flatMap((t) => t.modules)
       .find((m) => m.id === selectedModuleId);
+
     if (!currentModule?.main_contents) return;
 
     const allPages = currentModule.main_contents
-      .flatMap((mc) => mc.pages || [])
-      .sort((a, b) => a.order - b.order);
+      .sort((a, b) => a.order - b.order)
+      .flatMap((mc) => (mc.pages || []).sort((a, b) => a.order - b.order));
 
     const currentIndex = allPages.findIndex((p) => p.id === selectedPage.id);
 
@@ -326,14 +328,16 @@ const StudentHome = () => {
 
   const handlePrevious = async () => {
     if (!selectedPage || !selectedModuleId) return;
+
     const currentModule = topics
       .flatMap((t) => t.modules)
       .find((m) => m.id === selectedModuleId);
+
     if (!currentModule?.main_contents) return;
 
     const allPages = currentModule.main_contents
-      .flatMap((mc) => mc.pages || [])
-      .sort((a, b) => a.order - b.order);
+      .sort((a, b) => a.order - b.order)
+      .flatMap((mc) => (mc.pages || []).sort((a, b) => a.order - b.order));
 
     const currentIndex = allPages.findIndex((p) => p.id === selectedPage.id);
 
@@ -348,11 +352,14 @@ const StudentHome = () => {
       toast.error('Please answer all questions');
       return;
     }
+
     setSubmitting(true);
     setHasSubmitted(true);
+
     try {
       const response = await api.post(`/api/quizzes/${quiz.id}/submit/`, { answers });
       setQuizResults(response.data);
+
       if (response.data.passed) {
         toast.success(`Quiz passed! Score: ${response.data.percentage}%`);
         await completeMainContent();
@@ -369,7 +376,6 @@ const StudentHome = () => {
   const completeMainContent = async () => {
     if (!selectedPage) return;
     try {
-      await completePage(selectedPage.id);
       await api.post(`/maincontents/${selectedPage.main_content.id}/complete/`);
       toast.success('Section completed!');
       await fetchData();
@@ -403,6 +409,20 @@ const StudentHome = () => {
     ),
   })).filter((topic) => topic.modules.length > 0);
 
+  useEffect(() => {
+    if (
+      filteredTopics.length > 0 &&
+      !defaultOpened   // 👈 Only once
+    ) {
+      const firstModule = filteredTopics[0]?.modules?.[0];
+
+      if (firstModule) {
+        setExpandedModules(new Set([firstModule.id]));
+        setDefaultOpened(true);   // 👈 mark as done
+      }
+    }
+  }, [filteredTopics, defaultOpened]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -417,22 +437,22 @@ const StudentHome = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <Navbar user={user} handleLogout={handleLogout} />
-
       <div className="flex flex-col h-[calc(100vh-64px)]">
         <div className="flex flex-1 overflow-hidden">
           {/* SIDEBAR */}
           <div
-            className={`${
-              sidebarOpen ? 'w-80' : 'w-0'
-            } transition-all duration-300 overflow-hidden bg-white border-r border-gray-200 flex flex-col shadow-lg`}
+            className={`${sidebarOpen ? 'w-80' : 'w-0'}
+  transition-all duration-300 overflow-hidden bg-white border-r border-gray-200 flex flex-col shadow-lg`}
           >
-            <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+            {/* HEADER */}
+            <div className="p-5 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
               <div className="flex items-center gap-2 mb-3">
                 <BookOpen className="w-5 h-5" style={{ color: '#203f78' }} />
-                <h2 className="text-lg font-bold" style={{ color: '#203f78' }}>
+                <h2 className="text-lg font-bold break-words leading-snug" style={{ color: '#203f78' }}>
                   {filteredTopics.length > 0 ? filteredTopics[0].name : 'Course'}
                 </h2>
               </div>
+
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <input
@@ -445,167 +465,165 @@ const StudentHome = () => {
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4">
+            {/* CONTENT */}
+            <div className="flex-1 overflow-y-auto p-1 space-y-3">
               {filteredTopics.map((topic) => (
-                <div key={topic.id} className="space-y-2">
+                <div key={topic.id} className="space-y-3">
                   {topic.modules.map((module) => {
-                          const isModuleExpanded = expandedModules.has(module.id);
-                          const completedPages =
-                            module.main_contents?.flatMap((mc) => mc.pages?.filter((p) => p.completed) || []).length || 0;
-                          const totalPages =
-                            module.main_contents?.flatMap((mc) => mc.pages || []).length || 0;
+                    const isModuleExpanded = expandedModules.has(module.id);
 
-                          return (
-                            <div key={module.id} className="mb-2">
-                              {/* MODULE */}
-                              <div
-                                className="flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-all hover:bg-indigo-50 group"
-                                onClick={() => handleModuleClick(module)}
-                              >
-                                <button
-                                  onClick={(e) => toggleModuleExpand(module.id, e)}
-                                  className="p-0.5 hover:bg-blue-100 rounded transition-colors"
-                                  aria-label={isModuleExpanded ? 'Collapse module' : 'Expand module'}
-                                >
-                                  {isModuleExpanded ? (
-                                    <ChevronDown className="w-4 h-4 text-[#203f78]" />
-                                  ) : (
-                                    <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-indigo-600" />
-                                  )}
-                                </button>
+                    return (
+                      <div key={module.id} className="mb-3">
+                        {/* PHASE LEVEL */}
+                        <div
+                          className="flex items-start gap-2 px-3 py-3 rounded-lg cursor-pointer transition-all hover:bg-indigo-50 group"
+                          onClick={() => handleModuleClick(module)}
+                        >
+                          <button
+                            onClick={(e) => toggleModuleExpand(module.id, e)}
+                            className="p-0.5 hover:bg-blue-100 rounded transition-colors"
+                          >
+                            {isModuleExpanded ? (
+                              <ChevronDown className="w-4 h-4 text-[#203f78]" />
+                            ) : (
+                              <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-indigo-600" />
+                            )}
+                          </button>
 
-                                <Layers className="w-4 h-4 text-[#203f78] flex-shrink-0" />
+                          <Layers className="w-4 h-4 text-[#203f78] mt-1 flex-shrink-0" />
 
-                                <div className="flex-1 min-w-0">
-                                  <h4 className="text-sm font-semibold text-gray-800 truncate group-hover:text-gray-900">
-                                    {module.title}
-                                  </h4>
-                                  <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
-                                    <span className="font-medium">
-                                      {completedPages}/{totalPages} pages
-                                    </span>
-                                    <span>•</span>
-                                    <span className="font-medium">{module.completion_percentage || 0}%</span>
-                                  </div>
-                                </div>
+                          <div className="flex-1">
+                            <h4 className="text-sm font-semibold text-gray-800 break-words leading-snug">
+                              {module.title}
+                            </h4>
+                          </div>
+                        </div>
 
-                                {module.completion_percentage === 100 && (
-                                  <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0" />
-                                )}
-                              </div>
+                        {/* MAIN CONTENTS (Modules 1,2,3...) */}
+                        {isModuleExpanded && module.main_contents && (
+                          <div className="ml-6 mt-2 space-y-3 border-l-2 border-gray-200 pl-4">
+                            {module.main_contents
+                              .sort((a, b) => a.order - b.order)
+                              .map((mc, index, arr) => {
+                                const mcExpanded = expandedMainContents.has(mc.id);
 
-                              {isModuleExpanded && module.main_contents && (
-                                <div className="ml-6 mt-2 space-y-2 border-l-2 border-gray-200 pl-3">
-                                  {module.main_contents
-                                    .sort((a, b) => a.order - b.order)
-                                    .map((mc) => {
-                                      const mcExpanded = expandedMainContents.has(mc.id);
+                                return (
+                                  <div key={mc.id}>
+                                    {/* MODULE TITLE */}
+                                    <div
+                                      onClick={() => toggleMainContentExpand(mc.id)}
+                                      className="flex items-center gap-2 py-2 px-3 rounded-lg cursor-pointer hover:bg-blue-50 transition-colors group"
+                                    >
+                                      {mcExpanded ? (
+                                        <ChevronDown className="w-4 h-4 text-[#203f78] flex-shrink-0" />
+                                      ) : (
+                                        <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-[#203f78] flex-shrink-0" />
+                                      )}
 
-                                      return (
-                                        <div key={mc.id}>
-                                          {/* MAIN CONTENT */}
-                                          <div
-                                            onClick={() => toggleMainContentExpand(mc.id)}
-                                            className="flex items-center gap-2 py-2 px-3 rounded-lg cursor-pointer hover:bg-[#203f78]-50 transition-colors group"
+                                      <BookText className="w-4 h-4 text-[#203f78] flex-shrink-0" />
+
+                                      {(() => {
+                                        const isLab = /lab/i.test(mc.title);
+
+                                        const moduleNumber =
+                                          arr
+                                            .slice(0, index + 1)
+                                            .filter((item) => !/lab/i.test(item.title)).length;
+
+                                        return (
+                                          <span
+                                            className={`text-sm font-semibold text-[#203f78] transition-all ${mcExpanded
+                                              ? 'break-words leading-snug'
+                                              : 'truncate whitespace-nowrap overflow-hidden'
+                                              }`}
                                           >
-                                            {mcExpanded ? (
-                                              <ChevronDown className="w-4 h-4 text-[#203f78]-600" />
-                                            ) : (
-                                              <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-[#203f78]" />
-                                            )}
+                                            {isLab ? mc.title : `Module ${moduleNumber}: ${mc.title}`}
+                                          </span>
+                                        );
+                                      })()}
 
-                                            <BookText className="w-4 h-4 text-[#203f78] flex-shrink-0" />
+                                    </div>
 
-                                            <span className="text-sm font-semibold text-[#203f78] group-hover:text-grey-500 truncate">
-                                              {mc.title || `Section ${mc.order}`}
-                                            </span>
-                                          </div>
+                                    {/* PAGES */}
+                                    {mcExpanded && (
+                                      <div className="ml-3 mt-1 space-y-1">
+                                        {mc.pages
+                                          .sort((a, b) => a.order - b.order)
+                                          .map((page) => {
+                                            const isSelected = selectedPage?.id === page.id;
+                                            const moduleLocked = isModuleLocked(module);
+                                            const locked = moduleLocked;
 
-                                          {/* PAGES */}
-                                          {mcExpanded && (
-                                            <div className="ml-3 mt-1 space-y-1 border-l-2 border-gray-300 pl-3">
-                                              {mc.pages
-                                                .sort((a, b) => a.order - b.order)
-                                                .map((page) => {
-                                                  const isSelected = selectedPage?.id === page.id;
-                                                  const moduleLocked = isModuleLocked(module);
-                                                  const pageLocked = isPageLocked(page, module);
-                                                  const locked = moduleLocked || pageLocked;
+                                            return (
+                                              <div key={page.id} className="relative">
+                                                <div
+                                                  className="absolute left-0 top-1/2 h-px w-3 bg-gray-300"
+                                                  style={{ transform: 'translateY(-50%)' }}
+                                                />
 
-                                                  return (
-                                                    <div key={page.id} className="relative">
-                                                      {/* Tree connector line */}
-                                                      <div className="absolute left-0 top-1/2 w-3 h-0.5 bg-gray-300" style={{ transform: 'translateY(-50%)' }}></div>
-                                                      
-                                                      <div
-                                                        onClick={() => {
-                                                          if (locked) {
-                                                            if (moduleLocked) {
-                                                              toast.error('Please complete the previous module first');
-                                                            } else {
-                                                              toast.error('Please complete previous pages first');
-                                                            }
-                                                            return;
-                                                          }
-                                                          handlePageClick(page.id, module.id);
-                                                        }}
-                                                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group ml-3 ${
-                                                          isSelected
-                                                            ? 'text-[#203f78] font-semibold'
-                                                            : locked
-                                                            ? 'cursor-not-allowed opacity-60'
-                                                            : 'cursor-pointer hover:bg-blue-50 border-2 border-transparent'
+                                                <div
+                                                  onClick={async () => {
+                                                    if (locked) {
+                                                      toast.error('Please complete the previous module first');
+                                                      return;
+                                                    }
+                                                    try {
+                                                      await handlePageClick(page.id, module.id);
+                                                    } catch {
+                                                      // error already shown in handlePageClick
+                                                    }
+                                                  }}
+                                                  className={`relative flex items-center justify-between gap-3 pl-4 pr-3 py-2 rounded-lg transition-all group
+                ${locked
+                                                      ? 'opacity-60 cursor-not-allowed'
+                                                      : 'cursor-pointer'
+                                                    }
+              `}
+                                                >
+                                                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                    {page.completed ? (
+                                                      <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                                                    ) : locked ? (
+                                                      <Lock className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                                    ) : (
+                                                      <Circle className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                                    )}
+
+                                                    <FileText
+                                                      className={`w-4 h-4 flex-shrink-0 ${isSelected ? 'text-[#203f78]' : 'text-gray-400'
                                                         }`}
-                                                      >
-                                                        {page.completed ? (
-                                                          <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                                                        ) : locked ? (
-                                                          <Lock className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                                                        ) : (
-                                                          <Circle className="w-4 h-4 text-gray-300 flex-shrink-0" />
-                                                        )}
+                                                    />
 
-                                                        <FileText
-                                                          className={`w-4 h-4 flex-shrink-0 transition-colors ${
-                                                            isSelected
-                                                              ? 'text-[#203f78]'
-                                                              : locked
-                                                              ? 'text-gray-400'
-                                                              : 'text-gray-400 group-hover:text-[#203f78]'
-                                                          }`}
-                                                        />
+                                                    <span
+                                                      className={`text-sm truncate block ${isSelected
+                                                        ? 'text-[#203f78] font-semibold'
+                                                        : 'text-gray-500'
+                                                        }`}
+                                                    >
+                                                      {page.title}
+                                                    </span>
+                                                  </div>
 
-                                                        <div className="flex-1 min-w-0">
-                                                          <span
-                                                            className={`text-sm truncate block transition-colors ${
-                                                              isSelected
-                                                                ? 'text-[#203f78] font-semibold'
-                                                                : locked
-                                                                ? 'text-gray-400'
-                                                                : 'text-gray-700 group-hover:text-[#203f78]'
-                                                            }`}
-                                                          >
-                                                            {page.title}
-                                                          </span>
-                                                        </div>
-
-                                                        <span className="text-xs text-gray-500 whitespace-nowrap font-medium">
-                                                          {page.formatted_duration}
-                                                        </span>
-                                                      </div>
-                                                    </div>
-                                                  );
-                                                })}
-                                            </div>
-                                          )}
-                                        </div>
-                                      );
-                                    })}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
+                                                  <span
+                                                    className={`text-xs font-medium whitespace-nowrap ${isSelected ? 'text-[#203f78]' : 'text-gray-500'
+                                                      }`}
+                                                  >
+                                                    {page.formatted_duration}
+                                                  </span>
+                                                </div>
+                                              </div>
+                                            );
+                                          })}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               ))}
             </div>
@@ -614,7 +632,7 @@ const StudentHome = () => {
           {/* MAIN CONTENT AREA */}
           <div className="flex-1 flex flex-col overflow-hidden">
             <div className="sticky top-0 z-40 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between shrink-0 shadow-sm">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 min-w-0">
                 <button
                   onClick={() => setSidebarOpen(!sidebarOpen)}
                   className="p-2 rounded-lg hover:bg-gray-100 transition-all border border-gray-200"
@@ -626,9 +644,15 @@ const StudentHome = () => {
                     <Menu className="w-5 h-5 text-gray-600" />
                   )}
                 </button>
-                <span className="text-sm font-medium text-gray-600">
-                  {sidebarOpen ? 'Hide Course Menu' : 'Show Course Menu'}
-                </span>
+
+                {selectedPage && (
+                  <h2
+                    className="text-base sm:text-lg font-semibold text-[#203f78] truncate max-w-[500px]"
+                    title={selectedPage.title}
+                  >
+                    {selectedPage.title}
+                  </h2>
+                )}
               </div>
 
               <div className="flex items-center gap-3 bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 px-4 py-2 rounded-xl shadow-sm">
@@ -695,8 +719,8 @@ const StudentHome = () => {
                                 .find((m) => m.id === selectedModuleId);
                               if (!currentModule?.main_contents) return true;
                               const allPages = currentModule.main_contents
-                                .flatMap((mc) => mc.pages || [])
-                                .sort((a, b) => a.order - b.order);
+                                .sort((a, b) => a.order - b.order)
+                                .flatMap((mc) => (mc.pages || []).sort((a, b) => a.order - b.order));
                               const currentIndex = allPages.findIndex((p) => p.id === selectedPage.id);
                               return currentIndex <= 0;
                             })()
@@ -716,14 +740,16 @@ const StudentHome = () => {
 
                         {(() => {
                           if (!selectedPage || !selectedModuleId) return null;
+
                           const currentModule = topics
                             .flatMap((t) => t.modules)
                             .find((m) => m.id === selectedModuleId);
+
                           if (!currentModule?.main_contents) return null;
 
                           const allPages = currentModule.main_contents
-                            .flatMap((mc) => mc.pages || [])
-                            .sort((a, b) => a.order - b.order);
+                            .sort((a, b) => a.order - b.order)
+                            .flatMap((mc) => (mc.pages || []).sort((a, b) => a.order - b.order));
 
                           const currentIndex = allPages.findIndex((p) => p.id === selectedPage.id);
                           const isLastPage = currentIndex === allPages.length - 1;
@@ -734,16 +760,16 @@ const StudentHome = () => {
                             if (quiz && quiz.questions.length > 0) {
                               return (
                                 <button
-                                  onClick={() => {
-                                    completePage(selectedPage.id);
+                                  onClick={async () => {
+                                    if (!canGoNext) return;
+                                    await completePage(selectedPage.id);
                                     setShowQuiz(true);
                                   }}
                                   disabled={!canGoNext}
-                                  className={`${buttonBase} ${
-                                    canGoNext
-                                      ? 'text-white hover:shadow-lg'
-                                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                  }`}
+                                  className={`${buttonBase} ${canGoNext
+                                    ? 'text-white hover:shadow-lg'
+                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                    }`}
                                   style={
                                     canGoNext
                                       ? { background: 'linear-gradient(135deg, #203f78 0%, #2d5aa0 100%)' }
@@ -755,15 +781,15 @@ const StudentHome = () => {
                                 </button>
                               );
                             }
+
                             return (
                               <button
                                 onClick={completeMainContent}
                                 disabled={!canGoNext}
-                                className={`${buttonBase} ${
-                                  canGoNext
-                                    ? 'text-white hover:shadow-lg'
-                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                }`}
+                                className={`${buttonBase} ${canGoNext
+                                  ? 'text-white hover:shadow-lg'
+                                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                  }`}
                                 style={
                                   canGoNext
                                     ? { background: 'linear-gradient(135deg, #203f78 0%, #2d5aa0 100%)' }
@@ -780,11 +806,10 @@ const StudentHome = () => {
                             <button
                               onClick={handleNext}
                               disabled={!canGoNext}
-                              className={`${buttonBase} ${
-                                canGoNext
-                                  ? 'text-white hover:shadow-lg'
-                                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                              }`}
+                              className={`${buttonBase} ${canGoNext
+                                ? 'text-white hover:shadow-lg'
+                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                }`}
                               style={
                                 canGoNext
                                   ? { background: 'linear-gradient(135deg, #203f78 0%, #2d5aa0 100%)' }
@@ -838,13 +863,12 @@ const StudentHome = () => {
                           return (
                             <div
                               key={question.id}
-                              className={`border-2 rounded-xl p-6 transition-all ${
-                                isSubmitted
-                                  ? result.is_correct
-                                    ? 'border-emerald-500 bg-emerald-50'
-                                    : 'border-red-500 bg-red-50'
-                                  : 'border-gray-200 bg-gray-50'
-                              }`}
+                              className={`border-2 rounded-xl p-6 transition-all ${isSubmitted
+                                ? result.is_correct
+                                  ? 'border-emerald-500 bg-emerald-50'
+                                  : 'border-red-500 bg-red-50'
+                                : 'border-gray-200 bg-gray-50'
+                                }`}
                             >
                               <div className="flex items-start gap-3 mb-4">
                                 <div
@@ -868,15 +892,14 @@ const StudentHome = () => {
                                   return (
                                     <label
                                       key={choice.id}
-                                      className={`flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                                        showCorrect
-                                          ? 'border-emerald-500 bg-emerald-100'
-                                          : showWrong
+                                      className={`flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${showCorrect
+                                        ? 'border-emerald-500 bg-emerald-100'
+                                        : showWrong
                                           ? 'border-red-500 bg-red-100'
                                           : isUserAnswer && !hasSubmitted
-                                          ? 'border-blue-500 bg-blue-50'
-                                          : 'border-gray-200 bg-white hover:bg-gray-50'
-                                      }`}
+                                            ? 'border-blue-500 bg-blue-50'
+                                            : 'border-gray-200 bg-white hover:bg-gray-50'
+                                        }`}
                                     >
                                       <input
                                         type="radio"
@@ -892,15 +915,14 @@ const StudentHome = () => {
                                         style={{ accentColor: '#203f78' }}
                                       />
                                       <span
-                                        className={`font-medium text-base flex items-center gap-2 ${
-                                          showCorrect
-                                            ? 'text-emerald-700'
-                                            : showWrong
+                                        className={`font-medium text-base flex items-center gap-2 ${showCorrect
+                                          ? 'text-emerald-700'
+                                          : showWrong
                                             ? 'text-red-700'
                                             : isUserAnswer && !hasSubmitted
-                                            ? 'text-blue-700'
-                                            : 'text-gray-700'
-                                        }`}
+                                              ? 'text-blue-700'
+                                              : 'text-gray-700'
+                                          }`}
                                       >
                                         {choice.text}
                                         {showCorrect && (

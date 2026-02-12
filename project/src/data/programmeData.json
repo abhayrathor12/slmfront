@@ -1,199 +1,325 @@
 {
-    "organization": {
-      "name": "Technoviz Automation Solutions Pvt. Ltd.",
-      "focus": [
-        "Industry 4.0",
-        "Smart Manufacturing",
-        "IIoT",
-        "AI-driven Manufacturing",
-        "Industrial Automation",
-        "Digital Transformation"
-      ]
+  "organization": {
+    "name": "Technoviz Automation Solutions Pvt. Ltd.",
+    "focus": [
+      "Industry 4.0",
+      "Smart Manufacturing",
+      "IIoT",
+      "AI-driven Manufacturing",
+      "Industrial Automation",
+      "Digital Transformation"
+    ]
+  },
+
+  "about": {
+    "overview": "Technoviz Automation presents a Centre of Excellence (CoE) on Smart Manufacturing designed to prepare students for real industrial environments. This initiative focuses on Industry 4.0, IIoT, Smart Automation, AI-driven manufacturing, and digital transformation. The CoE operates on a subscription-based model with zero upfront investment for institutions."
+  },
+
+  "coe": {
+    "title": "Centre of Excellence on Smart Manufacturing",
+    "model": "Zero Investment – Subscription Based Model",
+    "description": "Industry-aligned training program designed to build job-ready skills in PLC, IIoT, Smart Automation, and Industry 4.0 through hands-on learning and real industrial use cases."
+  },
+
+  "highlights": [
+    {
+      "step": 1,
+      "title": "Student Enrollment & Portal Access",
+      "description": "Students enroll in the Smart Manufacturing SLM program and receive lifetime access to the Technoviz Automation learning portal, including modules, labs, assignments, and continuous updates."
     },
-  
-    "coe": {
-      "title": "Centre of Excellence on Smart Manufacturing",
-      "model": "Subscription-Based | Zero Investment for Colleges",
-      "description": "The Centre of Excellence on Smart Manufacturing is designed to prepare students for real industrial environments by focusing on Industry 4.0, IIoT, Smart Automation, AI-driven manufacturing, and digital transformation."
+    {
+      "step": 2,
+      "title": "Self-Learning Through Structured Modules",
+      "description": "DIY learning model with step-by-step theory, lab manuals, industrial examples, and hands-on exercises."
     },
-  
-    "about": {
-      "overview": "Technoviz Automation is an Industry 4.0 and IIoT solution provider delivering software and industrial automation solutions. The company works with industries, academic institutions, and startups to build future-ready talent and innovation ecosystems."
+    {
+      "step": 3,
+      "title": "Hands-On Practice & Industrial Use Cases",
+      "description": "Students work on real industrial problem statements to gain confidence and practical exposure."
     },
-  
-    "zeroInvestmentModel": {
-      "investmentRequired": false,
-      "collegeResponsibilities": [
-        "Provide lab space",
-        "Support student participation",
-        "Nominate faculty coordinator"
-      ],
-      "technovizResponsibilities": [
-        "Hardware procurement",
-        "Lab installation and commissioning",
-        "Maintenance and upgrades",
-        "Training delivery",
-        "Learning portal access"
-      ]
+    {
+      "step": 4,
+      "title": "Online Assessment & Skill Evaluation",
+      "description": "Assessment evaluates conceptual understanding, practical skills, and industry problem-solving ability."
     },
-  
-    "implementationProcess": [
-      {
-        "step": 1,
-        "title": "Alignment and MoU Signing",
-        "details": [
-          "Define objectives and outcomes",
-          "Finalize technology scope",
-          "Confirm student enrollment",
-          "Agree on lab space and infrastructure",
-          "Sign MoU"
-        ]
-      },
-      {
-        "step": 2,
-        "title": "Student Onboarding and Portal Access",
-        "details": [
-          "Student license activation",
-          "Lifetime access to learning portal",
-          "Access to labs, assessments, and career support"
-        ]
-      },
-      {
-        "step": 3,
-        "title": "Hardware Lab Establishment",
-        "details": [
-          "Design and install Smart Manufacturing & IIoT lab",
-          "Configure industrial hardware and software",
-          "Commission and test lab setup"
-        ]
-      },
-      {
-        "step": 4,
-        "title": "Institutional Revenue Participation",
-        "details": [
-          "Revenue sharing based on student subscriptions",
-          "Transparent and enrollment-based model"
-        ]
-      },
-      {
-        "step": 5,
-        "title": "Faculty Enablement Program",
-        "details": [
-          "Train-the-Trainer sessions",
-          "Faculty acts as facilitator and coordinator",
-          "No content creation burden on faculty"
-        ]
-      },
-      {
-        "step": 6,
-        "title": "DIY Learning Model",
-        "details": [
-          "Self-paced learning modules",
-          "Hands-on lab manuals",
-          "Assignments and assessments"
-        ]
-      },
-      {
-        "step": 7,
-        "title": "Training Completion and Assessment",
-        "details": [
-          "Online assessment",
-          "Evaluation of conceptual and practical knowledge"
-        ]
-      },
-      {
-        "step": 8,
-        "title": "Certification",
-        "details": [
-          "Auto-generated digital certificate",
-          "Verifiable and portal-linked"
-        ]
-      },
-      {
-        "step": 9,
-        "title": "Continuous Learning and Industry Engagement",
-        "details": [
-          "Industrial use cases",
-          "Advanced learning modules",
-          "Industry updates"
-        ]
-      },
-      {
-        "step": 10,
-        "title": "Lifetime Career and Startup Support",
-        "details": [
-          "Job assistance and interview preparation",
-          "Startup mentorship",
-          "Investor and industry network access"
-        ]
-      }
-    ],
-  
-    "curriculum": {
-      "title": "Smart Manufacturing | IIoT | PLC to Cloud",
-      "modules": [
-        "Introduction to Automation",
-        "Industrial Automation Fundamentals",
-        "PLC Fundamentals",
-        "PLC Programming Basics",
-        "Advanced PLC Concepts",
-        "Industrial Networking and Communication",
-        "IIoT Fundamentals",
-        "IIoT Communication Protocols",
-        "PLC to Cloud Integration",
-        "Python Programming for Industrial Applications",
-        "Database and Data Management",
-        "Cloud Computing Fundamentals",
-        "IIoT Dashboards and Visualization",
-        "OEE (Overall Equipment Effectiveness)",
-        "Energy Monitoring and Management",
-        "Control, Monitoring, and Alarm Management",
-        "Cybersecurity Basics for IIoT",
-        "Industry 4.0 and Smart Manufacturing",
-        "Real Industrial Use Cases and Projects",
-        "Career, Startup, and Innovation Orientation"
-      ]
+    {
+      "step": 5,
+      "title": "Certification",
+      "description": "Instant, auto-generated, verifiable digital certificate linked to portal records."
     },
-  
-    "infrastructureChecklist": {
-      "labSpace": "400–500 sq.ft. for 20–25 students",
-      "requirements": [
-        "Tables and chairs",
-        "Stable power supply with UPS",
-        "PCs with i5 processor, 8GB RAM, SSD",
-        "Internet connectivity",
-        "Faculty coordinator"
-      ]
-    },
-  
-    "programmeDesigner": {
-      "name": "Kapil Khurana",
-      "designation": "Author & Certified SIRI Assessor | IIT Delhi",
-      "experience": "20+ years in Industry 4.0, IIoT, Automation, and Digital Transformation"
-    },
-  
-    "benefits": {
-      "colleges": [
-        "Zero investment",
-        "Revenue sharing",
-        "Industry collaboration",
-        "Improved student outcomes"
-      ],
-      "students": [
-        "Hands-on industrial exposure",
-        "Job-ready skills",
-        "Lifetime learning access",
-        "Career and startup support"
-      ],
-      "industry": [
-        "Job-ready talent",
-        "Industry-aligned skill development"
-      ]
-    },
-  
-    "contact": {
-      "website": "https://www.technovizautomation.com",
-      "email": "support@technovizautomation.com"
+    {
+      "step": 6,
+      "title": "Lifetime Career & Startup Support",
+      "description": "Continuous learning updates, career guidance, interview preparation, startup mentorship, and industry networking."
     }
+  ],
+
+  "modules": [
+    {
+      "title": "Introduction to Automation",
+      "submodules": [
+        "What is Automation",
+        "Evolution of Automation",
+        "Automation in Daily Life",
+        "Automation in Industrial Environment",
+        "Why Industries Need Automation",
+        "Benefits of Automation",
+        "Limitations and Challenges of Automation",
+        "Role of Automation Engineer"
+      ]
+    },
+    {
+      "title": "What is Industrial Automation",
+      "submodules": [
+        "Definition of Industrial Automation",
+        "Industrial Automation vs Domestic Automation",
+        "Industrial Environments and Operating Conditions",
+        "Types of Industrial Automation",
+        "Basic Components of an Industrial Automation System",
+        "Control Levels in Industrial Automation",
+        "Real-World Industrial Automation Examples",
+        "Role of Industrial Automation in Modern Manufacturing"
+      ]
+    },
+    {
+      "title": "Introduction to PLCs",
+      "submodules": [
+        "What is a PLC",
+        "Why PLCs are Used in Industries",
+        "PLC vs Relay-Based Control Systems",
+        "Basic Architecture of a PLC",
+        "PLC Inputs and Outputs Overview",
+        "PLC Scan Cycle",
+        "Types of PLCs",
+        "PLC Programming Languages Overview",
+        "Role of PLCs in Modern Automation Systems"
+      ]
+    },
+    {
+      "title": "PLC Inputs, Outputs, and Field Devices",
+      "submodules": [
+        "Role of Inputs, Outputs, and Field Devices in Automation",
+        "Digital Inputs",
+        "Digital Outputs",
+        "Analog Inputs",
+        "Analog Outputs",
+        "Sensors Used in Industrial Automation",
+        "Actuators in Industrial Automation",
+        "Wiring Concepts for PLC I/O",
+        "Common I/O Faults and Troubleshooting Basics",
+        "Field Devices in Real Industrial Applications"
+      ]
+    },
+    {
+      "title": "Basics of PLC Programming",
+      "submodules": [
+        "What is PLC Programming",
+        "Introduction to Ladder Logic",
+        "Structure of a Ladder Logic Program",
+        "Contacts in Ladder Logic",
+        "Coils in Ladder Logic",
+        "Basic Logic Operations",
+        "Timers in PLC Programming",
+        "Counters in PLC Programming",
+        "Basic Interlocking Concepts",
+        "Program Execution and Best Practices"
+      ]
+    },
+    {
+      "title": "Introduction to Industry 4.0",
+      "submodules": [
+        "What is Industry 4.0",
+        "Evolution from Industry 1.0 to Industry 4.0",
+        "Limitations of Traditional Automation",
+        "Cyber-Physical Systems",
+        "Smart Factory Concept",
+        "Role of Data in Manufacturing",
+        "Connectivity and Networking in Industry 4.0",
+        "Integration of PLCs with Industry 4.0",
+        "Benefits of Industry 4.0",
+        "Challenges and Considerations in Industry 4.0 Adoption"
+      ]
+    },
+    {
+      "title": "What is IoT and IIoT",
+      "submodules": [
+        "Understanding the Concept of IoT",
+        "Core Components of an IoT System",
+        "Limitations of IoT in Industrial Environments",
+        "Introduction to Industrial Internet of Things (IIoT)",
+        "Key Characteristics of IIoT Systems",
+        "IoT vs IIoT – Conceptual Comparison",
+        "Data Flow in IIoT Systems",
+        "Industrial Use Cases of IIoT",
+        "Role of IIoT in Smart Manufacturing",
+        "Skills and Knowledge Required for IoT and IIoT Engineers"
+      ]
+    },
+    {
+      "title": "PLC to IIoT Architecture",
+      "submodules": [
+        "Why PLC to IIoT Architecture is Needed",
+        "Role of PLC in IIoT Architecture",
+        "Data Available Inside a PLC",
+        "Edge Layer in IIoT Architecture",
+        "Gateway Layer and Its Functions",
+        "Cloud and On-Premise Layers",
+        "Data Acquisition Concepts",
+        "Real-Time vs Non-Real-Time Data",
+        "Security Considerations in PLC to IIoT Architecture",
+        "Example PLC to IIoT Architecture Flow"
+      ]
+    },
+    {
+      "title": "Communication Protocols in IIoT",
+      "submodules": [
+        "What Is a Communication Protocol?",
+        "Why Industrial Communication Is Different",
+        "Traditional Industrial Protocols",
+        "Limitations of Traditional Protocols in IIoT",
+        "Introduction to IIoT Communication Protocols",
+        "MQTT – The Most Popular IIoT Protocol",
+        "OPC UA – Bridging OT and IT",
+        "HTTP and REST in IIoT Systems",
+        "Communication Models – How Data Flows",
+        "Protocol Selection Criteria",
+        "Practical Industry Example"
+      ]
+    },
+    {
+      "title": "Data Handling and Edge Computing",
+      "submodules": [
+        "Why Raw Data Cannot Be Sent Directly to the Cloud",
+        "What Is Edge Computing?",
+        "Role of Edge Devices in IIoT Systems",
+        "Data Filtering at the Edge",
+        "Data Aggregation and Summarization",
+        "Event-Based Data Transmission",
+        "Edge Analytics and Local Decision Making",
+        "Latency Reduction and Real-Time Benefits",
+        "Edge Devices and Gateways – Examples",
+        "Data Flow Example in a Smart Factory",
+        "Why Edge Computing Is Essential for Smart Manufacturing"
+      ]
+    },
+    {
+      "title": "Data Visualization Concepts",
+      "submodules": [
+        "What Is Data Visualization in Manufacturing?",
+        "Why Visualization Is Critical in Smart Manufacturing",
+        "From Raw Data to Insights",
+        "Key Performance Indicators (KPIs) in Manufacturing",
+        "Real-Time Dashboards",
+        "Historical Dashboards and Trend Analysis",
+        "User Roles and Visualization Requirements",
+        "Design Principles for Effective Dashboards",
+        "Visualization Tools in IIoT Systems",
+        "Visualization in a Smart Factory – Practical Example",
+        "Visualization as a Decision-Support Tool"
+      ]
+    },
+    {
+      "title": "Cloud Hosting Fundamentals",
+      "submodules": [
+        "Why Cloud Hosting Is Needed in IIoT",
+        "What Is Cloud Computing?",
+        "Cloud vs On-Premise Systems",
+        "Types of Cloud Deployment Models",
+        "Basic Cloud Architecture",
+        "Cloud Services Used in IIoT",
+        "Benefits of Cloud Hosting in Smart Manufacturing",
+        "Challenges and Concerns with Cloud Hosting",
+        "Security Basics in Cloud-Based IIoT Systems",
+        "Cloud Hosting in a Real IIoT Scenario",
+        "Role of Cloud in Industry 4.0"
+      ]
+    },
+    {
+      "title": "Database and Data Storage",
+      "submodules": [
+        "Why Data Storage Is Important in IIoT",
+        "What Is a Database?",
+        "Types of Databases Used in IIoT",
+        "Understanding Time-Series Data",
+        "Time-Series Databases in IIoT",
+        "Data Storage Location: Edge, On-Premise, and Cloud",
+        "Data Retention Policies",
+        "Data Quality and Integrity",
+        "Basic Querying Concepts",
+        "Role of Databases in IIoT Applications"
+      ]
+    },
+    {
+      "title": "Application Development for IIoT",
+      "submodules": [
+        "What Is an IIoT Application",
+        "Role of Applications in Smart Manufacturing",
+        "Basic IIoT Application Architecture",
+        "From Data to Dashboard",
+        "Dashboard Design Principles",
+        "Alarm and Event Handling Concepts",
+        "Notifications and Alerts",
+        "Role-Based Access Control",
+        "Reliability and Scalability in Applications",
+        "Real-World IIoT Application Examples"
+      ]
+    },
+    {
+      "title": "Smart Manufacturing Use Cases",
+      "submodules": [
+        "What Are Smart Manufacturing Use Cases",
+        "Overall Equipment Effectiveness (OEE) – Introduction",
+        "OEE Data Collection from PLCs",
+        "Energy Monitoring Use Case",
+        "Energy Data Analysis and Optimization",
+        "Predictive Maintenance – Overview",
+        "Predictive Maintenance Data Sources",
+        "Quality Monitoring and Traceability",
+        "Combining Use Cases in a Single System",
+        "Industry Examples and Student Project Ideas"
+      ]
+    },
+    {
+      "title": "System Integration and Project Flow",
+      "submodules": [
+        "Understanding an End-to-End IIoT Project",
+        "Typical PLC to Cloud Project Flow",
+        "Defining Project Requirements",
+        "Integration of Hardware Components",
+        "Software Integration Across Layers",
+        "Common Integration Challenges",
+        "Testing and Validation Strategy",
+        "Deployment of IIoT Systems",
+        "Maintenance and Continuous Improvement",
+        "Industry Best Practices and Project Documentation"
+      ]
+    }
+  ],
+
+  "benefits": {
+    "students": [
+      "Industry-ready skills in PLC, IIoT & Smart Manufacturing",
+      "Verifiable digital certificate",
+      "Lifetime access to learning portal",
+      "Career guidance and startup mentorship",
+      "Real industrial project exposure"
+    ],
+    "industry": [
+      "Access to Industry 4.0 trained talent",
+      "Reduced onboarding and training cost",
+      "Standardized skill development",
+      "Better internship-to-job conversion"
+    ]
+  },
+
+  "programmeDesigner": {
+    "name": "Kapil Khurana",
+    "designation": "Founder & Lead Trainer",
+    "experience": "20+ years of experience in Industrial Automation, IIoT, Industry 4.0, and Digital Transformation"
+  },
+
+  "contact": {
+    "website": "https://www.technovizautomation.com",
+    "email": "support@technovizautomation.com"
   }
-  
+}
