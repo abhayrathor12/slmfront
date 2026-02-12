@@ -675,7 +675,7 @@ const StudentHome = () => {
                           <iframe
                             srcDoc={selectedPage.content}
                             className="w-full h-full border-0"
-                            sandbox="allow-same-origin allow-scripts"
+
                             title="Page Content"
                           />
                         )}
