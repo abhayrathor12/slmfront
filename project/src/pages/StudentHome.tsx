@@ -33,6 +33,7 @@ interface Page {
   order: number;
   completed: boolean;
   formatted_duration: string;
+  video_url?: string | null;
 }
 
 interface MainContent {
@@ -248,12 +249,14 @@ const StudentHome = () => {
   };
 
   const handlePageClick = async (pageId: number, moduleId: number) => {
+
     setPageLoading(true);
     setShowQuiz(false);
     setSelectedModuleId(moduleId);
     try {
       const pageRes = await api.get(`/pages/${pageId}`);
       setSelectedPage(pageRes.data);
+      console.log("PAGE DATA:", pageRes.data);
 
       const quizRes = await api.get(`/api/quizzes/?main_content=${pageRes.data.main_content.id}`);
       const quizData = quizRes.data.length ? quizRes.data[0] : null;
@@ -695,11 +698,17 @@ const StudentHome = () => {
                             />
                           </div>
                         )}
-                        {selectedPage && (
+                        {selectedPage?.video_url ? (
                           <iframe
-                            src={`/video-page/${selectedPage.id}`}
+                            src={selectedPage.video_url}
                             className="w-full h-full border-0"
-                            title="Video Content"
+                            allow="accelerometer; encrypted-media; picture-in-picture;"
+                            allowFullScreen
+                          />
+                        ) : (
+                          <div
+                            className="p-6 overflow-y-auto"
+                            dangerouslySetInnerHTML={{ __html: selectedPage?.content || "" }}
                           />
                         )}
                       </div>

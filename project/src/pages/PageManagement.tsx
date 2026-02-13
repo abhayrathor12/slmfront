@@ -13,6 +13,7 @@ interface Page {
   main_content: number | { id: number; title: string; module: number };
   order: number;
   time_duration: number;
+  video_id?: string | null;
 }
 interface MainContent {
   id: number;
@@ -50,6 +51,7 @@ const PageManagement = () => {
     title: '',
     content: '',
     main_content: '',
+    video_id: '',
     order: 1,
     time_duration: 0,
   });
@@ -95,7 +97,7 @@ const PageManagement = () => {
         api.get('/api/modules/'),
         api.get('/api/topics/'),
       ]);
-  
+
       // ✅ Normalize pages
       const cleanedPages: Page[] = pagesRes.data.map((p: any) => ({
         ...p,
@@ -104,31 +106,31 @@ const PageManagement = () => {
         main_content: p.main_content?.id ?? p.main_content,
         time_duration: p.time_duration || 0,
       }));
-  
+
       // ✅ Normalize mainContents (IMPORTANT FIX)
       const normalizedMainContents: MainContent[] = mainContentsRes.data.map((mc: any) => ({
         ...mc,
         module_detail: mc.module_detail
           ? mc.module_detail
           : {
-              id: mc.module,
-              title: modulesRes.data.find((m: any) => m.id === mc.module)?.title || '',
-            },
+            id: mc.module,
+            title: modulesRes.data.find((m: any) => m.id === mc.module)?.title || '',
+          },
       }));
-  
+
       setPages(cleanedPages);
       setMainContents(normalizedMainContents);
       setModules(modulesRes.data);
       setTopics(topicsRes.data);
       setFilteredTopics(topicsRes.data);
-  
+
     } catch (error) {
       toast.error('Failed to fetch data');
     } finally {
       setLoading(false);
     }
   };
-  
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -164,13 +166,16 @@ const PageManagement = () => {
     setFormData({
       title: page.title,
       content: page.content,
-      main_content: (typeof page.main_content === 'number' ? page.main_content : page.main_content.id).toString(),
+      video_id: page.video_id || '',   // ✅ ADD
+      main_content:
+        (typeof page.main_content === 'number'
+          ? page.main_content
+          : page.main_content.id).toString(),
       order: page.order,
       time_duration: page.time_duration,
     });
     setShowForm(true);
   };
-
   const handleDelete = async (id: number) => {
     if (!confirm('Are you sure you want to delete this page?')) return;
     try {
@@ -236,13 +241,13 @@ const PageManagement = () => {
       .filter((module) =>
         searchQuery
           ? pages
-              .filter((page) =>
-                mainContents
-                  .filter((content) => content.module_detail.id === module.id) // Use module_detail.id
-                  .map((content) => content.id)
-                  .includes(typeof page.main_content === 'number' ? page.main_content : page.main_content.id)
-              )
-              .some((page) => page.title.toLowerCase().includes(searchQuery.toLowerCase()))
+            .filter((page) =>
+              mainContents
+                .filter((content) => content.module_detail.id === module.id) // Use module_detail.id
+                .map((content) => content.id)
+                .includes(typeof page.main_content === 'number' ? page.main_content : page.main_content.id)
+            )
+            .some((page) => page.title.toLowerCase().includes(searchQuery.toLowerCase()))
           : true
       )
       .sort((a, b) => a.order - b.order);
@@ -254,8 +259,8 @@ const PageManagement = () => {
       .filter((content) =>
         searchQuery
           ? pages
-              .filter((page) => (typeof page.main_content === 'number' ? page.main_content : page.main_content.id) === content.id)
-              .some((page) => page.title.toLowerCase().includes(searchQuery.toLowerCase()))
+            .filter((page) => (typeof page.main_content === 'number' ? page.main_content : page.main_content.id) === content.id)
+            .some((page) => page.title.toLowerCase().includes(searchQuery.toLowerCase()))
           : true
       )
       .sort((a, b) => a.order - b.order);
@@ -340,6 +345,24 @@ const PageManagement = () => {
                   placeholder="Enter page content (HTML supported)"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Bunny Video ID (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={formData.video_id}
+                  onChange={(e) =>
+                    setFormData({ ...formData, video_id: e.target.value })
+                  }
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  placeholder="Enter Bunny video ID (leave empty for theory page)"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  If provided, this page will show video instead of content.
+                </p>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Order</label>
                 <input

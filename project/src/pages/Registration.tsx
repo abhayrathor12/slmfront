@@ -74,7 +74,6 @@ const Registration = () => {
         dob,
         role: "student",
         topics: selectedTopics,
-       
       });
       toast.success("Registration successful!");
       navigate("/login");
