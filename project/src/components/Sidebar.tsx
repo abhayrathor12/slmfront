@@ -9,7 +9,8 @@ import {
   ClipboardList,
   LogOut,
   Menu,
-  X
+  X,
+  User
 } from 'lucide-react';
 import { logout } from '../utils/auth';
 import { toast } from 'react-toastify';
@@ -18,9 +19,10 @@ const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
+
   const menuItems = [
     { path: '/admin_home', icon: LayoutDashboard, label: 'Dashboard' },
+    { path: '/admin/users', icon: User, label: 'Users' },
     { path: '/admin/topics', icon: BookOpen, label: 'Topics' },
     { path: '/admin/modules', icon: Layers, label: 'Modules' },
     { path: '/admin/maincontents', icon: FileText, label: 'Main Contents' },
@@ -91,11 +93,10 @@ const Sidebar = () => {
                 key={item.path}
                 to={item.path}
                 onClick={closeMobileMenu}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-colors ${
-                  isActive
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-colors ${isActive
                     ? 'bg-blue-600 text-white'
                     : 'text-gray-300 hover:bg-gray-800'
-                }`}
+                  }`}
               >
                 <Icon className="w-5 h-5" />
                 <span>{item.label}</span>

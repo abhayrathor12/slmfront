@@ -8,6 +8,7 @@ import TopicManagement from './pages/TopicManagement';
 import ModuleManagement from './pages/ModuleManagement';
 import MainContentManagement from './pages/MainContentManagement';
 import PageManagement from './pages/PageManagement';
+import UserManagement from './pages/UserManagement';
 import QuizManagement from './pages/QuizManagement';
 import StudentHome from './pages/StudentHome';
 import ModuleDetail from './pages/ModuleDetail';
@@ -88,6 +89,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <QuizManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/Users"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <UserManagement />
             </ProtectedRoute>
           }
         />

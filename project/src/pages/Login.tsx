@@ -15,7 +15,7 @@ import coe3 from '../public/coe3.png';
 import coe4 from '../public/coe4.jpg';
 
 const Login = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -29,7 +29,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!username || !password) {
+    if (!email || !password) {
       toast.error('Please fill in all fields');
       return;
     }
@@ -39,7 +39,11 @@ const Login = () => {
     try {
       localStorage.clear();
 
-      const res = await api.post('/accounts/login/', { username, password });
+      const res = await api.post('/accounts/login/', {
+        email,
+        password
+      });
+
       const { user, access, refresh } = res.data;
 
       localStorage.setItem('access', access);
@@ -48,24 +52,27 @@ const Login = () => {
 
       toast.success('Login successful!');
 
-      const role = user.role || user.user_type || 'student';
+      const role = user.role || 'Participant';
 
       setTimeout(() => {
         if (role === 'admin') {
           navigate('/admin_home');
-        } else if (role === 'instructor') {
-          navigate('/instructor_home');
         } else {
           navigate('/user_home');
         }
       }, 400);
+
     } catch (err) {
-      const message = err.response?.data?.message || err.message || 'Invalid credentials';
+      const message =
+        err.response?.data?.detail || err.response?.data?.message ||
+        'Invalid email or password';
+
       toast.error(message);
     } finally {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     const handleScroll = () => {
@@ -116,7 +123,7 @@ const Login = () => {
   ];
 
   return (
-    <div className="bg-gradient-to-br from-gray-50 to-blue-50/30 min-h-screen">
+    <div className="bg-gradient-to-br from-gray-50 to-blue-50/30 min-h-screen scroll-smooth">
       {/* Custom CSS for animations */}
       <style jsx>{`
         @keyframes iconRotate1 {
@@ -302,10 +309,10 @@ const Login = () => {
               {/* CTA Button with Typewriter */}
               <div className="pt-3 sm:pt-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
                 <a
-                  href="#overview"
+                  href="#login-form"
                   className="inline-flex items-center gap-2 bg-gradient-to-r from-[#203f78] to-[#2c5a9e] text-white px-5 sm:px-7 py-2.5 sm:py-3 rounded-lg font-semibold hover:shadow-lg transition-all transform hover:scale-[1.02] text-sm lg:text-base"
                 >
-                  Explore the CoE Program
+                  Login to Begin Training
                   <ArrowRight size={18} />
                 </a>
 
@@ -374,7 +381,7 @@ const Login = () => {
           <section id="overview" className="rounded-2xl p-5 sm:p-8 scroll-mt-24">
             <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-[#203f78]">Overview</h2>
             <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
-              Technoviz Automation presents a Centre of Excellence (CoE) on Smart Manufacturing designed to prepare students for real industrial environments. This initiative focuses on Industry 4.0, IIoT, Smart Automation, AI-driven manufacturing, and digital transformation.
+              Technoviz Automation presents a Centre of Excellence (CoE) on Smart Manufacturing designed to prepare participants for real industrial environments. This initiative focuses on Industry 4.0, IIoT, Smart Automation, AI-driven manufacturing, and digital transformation.
             </p>
             <p className="text-gray-700 leading-relaxed mt-3 text-sm sm:text-base">
               The CoE is built on a subscription-based model, ensuring no upfront payment or investment from the college or university. The entire setup, execution, training delivery, and long-term support are handled by Technoviz Automation, allowing institutions to offer high-value industrial exposure without operational or financial burden.
@@ -398,7 +405,7 @@ const Login = () => {
                   { src: coe1, alt: 'CoE Lab Setup' },
                   { src: coe2, alt: 'PLC Training' },
                   { src: coe3, alt: 'IIoT Dashboard' },
-                  { src: coe4, alt: 'Student Training' },
+                  { src: coe4, alt: 'Participant Training' },
                 ].map(({ src, alt }) => (
                   <div key={alt} className="relative group overflow-hidden rounded-lg border-2 border-gray-200 hover:border-[#203f78] transition-all cursor-pointer">
                     <div className="aspect-square bg-gray-100">
@@ -440,7 +447,7 @@ const Login = () => {
                 ))}
               </div>
               <p className="text-xs sm:text-sm text-gray-500 text-center mt-4 sm:mt-6 italic">
-                Watch our training sessions, lab demonstrations, and student projects
+                Watch our training sessions, lab demonstrations, and Participant projects
               </p>
             </div>
 
@@ -465,7 +472,7 @@ const Login = () => {
               {[
                 {
                   icon: <svg className="w-7 h-7 sm:w-8 sm:h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5M2 12l10 5 10-5" /></svg>,
-                  title: "Student Enrollment & Portal Access",
+                  title: "Participant Enrollment & Portal Access",
                   desc: "One-time subscription for lifetime access to the Technoviz Automation Learning Portal with structured SLM, hands-on resources, and continuous updates."
                 },
                 {
@@ -677,7 +684,7 @@ const Login = () => {
                 </table>
               </div>
               <p className="text-xs sm:text-sm text-gray-600 mt-3 sm:mt-4">
-                Students must complete all 16 modules and pass each module-end quiz to become eligible for the certificate of completion.
+                Participants must complete all 16 modules and pass each module-end quiz to become eligible for the certificate of completion.
               </p>
             </div>
 
@@ -692,8 +699,8 @@ const Login = () => {
               <h3 className="text-base sm:text-lg font-semibold text-[#203f78] mb-3 sm:mb-4">Certification*</h3>
               <ul className="space-y-2 text-xs sm:text-sm text-gray-700">
                 {[
-                  'Students who successfully complete all 16 modules and pass all module-end quizzes will receive a "Certificate of Completion" from Technoviz Automation.',
-                  'Students who complete some modules but not all will receive a "Certificate of Participation".',
+                  'Participants who successfully complete all 16 modules and pass all module-end quizzes will receive a "Certificate of Completion" from Technoviz Automation.',
+                  'Participants who complete some modules but not all will receive a "Certificate of Participation".',
                   'All certificates are auto-generated, portal-verifiable, and digitally signed.',
                 ].map((text, i) => (
                   <li key={i} className="flex items-start"><span className="mr-2 flex-shrink-0">→</span><span>{text}</span></li>
@@ -735,7 +742,7 @@ const Login = () => {
         </div>
 
         {/* RIGHT SIDE - LOGIN FORM */}
-        <div className="order-1 lg:order-2 w-full flex justify-center lg:sticky lg:top-24 self-start">
+        <div id="login-form" className="order-1 lg:order-2 w-full flex justify-center lg:sticky lg:top-24 self-start">
           <div className="w-full max-w-[420px] bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
             <div className="flex justify-center mb-6 lg:hidden">
               <div className="w-20 h-20 flex items-center justify-center">
@@ -751,14 +758,16 @@ const Login = () => {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label className="block text-sm font-medium mb-2 text-gray-700">
-                  Username
+                  Email
                 </label>
                 <input
+                  type="email"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#203f78] focus:border-transparent transition-all"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   disabled={loading}
-                  placeholder="Enter your username"
+                  placeholder="Enter your email"
+                  required
                 />
               </div>
               <div className="relative">

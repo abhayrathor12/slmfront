@@ -22,7 +22,7 @@ const AdminDashboard = () => {
     totalPages: 0,
   });
   const [recentUsers, setRecentUsers] = useState<any[]>([]);
-  const [recentTopics, setRecentTopics] = useState<any[]>([]);
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -31,30 +31,29 @@ const AdminDashboard = () => {
 
   const fetchData = async () => {
     try {
-      const [users, topics, modules, maincontents, pages] = await Promise.all([
-        api.get('/accounts/users/'),
-        api.get('/api/topics/'),
-        api.get('/api/modules/'),
-        api.get('/api/maincontents/'),
-        api.get('/api/pages/'),
-      ]);
+      const res = await api.get('/api/dashboard-stats/');
 
       setStats({
-        totalUsers: users.data.length,
-        totalTopics: topics.data.length,
-        totalModules: modules.data.length,
-        totalMainContents: maincontents.data.length,
-        totalPages: pages.data.length,
+        totalUsers: res.data.totalUsers ?? 0,
+        totalTopics: res.data.totalTopics ?? 0,
+        totalModules: res.data.totalModules ?? 0,
+        totalMainContents: res.data.totalMainContents ?? 0,
+        totalPages: res.data.totalPages ?? 0,
       });
 
-      setRecentUsers(users.data.slice(-5).reverse());
-      setRecentTopics(topics.data.slice(-5).reverse());
+      setRecentUsers(res.data.recentUsers ?? []);
+
+      console.log(res.data);
+
     } catch (error) {
       toast.error('Failed to fetch dashboard data');
     } finally {
       setLoading(false);
     }
   };
+
+
+
 
   const statCards = [
     { icon: Users, label: 'Total Users', value: stats.totalUsers, color: 'blue' },
@@ -113,23 +112,7 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Recent Topics</h2>
-            <div className="space-y-3">
-              {recentTopics.length > 0 ? (
-                recentTopics.map((topic) => (
-                  <div key={topic.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <p className="font-medium text-gray-800">{topic.name}</p>
-                      <p className="text-sm text-gray-600">Order: {topic.order}</p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-500 text-center py-4">No topics yet</p>
-              )}
-            </div>
-          </div>
+
         </div>
       </div>
     </div>
