@@ -25,7 +25,7 @@ import { logout, getUser } from '../utils/auth';
 import Navbar from '../components/navbar';
 import { toast } from 'react-toastify';
 import SupportSidebar from "../components/SupportSidebar";
-import FeedbackModal from "../components/FeedBackModal";
+import FeedbackModal from "../components/Feedbackmodal";
 import avaimage from '../public/avatar2.png';
 import CertificateModal from "../components/CertificateModal";
 interface Page {
