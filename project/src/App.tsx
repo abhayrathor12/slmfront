@@ -17,6 +17,8 @@ import Unauthorized from './pages/Unauthorized';
 import ProtectedRoute from './components/ProtectedRoute';
 import Registration from './pages/Registration';
 import PageDesign from './pages/page_design';
+import Certificate from './pages/Certificate';
+import Chats from './pages/Adminchat';
 function App() {
   return (
     <BrowserRouter>
@@ -57,6 +59,30 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <TopicManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/certificate"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <Certificate />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/chats"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <Chats />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/chats/:id"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <Chats />
             </ProtectedRoute>
           }
         />

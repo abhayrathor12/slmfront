@@ -5,7 +5,11 @@ import techlogo from '../public/logo1.png';
 
 // components/Navbar.tsx
 interface NavbarProps {
-  user?: { username?: string };
+  user?: {
+    first_name?: string;
+    last_name?: string;
+    email?: string;
+  };
   handleLogout: () => void;
   showBackButton?: boolean;
   onBackClick?: () => void;
@@ -13,6 +17,7 @@ interface NavbarProps {
   totalPages?: number;
   backButtonText?: string; // <-- ADD THIS
 }
+
 const Navbar: React.FC<NavbarProps> = ({ user, handleLogout, showBackButton = false, backButtonText = "", onBackClick, currentPage, totalPages }) => {
   return (
     <nav className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
@@ -76,7 +81,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, handleLogout, showBackButton = fa
               >
                 <Award className="w-4 h-4" style={{ color: '#203f78' }} />
                 <span className="text-sm font-medium" style={{ color: '#203f78' }}>
-                  Welcome {user?.username || 'Student'}
+                  Welcome {user?.first_name ? user.first_name : 'Student'}
                 </span>
               </div>
             )}

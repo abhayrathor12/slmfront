@@ -379,9 +379,8 @@ const PageDetail = () => {
                 <button
                   key={m.id}
                   onClick={() => handleModuleSwitch(m.id)}
-                  className={`w-full px-4 py-3 text-left text-sm font-medium transition hover:bg-blue-50 ${
-                    m.id === module.id ? 'bg-blue-100 text-blue-800' : 'text-gray-700'
-                  }`}
+                  className={`w-full px-4 py-3 text-left text-sm font-medium transition hover:bg-blue-50 ${m.id === module.id ? 'bg-blue-100 text-blue-800' : 'text-gray-700'
+                    }`}
                 >
                   {m.title}
                 </button>
@@ -397,13 +396,12 @@ const PageDetail = () => {
             <div
               key={p.id}
               onClick={() => handleSidebarItemClick(p.id)}
-              className={`group flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-xl cursor-pointer transition-all ${
-                activeItem === p.id
+              className={`group flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-xl cursor-pointer transition-all ${activeItem === p.id
                   ? 'shadow-md border-2'
                   : p.completed
-                  ? 'bg-emerald-50 hover:bg-emerald-100 border border-emerald-200'
-                  : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'
-              }`}
+                    ? 'bg-emerald-50 hover:bg-emerald-100 border border-emerald-200'
+                    : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'
+                }`}
               style={
                 activeItem === p.id && !showQuiz
                   ? { background: 'linear-gradient(135deg, #f0f5ff 0%, #e0ebff 100%)', borderColor: '#203f78' }
@@ -508,9 +506,8 @@ const PageDetail = () => {
         </div>
 
         <div
-          className={`lg:hidden fixed top-16 left-0 bottom-0 w-80 bg-white shadow-2xl border-r border-gray-100 overflow-y-auto z-50 transition-transform duration-300 ${
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}
+          className={`lg:hidden fixed top-16 left-0 bottom-0 w-80 bg-white shadow-2xl border-r border-gray-100 overflow-y-auto z-50 transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+            }`}
         >
           <SidebarContent />
         </div>
@@ -531,16 +528,16 @@ const PageDetail = () => {
                     )}
 
                     {page && (
-                    <iframe
-                    ref={iframeRef}
-                    srcDoc={page.content}
-                    className="w-full h-[calc(100vh-190px)] min-h-[400px] border-0"
-                    sandbox="allow-same-origin allow-scripts allow-presentation"
-                    allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-                    allowFullScreen
-                    title="Page Content"
-                  />
-                  
+                      <iframe
+                        ref={iframeRef}
+                        srcDoc={page.content}
+                        className="w-full h-[calc(100vh-190px)] min-h-[400px] border-0"
+                        sandbox="allow-same-origin allow-scripts allow-presentation"
+                        allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                        allowFullScreen
+                        title="Page Content"
+                      />
+
                     )}
                   </div>
                 </div>
@@ -569,11 +566,10 @@ const PageDetail = () => {
                         <button
                           onClick={handleComplete}
                           disabled={!canGoNext}
-                          className={`flex items-center justify-center gap-2 px-4 sm:px-5 py-2 sm:py-2 text-white rounded-lg lg:rounded-xl transition-all font-semibold text-sm sm:text-base shadow-sm ${
-                            canGoNext
+                          className={`flex items-center justify-center gap-2 px-4 sm:px-5 py-2 sm:py-2 text-white rounded-lg lg:rounded-xl transition-all font-semibold text-sm sm:text-base shadow-sm ${canGoNext
                               ? 'hover:shadow-lg'
                               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                          }`}
+                            }`}
                           style={
                             canGoNext
                               ? { background: 'linear-gradient(135deg, #203f78 0%, #2d5aa0 100%)' }
@@ -587,11 +583,10 @@ const PageDetail = () => {
                         <button
                           onClick={completeMainContent}
                           disabled={!canGoNext}
-                          className={`flex items-center justify-center gap-2 px-4 sm:px-5 py-2 sm:py-2 text-white rounded-lg lg:rounded-xl transition-all font-semibold text-sm sm:text-base shadow-sm ${
-                            canGoNext
+                          className={`flex items-center justify-center gap-2 px-4 sm:px-5 py-2 sm:py-2 text-white rounded-lg lg:rounded-xl transition-all font-semibold text-sm sm:text-base shadow-sm ${canGoNext
                               ? 'hover:shadow-lg'
                               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                          }`}
+                            }`}
                           style={
                             canGoNext
                               ? { background: 'linear-gradient(135deg, #203f78 0%, #2d5aa0 100%)' }
@@ -606,11 +601,10 @@ const PageDetail = () => {
                       <button
                         onClick={handleNext}
                         disabled={!canGoNext}
-                        className={`flex items-center justify-center gap-2 px-4 sm:px-5 py-2 sm:py-2 text-white rounded-lg lg:rounded-xl transition-all font-semibold text-sm sm:text-base shadow-sm ${
-                          canGoNext
+                        className={`flex items-center justify-center gap-2 px-4 sm:px-5 py-2 sm:py-2 text-white rounded-lg lg:rounded-xl transition-all font-semibold text-sm sm:text-base shadow-sm ${canGoNext
                             ? 'hover:shadow-lg'
                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        }`}
+                          }`}
                         style={
                           canGoNext
                             ? { background: 'linear-gradient(135deg, #203f78 0%, #2d5aa0 100%)' }
@@ -657,13 +651,12 @@ const PageDetail = () => {
                       return (
                         <div
                           key={question.id}
-                          className={`border-2 rounded-lg lg:rounded-xl p-4 sm:p-6 transition-all ${
-                            isSubmitted
+                          className={`border-2 rounded-lg lg:rounded-xl p-4 sm:p-6 transition-all ${isSubmitted
                               ? result.is_correct
                                 ? 'border-emerald-500 bg-emerald-50'
                                 : 'border-red-500 bg-red-50'
                               : 'border-gray-200 bg-gray-50 hover:border-gray-300'
-                          }`}
+                            }`}
                         >
                           <div className="flex items-start gap-2 sm:gap-3 mb-4">
                             <div
@@ -685,15 +678,14 @@ const PageDetail = () => {
                               return (
                                 <label
                                   key={choice.id}
-                                  className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 border-2 rounded-lg lg:rounded-xl cursor-pointer transition-all ${
-                                    showCorrect
+                                  className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 border-2 rounded-lg lg:rounded-xl cursor-pointer transition-all ${showCorrect
                                       ? 'border-emerald-500 bg-emerald-100'
                                       : showWrong
-                                      ? 'border-red-500 bg-red-100'
-                                      : isUserAnswer && !hasSubmitted
-                                      ? 'border-2 shadow-md bg-blue-50 border-blue-500'
-                                      : 'border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300'
-                                  }`}
+                                        ? 'border-red-500 bg-red-100'
+                                        : isUserAnswer && !hasSubmitted
+                                          ? 'border-2 shadow-md bg-blue-50 border-blue-500'
+                                          : 'border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300'
+                                    }`}
                                 >
                                   <input
                                     type="radio"
@@ -708,15 +700,14 @@ const PageDetail = () => {
                                     style={{ accentColor: '#203f78' }}
                                   />
                                   <span
-                                    className={`font-medium text-sm sm:text-base flex items-center gap-2 ${
-                                      showCorrect
+                                    className={`font-medium text-sm sm:text-base flex items-center gap-2 ${showCorrect
                                         ? 'text-emerald-700'
                                         : showWrong
-                                        ? 'text-red-700'
-                                        : isUserAnswer && !hasSubmitted
-                                        ? 'text-blue-700'
-                                        : 'text-gray-700'
-                                    }`}
+                                          ? 'text-red-700'
+                                          : isUserAnswer && !hasSubmitted
+                                            ? 'text-blue-700'
+                                            : 'text-gray-700'
+                                      }`}
                                   >
                                     {choice.text}
                                     {showCorrect && <CheckCircle className="w-4 h-4 text-emerald-600" />}

@@ -10,4 +10,11 @@
     display: none; /* For Chrome, Safari, and other Webkit browsers */
   }
 
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
   
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }

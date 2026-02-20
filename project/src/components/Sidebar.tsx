@@ -10,7 +10,7 @@ import {
   LogOut,
   Menu,
   X,
-  User
+  User,
 } from 'lucide-react';
 import { logout } from '../utils/auth';
 import { toast } from 'react-toastify';
@@ -27,6 +27,8 @@ const Sidebar = () => {
     { path: '/admin/modules', icon: Layers, label: 'Modules' },
     { path: '/admin/maincontents', icon: FileText, label: 'Main Contents' },
     { path: '/admin/pages', icon: File, label: 'Pages' },
+    { path: '/admin/certificate', icon: File, label: 'Certificate' },
+    { path: '/admin/chats', icon: File, label: 'Chats' },
     { path: '/admin/quizzes', icon: ClipboardList, label: 'Quizzes' },
   ];
 
@@ -84,7 +86,7 @@ const Sidebar = () => {
         <div className="lg:hidden h-16 flex-shrink-0" />
 
         {/* Navigation - Scrollable */}
-        <nav className="flex-1 p-4 overflow-y-auto">
+        <nav className="flex-1 p-4 overflow-y-auto scrollbar-hide">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
@@ -94,8 +96,8 @@ const Sidebar = () => {
                 to={item.path}
                 onClick={closeMobileMenu}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-colors ${isActive
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-300 hover:bg-gray-800'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-300 hover:bg-gray-800'
                   }`}
               >
                 <Icon className="w-5 h-5" />

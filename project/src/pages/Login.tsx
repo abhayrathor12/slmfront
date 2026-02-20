@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GraduationCap, Eye, EyeOff, Mail, Globe, CheckCircle2, Users, TrendingUp, ArrowRight } from 'lucide-react';
+import { GraduationCap, Eye, EyeOff, Mail, Globe, CheckCircle2, ArrowRight } from 'lucide-react';
 import { toast } from 'react-toastify';
 import api from '../utils/api';
 import kapil from '../public/k3-removebg-preview.png';
@@ -63,8 +63,7 @@ const Login = () => {
       }, 400);
 
     } catch (err) {
-      const message =
-        err.response?.data?.detail || err.response?.data?.message ||
+      const message = err.response?.data?.detail || err.response?.data?.message ||
         'Invalid email or password';
 
       toast.error(message);

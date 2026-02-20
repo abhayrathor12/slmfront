@@ -2,7 +2,6 @@ import { useEffect, useState, useRef } from 'react';
 import {
   Search,
   BookOpen,
-  Clock,
   BookText,
   Trophy,
   ChevronRight,
@@ -15,16 +14,20 @@ import {
   ArrowLeft,
   ArrowRight,
   Award,
-  Target,
   Lock,
   Layers,
+  MessageSquare,
 } from 'lucide-react';
+import { MdSupportAgent } from "react-icons/md";
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { logout, getUser } from '../utils/auth';
 import Navbar from '../components/navbar';
 import { toast } from 'react-toastify';
-
+import SupportSidebar from "../components/SupportSidebar";
+import FeedbackModal from "../components/FeedBackModal";
+import avaimage from '../public/avatar2.png';
+import CertificateModal from "../components/CertificateModal";
 interface Page {
   id: number;
   title: string;
@@ -97,7 +100,6 @@ interface Quiz {
   questions: Question[];
 }
 
-// Quiz state per main_content id
 interface QuizState {
   quiz: Quiz | null;
   answers: { [key: number]: string };
@@ -114,33 +116,120 @@ const defaultQuizState = (): QuizState => ({
   submitting: false,
 });
 
+const DraggableFAB = ({ onOpen }: { onOpen: () => void }) => {
+  const STORAGE_KEY = 'fab_position_y';
+  const FAB_SIZE = 64; // w-16 = 64px
+  const MARGIN = 24;   // bottom/top margin
+
+  const getSavedY = () => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved !== null) return Number(saved);
+    } catch { }
+    return null;
+  };
+
+  const clampY = (y: number) => {
+    const maxY = window.innerHeight - FAB_SIZE - MARGIN;
+    return Math.max(MARGIN, Math.min(y, maxY));
+  };
+
+  const [posY, setPosY] = useState<number>(() => {
+    const saved = getSavedY();
+    if (saved !== null) return clampY(saved);
+    return window.innerHeight - FAB_SIZE - MARGIN - 40; // default: near bottom
+  });
+
+  const isDragging = useRef(false);
+  const dragStartY = useRef(0);
+  const dragStartPosY = useRef(0);
+  const hasMoved = useRef(false);
+  const fabRef = useRef<HTMLDivElement>(null);
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    isDragging.current = true;
+    hasMoved.current = false;
+    dragStartY.current = e.clientY;
+    dragStartPosY.current = posY;
+    fabRef.current?.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  };
+
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!isDragging.current) return;
+    const deltaY = e.clientY - dragStartY.current;
+    if (Math.abs(deltaY) > 4) hasMoved.current = true;
+    const newY = clampY(dragStartPosY.current + deltaY);
+    setPosY(newY);
+  };
+
+  const onPointerUp = (e: React.PointerEvent) => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    try { localStorage.setItem(STORAGE_KEY, String(posY)); } catch { }
+    if (!hasMoved.current) onOpen();
+  };
+
+  return (
+    <div
+      ref={fabRef}
+      className="fixed right-6 z-40 flex flex-col items-center select-none"
+      style={{ top: posY, touchAction: 'none', cursor: isDragging.current ? 'grabbing' : 'grab' }}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+    >
+      <div className="relative flex items-center justify-center">
+        <span
+          className="absolute w-16 h-16 rounded-full animate-ping opacity-20 pointer-events-none"
+          style={{ background: "#2d5aa0" }}
+        />
+        <button
+          className="w-16 h-16 rounded-full shadow-xl flex items-center justify-center transition-all hover:scale-110 hover:shadow-2xl active:scale-95"
+          style={{ background: "linear-gradient(135deg, #0f2147 0%, #203f78 60%, #2d5aa0 100%)" }}
+          title="Chat with Sathi"
+          tabIndex={-1} // pointer events handled by parent
+        >
+          <img src={avaimage} alt="Sathi" className="w-14 h-14 object-contain pointer-events-none" />
+        </button>
+      </div>
+      <span className="mt-2 text-sm font-semibold text-[#203f78] tracking-wide pointer-events-none">
+        Study Buddy
+      </span>
+    </div>
+  );
+};
 const StudentHome = () => {
   const [topics, setTopics] = useState<Topic[]>([]);
+  const [supportOpen, setSupportOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [certificateOpen, setCertificateOpen] = useState(false);
+  const [certificateUrl, setCertificateUrl] = useState<string | null>(null);
   const [hasVideo, setHasVideo] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedModules, setExpandedModules] = useState<Set<number>>(new Set());
   const [expandedMainContents, setExpandedMainContents] = useState<Set<number>>(new Set());
+
   const [progressSummary, setProgressSummary] = useState<ProgressSummary>({
     total_modules: 0,
     completed_modules: 0,
     in_progress_modules: 0,
     not_started_modules: 0,
   });
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedPage, setSelectedPage] = useState<PageDetail | null>(null);
   const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
   const [pageLoading, setPageLoading] = useState(false);
 
-  // Per-mc quiz map: mcId -> QuizState
   const [quizMap, setQuizMap] = useState<{ [mcId: number]: QuizState }>({});
-  // Which mc's quiz is currently being shown
   const [activeQuizMcId, setActiveQuizMcId] = useState<number | null>(null);
   const [showQuiz, setShowQuiz] = useState(false);
 
   const [activeItem, setActiveItem] = useState<string | number | null>(null);
   const [canGoNext, setCanGoNext] = useState(true);
   const [defaultOpened, setDefaultOpened] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const navigate = useNavigate();
@@ -151,11 +240,9 @@ const StudentHome = () => {
       ? Math.round((progressSummary.completed_modules / progressSummary.total_modules) * 100)
       : 0;
 
-  // Helper: get quiz state for a mc, with fallback
   const getQuizState = (mcId: number): QuizState =>
     quizMap[mcId] || defaultQuizState();
 
-  // Helper: update quiz state for a mc
   const updateQuizState = (mcId: number, patch: Partial<QuizState>) =>
     setQuizMap((prev) => ({
       ...prev,
@@ -163,9 +250,35 @@ const StudentHome = () => {
     }));
 
   useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 1024;
+      setIsMobile(mobile);
+      if (!mobile) {
+        setSidebarOpen(true);
+      } else {
+        setSidebarOpen(false);
+      }
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
+  const fetchCertificate = async () => {
+    try {
+      const res = await api.get('/accounts/certificate/');
+      setCertificateUrl(res.data.certificate_url || res.data.url || null);
+    } catch {
+      // not yet earned — stays null
+    }
+  };
+
+
+
+  useEffect(() => {
     fetchData();
     fetchProgressSummary();
+    fetchCertificate();
   }, []);
 
   useEffect(() => {
@@ -199,44 +312,29 @@ const StudentHome = () => {
       player = new (window as any).playerjs.Player(iframe);
 
       player.on("ready", () => {
-        console.log("Player Ready");
-
         player.getDuration((d: number) => {
           duration = d;
-          console.log("Duration:", duration);
         });
 
-        // 🔥 MAIN SKIP PROTECTION
         player.on("timeupdate", (data: any) => {
           const current = data.seconds;
-
-          // Block forward skipping
           if (!videoFinished && current > maxWatchedTime + 1) {
-            console.log("Skip attempt blocked 🚫");
             player.setCurrentTime(maxWatchedTime);
             return;
           }
-
-          // Update watched progress
           if (current > maxWatchedTime) {
             maxWatchedTime = current;
           }
         });
 
-        // Extra protection for manual seeking
         player.on("seeked", (data: any) => {
           const current = data.seconds;
-
           if (!videoFinished && current > maxWatchedTime + 1) {
-            console.log("Seek blocked 🚫");
             player.setCurrentTime(maxWatchedTime);
           }
         });
 
-        // Enable next when truly finished
         player.on("ended", () => {
-          console.log("VIDEO FINISHED 🔥");
-
           videoFinished = true;
           maxWatchedTime = duration;
           setCanGoNext(true);
@@ -310,15 +408,12 @@ const StudentHome = () => {
   };
 
   const fetchQuizForMc = async (mcId: number) => {
-    // Don't re-fetch if already loaded
     if (quizMap[mcId]?.quiz !== undefined && quizMap[mcId]?.quiz !== null) return;
     try {
       const quizRes = await api.get(`/api/quizzes/?main_content=${mcId}`);
       const quizData = quizRes.data.length ? quizRes.data[0] : null;
       updateQuizState(mcId, { quiz: quizData });
-    } catch {
-      // silently fail – section may not have a quiz
-    }
+    } catch { }
   };
 
   const toggleModuleExpand = async (moduleId: number, event: React.MouseEvent) => {
@@ -359,8 +454,6 @@ const StudentHome = () => {
       }
       return next;
     });
-
-    // Auto-fetch quiz for this mc so the sidebar item renders immediately
     await fetchQuizForMc(mcId);
   };
 
@@ -370,22 +463,23 @@ const StudentHome = () => {
     }
   };
 
+  const closeSidebarOnMobile = () => {
+    if (isMobile) setSidebarOpen(false);
+  };
+
   const handlePageClick = async (pageId: number, moduleId: number) => {
     setPageLoading(true);
     setShowQuiz(false);
     setActiveQuizMcId(null);
     setActiveItem(pageId);
     setSelectedModuleId(moduleId);
+    closeSidebarOnMobile();
     try {
       const pageRes = await api.get(`/pages/${pageId}`);
       setSelectedPage(pageRes.data);
 
       const mcId = pageRes.data.main_content.id;
-
-      // Fetch quiz for this mc (no-op if already loaded)
       await fetchQuizForMc(mcId);
-
-      // Reset answer state for this mc on new page load
       updateQuizState(mcId, {
         answers: {},
         hasSubmitted: false,
@@ -481,7 +575,9 @@ const StudentHome = () => {
       toast.error('Failed to complete section');
     }
   };
-
+  useEffect(() => {
+    console.log("User Data:", user);
+  }, [user]);
   const filteredTopics = topics
     .map((topic) => ({
       ...topic,
@@ -514,7 +610,6 @@ const StudentHome = () => {
     );
   }
 
-  // Active quiz state (for the quiz panel)
   const activeQS = activeQuizMcId ? getQuizState(activeQuizMcId) : null;
 
   return (
@@ -522,16 +617,41 @@ const StudentHome = () => {
       <Navbar user={user} handleLogout={handleLogout} />
 
       <div className="flex flex-col h-[calc(100vh-64px)]">
-        <div className="flex flex-1 overflow-hidden">
-          {/* SIDEBAR */}
+        <div className="flex flex-1 overflow-hidden relative">
+
+          {/* ── MOBILE OVERLAY BACKDROP ── */}
+          {isMobile && sidebarOpen && (
+            <div
+              className="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm"
+              onClick={() => setSidebarOpen(false)}
+            />
+          )}
+
+          {/* ── SIDEBAR ── */}
           <div
-            className={`${sidebarOpen ? 'w-80' : 'w-0'} transition-all duration-300 overflow-hidden bg-white border-r border-gray-200 flex flex-col shadow-lg`}
+            className={`
+              ${isMobile
+                ? `fixed top-[64px] left-0 h-[calc(100vh-64px)] z-40 transform transition-transform duration-300
+                   ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`
+                : `relative transition-all duration-300 ${sidebarOpen ? 'w-80' : 'w-0'} overflow-hidden`
+              }
+              bg-white border-r border-gray-200 flex flex-col shadow-lg
+              ${isMobile ? 'w-[85vw] max-w-sm' : ''}
+            `}
           >
-            <div className="p-5 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-              <div className="flex items-center gap-2 mb-3">
-                <BookOpen className="w-5 h-5" style={{ color: '#203f78' }} />
+            <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+              {isMobile && (
+                <button
+                  onClick={() => setSidebarOpen(false)}
+                  className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-600" />
+                </button>
+              )}
+              <div className="flex items-center gap-2 mb-3 pr-8">
+                <BookOpen className="w-5 h-5 flex-shrink-0" style={{ color: '#203f78' }} />
                 <h2
-                  className="text-lg font-bold break-words leading-snug"
+                  className="text-base font-bold break-words leading-snug"
                   style={{ color: '#203f78' }}
                 >
                   {filteredTopics.length > 0 ? filteredTopics[0].name : 'Course'}
@@ -544,7 +664,7 @@ const StudentHome = () => {
                   placeholder="Search modules..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+                  className="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-blue-200 outline-none transition-all"
                 />
               </div>
             </div>
@@ -562,7 +682,7 @@ const StudentHome = () => {
                         >
                           <button
                             onClick={(e) => toggleModuleExpand(module.id, e)}
-                            className="p-0.5 hover:bg-blue-100 rounded transition-colors"
+                            className="p-1 hover:bg-blue-100 rounded transition-colors flex-shrink-0"
                           >
                             {isModuleExpanded ? (
                               <ChevronDown className="w-4 h-4 text-[#203f78]" />
@@ -570,8 +690,8 @@ const StudentHome = () => {
                               <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-indigo-600" />
                             )}
                           </button>
-                          <Layers className="w-4 h-4 text-[#203f78] mt-1 flex-shrink-0" />
-                          <div className="flex-1">
+                          <Layers className="w-4 h-4 text-[#203f78] mt-0.5 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
                             <h4 className="text-sm font-semibold text-gray-800 break-words leading-snug">
                               {module.title}
                             </h4>
@@ -579,7 +699,7 @@ const StudentHome = () => {
                         </div>
 
                         {isModuleExpanded && module.main_contents && (
-                          <div className="ml-6 mt-2 space-y-3 border-l-2 border-gray-200 pl-4">
+                          <div className="ml-6 mt-1 space-y-2 border-l-2 border-gray-200 pl-3">
                             {module.main_contents
                               .sort((a, b) => a.order - b.order)
                               .map((mc, mcIndex, mcArr) => {
@@ -591,7 +711,7 @@ const StudentHome = () => {
                                   <div key={mc.id}>
                                     <div
                                       onClick={() => toggleMainContentExpand(mc.id)}
-                                      className="flex items-center gap-2 py-2 px-3 rounded-lg cursor-pointer hover:bg-blue-50 transition-colors group"
+                                      className="flex items-center gap-2 py-2 px-2 rounded-lg cursor-pointer hover:bg-blue-50 transition-colors group"
                                     >
                                       {mcExpanded ? (
                                         <ChevronDown className="w-4 h-4 text-[#203f78] flex-shrink-0" />
@@ -638,10 +758,10 @@ const StudentHome = () => {
                                                     }
                                                     await handlePageClick(page.id, module.id);
                                                   }}
-                                                  className={`relative flex items-center justify-between gap-3 pl-4 pr-3 py-2 rounded-lg transition-all group ${locked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
+                                                  className={`relative flex items-center justify-between gap-2 pl-4 pr-2 py-2.5 rounded-lg transition-all group ${locked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
                                                     } ${isActive ? 'bg-indigo-100' : 'hover:bg-indigo-50'}`}
                                                 >
-                                                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                  <div className="flex items-center gap-2 flex-1 min-w-0">
                                                     {page.completed ? (
                                                       <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                                                     ) : locked ? (
@@ -653,13 +773,13 @@ const StudentHome = () => {
                                                       className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-[#203f78]' : 'text-gray-400'}`}
                                                     />
                                                     <span
-                                                      className={`text-sm truncate block ${isActive ? 'text-[#203f78] font-semibold' : 'text-gray-500'}`}
+                                                      className={`text-sm truncate block ${isActive ? 'text-[#203f78] font-semibold' : 'text-gray-600'}`}
                                                     >
                                                       {page.title}
                                                     </span>
                                                   </div>
                                                   <span
-                                                    className={`text-xs font-medium whitespace-nowrap ${isActive ? 'text-[#203f78]' : 'text-gray-500'}`}
+                                                    className={`text-xs font-medium whitespace-nowrap flex-shrink-0 ${isActive ? 'text-[#203f78]' : 'text-gray-400'}`}
                                                   >
                                                     {page.formatted_duration}
                                                   </span>
@@ -668,7 +788,6 @@ const StudentHome = () => {
                                             );
                                           })}
 
-                                        {/* Quiz sidebar item — shown as soon as quiz is fetched */}
                                         {hasQuiz && (
                                           <div className="relative">
                                             <div
@@ -681,8 +800,9 @@ const StudentHome = () => {
                                                 setActiveQuizMcId(mc.id);
                                                 setActiveItem(`quiz-${mc.id}`);
                                                 setSelectedPage(null);
+                                                closeSidebarOnMobile();
                                               }}
-                                              className={`relative flex items-center gap-3 pl-4 pr-3 py-2 rounded-lg cursor-pointer transition-all mt-1 ${activeItem === `quiz-${mc.id}`
+                                              className={`relative flex items-center gap-2 pl-4 pr-2 py-2.5 rounded-lg cursor-pointer transition-all mt-1 ${activeItem === `quiz-${mc.id}`
                                                 ? 'bg-indigo-100 text-[#203f78] font-semibold'
                                                 : 'text-gray-600 hover:bg-indigo-50'
                                                 }`}
@@ -705,74 +825,141 @@ const StudentHome = () => {
                     );
                   })}
                 </div>
+
               ))}
+
+              {/* ── CERTIFICATE TAB ── */}
+              <div className="shrink-0 px-3 py-2 border-t border-gray-200">
+                <div
+                  onClick={() => {
+                    setCertificateOpen(true);
+                    if (isMobile) setSidebarOpen(false);
+                  }}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all hover:bg-indigo-50 group"
+                  style={{ border: '1px solid #c7d4ee', borderLeft: '4px solid #203f78' }}
+                >
+                  <Award className="w-4 h-4 flex-shrink-0 text-[#203f78]" />
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-semibold text-[#203f78]">
+                      My Certificate
+                    </span>
+                    <p className="text-xs text-[#203f78]/60 truncate">View &amp; download</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-[#203f78]/40 flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                </div>
+              </div>
+
             </div>
           </div>
 
-          {/* MAIN CONTENT AREA */}
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="sticky top-0 z-40 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between shrink-0 shadow-sm">
-              <div className="flex items-center gap-3 min-w-0">
+          {/* ── MAIN CONTENT AREA ── */}
+          <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+
+            {/* Sticky top bar */}
+            <div className="sticky top-0 z-20 bg-white border-b border-gray-200 px-3 py-2.5 flex items-center justify-between shrink-0 shadow-sm gap-2">
+
+              {/* LEFT — sidebar toggle + page title */}
+              <div className="flex items-center gap-2 min-w-0 flex-1">
                 <button
                   onClick={() => setSidebarOpen(!sidebarOpen)}
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-all border border-gray-200"
-                  title={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-all border border-gray-200 flex-shrink-0"
+                  title={sidebarOpen ? "Close sidebar" : "Open sidebar"}
                 >
-                  {sidebarOpen ? (
+                  {sidebarOpen && !isMobile ? (
                     <X className="w-5 h-5 text-gray-600" />
                   ) : (
                     <Menu className="w-5 h-5 text-gray-600" />
                   )}
                 </button>
+
                 {selectedPage && !showQuiz && (
                   <h2
-                    className="text-base sm:text-lg font-semibold text-[#203f78] truncate max-w-[500px]"
+                    className="text-sm sm:text-base font-semibold text-[#203f78] truncate"
                     title={selectedPage.title}
                   >
                     {selectedPage.title}
                   </h2>
                 )}
                 {showQuiz && (
-                  <h2 className="text-base sm:text-lg font-semibold text-amber-700 truncate max-w-[500px]">
+                  <h2 className="text-sm sm:text-base font-semibold text-amber-700 truncate">
                     Knowledge Check
                   </h2>
                 )}
               </div>
-              <div className="flex items-center gap-3 bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 px-4 py-2 rounded-xl shadow-sm">
-                <Trophy className="w-5 h-5 text-yellow-600" />
-                <span className="text-sm font-bold text-yellow-800">
-                  {moduleCompletionPercentage}% Completed
-                </span>
-                <span className="text-xs text-yellow-700">
-                  ({progressSummary.completed_modules}/{progressSummary.total_modules} Modules)
-                </span>
+
+              {/* RIGHT — trophy pill + feedback button */}
+              <div className="flex items-center gap-2 flex-shrink-0">
+
+                {/* Trophy pill */}
+                <div className="flex items-center gap-1.5 bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 px-2.5 py-1.5 rounded-xl shadow-sm">
+                  <Trophy className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+                  <span className="text-xs sm:text-sm font-bold text-yellow-800">
+                    {moduleCompletionPercentage}%
+                  </span>
+                  <span className="text-xs text-yellow-600 hidden md:inline">
+                    ({progressSummary.completed_modules}/{progressSummary.total_modules})
+                  </span>
+                </div>
+
+                {/* Feedback button — replaces Support button */}
+                <button
+                  onClick={() => setFeedbackOpen(true)}
+                  className="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-2 rounded-xl text-white text-sm font-semibold transition-all hover:brightness-110 shadow-sm"
+                  style={{ background: "linear-gradient(135deg, #203f78 0%, #2d5aa0 100%)" }}
+                >
+                  <MessageSquare className="w-4 h-4 text-white" />
+                  <span className="hidden sm:inline text-sm">Feedback</span>
+                </button>
+                {/* <button
+                  onClick={() => setCertificateOpen(true)}
+                  className="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-2 rounded-xl text-white text-sm font-semibold transition-all hover:brightness-110 shadow-sm"
+                  style={{ background: 'linear-gradient(135deg, #b8860b 0%, #daa520 100%)' }}
+                >
+                  <Award className="w-4 h-4 text-white" />
+                  <span className="hidden sm:inline text-sm">Certificate</span>
+                </button> */}
+
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto relative">
-              <div className="max-w-full h-full p-2 sm:p-4">
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto">
+              <div className="h-full p-2 sm:p-4">
+
                 {/* Nothing selected */}
                 {!selectedPage && !showQuiz && (
                   <div className="h-full flex items-center justify-center">
-                    <div className="text-center max-w-md px-6">
+                    <div className="text-center max-w-sm px-6">
                       <div className="mb-6 relative">
                         <div className="absolute inset-0 bg-blue-100 rounded-full blur-3xl opacity-30" />
-                        <BookOpen className="w-24 h-24 mx-auto text-gray-300 relative" />
+                        <BookOpen className="w-20 h-20 mx-auto text-gray-300 relative" />
                       </div>
-                      <h3 className="text-2xl font-bold mb-3" style={{ color: '#203f78' }}>
+                      <h3 className="text-xl sm:text-2xl font-bold mb-3" style={{ color: '#203f78' }}>
                         Select a Page to Start Learning
                       </h3>
-                      <p className="text-gray-600 mb-6">
-                        Choose a module from the sidebar and click on any page to begin your learning journey
+                      <p className="text-gray-500 text-sm sm:text-base mb-4">
+                        {isMobile
+                          ? 'Tap the menu icon to browse modules and select a page.'
+                          : 'Choose a module from the sidebar and click on any page to begin.'}
                       </p>
+                      {isMobile && (
+                        <button
+                          onClick={() => setSidebarOpen(true)}
+                          className="flex items-center gap-2 mx-auto px-5 py-2.5 rounded-xl text-white font-semibold text-sm shadow-md"
+                          style={{ background: 'linear-gradient(135deg, #203f78 0%, #2d5aa0 100%)' }}
+                        >
+                          <Menu className="w-4 h-4" />
+                          Browse Modules
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
 
                 {/* Page view */}
                 {!showQuiz && selectedPage && (
-                  <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden h-[calc(100vh-120px)]">
-                    <div className="h-[calc(100%-70px)] p-2 sm:p-4">
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden flex flex-col h-[calc(100vh-130px)] sm:h-[calc(100vh-120px)]">
+                    <div className="flex-1 p-2 sm:p-3 min-h-0">
                       <div className="relative w-full h-full border-2 border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
                         {pageLoading && (
                           <div className="absolute inset-0 z-10 bg-white/70 backdrop-blur-sm flex items-center justify-center">
@@ -792,15 +979,16 @@ const StudentHome = () => {
                             allowFullScreen
                           />
                         ) : (
-                          <div className="p-6 overflow-y-auto h-full">
+                          <div className="p-4 sm:p-6 overflow-y-auto h-full prose prose-sm sm:prose max-w-none">
                             <div dangerouslySetInnerHTML={{ __html: selectedPage?.content || '' }} />
                           </div>
                         )}
                       </div>
                     </div>
 
-                    <div className="h-[70px] p-3 bg-gray-50 border-t border-gray-200">
-                      <div className="flex justify-between items-center gap-3">
+                    {/* Navigation bar */}
+                    <div className="shrink-0 px-3 py-2.5 bg-gray-50 border-t border-gray-200">
+                      <div className="flex justify-between items-center gap-2">
                         <button
                           onClick={handlePrevious}
                           disabled={
@@ -818,10 +1006,10 @@ const StudentHome = () => {
                               return currentIndex <= 0;
                             })()
                           }
-                          className="flex items-center justify-center gap-2 px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 transition-all font-semibold border-2 border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                          className="flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 transition-all font-semibold border-2 border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm"
                         >
                           <ArrowLeft className="w-4 h-4" />
-                          Previous
+                          <span className="hidden xs:inline">Previous</span>
                         </button>
 
                         {(() => {
@@ -836,9 +1024,7 @@ const StudentHome = () => {
                             .flatMap((mc) => (mc.pages || []).sort((a, b) => a.order - b.order));
 
                           const currentIndex = allPages.findIndex((p) => p.id === selectedPage.id);
-                          const isLastPage = currentIndex === allPages.length - 1;
 
-                          // Last page within the current main content section
                           const currentMc = currentModule.main_contents.find(
                             (mc) => mc.id === selectedPage.main_content.id
                           );
@@ -846,7 +1032,7 @@ const StudentHome = () => {
                           const currentMcIndex = currentMcPages.findIndex((p) => p.id === selectedPage.id);
                           const isLastPageOfMc = currentMcIndex === currentMcPages.length - 1;
 
-                          const buttonBase = `flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg transition-all font-semibold text-sm shadow-sm`;
+                          const buttonBase = `flex items-center justify-center gap-1.5 px-4 sm:px-6 py-2 rounded-lg transition-all font-semibold text-xs sm:text-sm shadow-sm`;
 
                           if (isLastPageOfMc) {
                             const mcId = selectedPage.main_content.id;
@@ -864,15 +1050,8 @@ const StudentHome = () => {
                                     setActiveItem(`quiz-${mcId}`);
                                   }}
                                   disabled={!canGoNext}
-                                  className={`${buttonBase} ${canGoNext
-                                    ? 'text-white hover:shadow-lg'
-                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                    }`}
-                                  style={
-                                    canGoNext
-                                      ? { background: 'linear-gradient(135deg, #203f78 0%, #2d5aa0 100%)' }
-                                      : {}
-                                  }
+                                  className={`${buttonBase} ${canGoNext ? 'text-white hover:shadow-lg' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+                                  style={canGoNext ? { background: 'linear-gradient(135deg, #203f78 0%, #2d5aa0 100%)' } : {}}
                                 >
                                   Continue to Quiz <ArrowRight className="w-4 h-4" />
                                 </button>
@@ -883,15 +1062,8 @@ const StudentHome = () => {
                               <button
                                 onClick={() => completeMainContent(selectedPage.main_content.id)}
                                 disabled={!canGoNext}
-                                className={`${buttonBase} ${canGoNext
-                                  ? 'text-white hover:shadow-lg'
-                                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                  }`}
-                                style={
-                                  canGoNext
-                                    ? { background: 'linear-gradient(135deg, #203f78 0%, #2d5aa0 100%)' }
-                                    : {}
-                                }
+                                className={`${buttonBase} ${canGoNext ? 'text-white hover:shadow-lg' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+                                style={canGoNext ? { background: 'linear-gradient(135deg, #203f78 0%, #2d5aa0 100%)' } : {}}
                               >
                                 Finish <CheckCircle className="w-4 h-4" />
                               </button>
@@ -902,15 +1074,8 @@ const StudentHome = () => {
                             <button
                               onClick={handleNext}
                               disabled={!canGoNext}
-                              className={`${buttonBase} ${canGoNext
-                                ? 'text-white hover:shadow-lg'
-                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                }`}
-                              style={
-                                canGoNext
-                                  ? { background: 'linear-gradient(135deg, #203f78 0%, #2d5aa0 100%)' }
-                                  : {}
-                              }
+                              className={`${buttonBase} ${canGoNext ? 'text-white hover:shadow-lg' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+                              style={canGoNext ? { background: 'linear-gradient(135deg, #203f78 0%, #2d5aa0 100%)' } : {}}
                             >
                               Next <ArrowRight className="w-4 h-4" />
                             </button>
@@ -921,26 +1086,28 @@ const StudentHome = () => {
                   </div>
                 )}
 
-                {/* Quiz view — compact full-width */}
+                {/* Quiz view */}
                 {showQuiz && activeQuizMcId && activeQS && activeQS.quiz && (
                   <div className="w-full pb-6">
 
-                    {/* Header — compact */}
                     <div
                       className="relative rounded-xl overflow-hidden mb-4 shadow-md"
                       style={{ background: 'linear-gradient(135deg, #0f2147 0%, #203f78 60%, #2d5aa0 100%)' }}
                     >
                       <div className="absolute -top-4 -right-4 w-24 h-24 rounded-full opacity-10 bg-white" />
-                      <div className="relative z-10 px-5 py-3.5 flex items-center gap-4">
-                        <div
-                          className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                          style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)' }}
-                        >
-                          <Award className="w-4 h-4 text-white" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[10px] font-semibold tracking-widest uppercase text-blue-200 leading-none mb-0.5">Assessment</p>
-                          <h1 className="text-base font-bold text-white leading-tight">Knowledge Check</h1>
+                      <div className="relative z-10 px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <div
+                            className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                            style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)' }}
+                          >
+                            <Award className="w-4 h-4 text-white" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-[10px] font-semibold tracking-widest uppercase text-blue-200 leading-none mb-0.5">Assessment</p>
+                            <h1 className="text-lg sm:text-xl font-bold text-white leading-tight">Knowledge Check</h1>
+                            <p className="text-xs text-blue-200 mt-0.5 font-medium hidden sm:block">Read each question carefully and choose the best answer.</p>
+                          </div>
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <span
@@ -967,7 +1134,6 @@ const StudentHome = () => {
                       </div>
                     </div>
 
-                    {/* Questions */}
                     <div className="space-y-4">
                       {activeQS.quiz.questions.map((question, index) => {
                         const result = activeQS.quizResults?.results?.find(
@@ -986,9 +1152,8 @@ const StudentHome = () => {
                                 : questionAnswered ? '#203f78' : '#e5e7eb',
                             }}
                           >
-                            {/* Question row */}
                             <div
-                              className="flex items-center gap-3 px-4 py-2.5"
+                              className="flex items-center gap-3 px-4 py-3"
                               style={{
                                 background: isSubmitted
                                   ? result.is_correct ? '#f0fdf4' : '#fef2f2'
@@ -1009,7 +1174,7 @@ const StudentHome = () => {
                               >
                                 {index + 1}
                               </div>
-                              <p className="font-semibold text-gray-800 text-sm leading-snug flex-1">
+                              <p className="font-semibold text-gray-800 text-sm sm:text-base leading-snug flex-1">
                                 {question.text}
                               </p>
                               {isSubmitted && (
@@ -1019,8 +1184,7 @@ const StudentHome = () => {
                               )}
                             </div>
 
-                            {/* Choices — 2-column grid */}
-                            <div className="p-3 grid grid-cols-2 gap-2">
+                            <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
                               {question.choices.map((choice, ci) => {
                                 const optionLetters = ['A', 'B', 'C', 'D', 'E'];
                                 const isUserAnswer = String(activeQS.answers[question.id]) === String(choice.id);
@@ -1048,11 +1212,12 @@ const StudentHome = () => {
                                 return (
                                   <label
                                     key={choice.id}
-                                    className="flex items-center gap-2 p-2.5 rounded-lg transition-all duration-150"
+                                    className="flex items-center gap-2 p-3 rounded-lg transition-all duration-150 active:scale-[0.98]"
                                     style={{
                                       border: `1.5px solid ${borderColor}`,
                                       background: bgColor,
                                       cursor: isSubmitted ? 'default' : 'pointer',
+                                      minHeight: '48px',
                                     }}
                                   >
                                     <input
@@ -1074,7 +1239,7 @@ const StudentHome = () => {
                                       className="sr-only"
                                     />
                                     <span
-                                      className="w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold flex-shrink-0"
+                                      className="w-7 h-7 rounded-md flex items-center justify-center text-xs font-bold flex-shrink-0"
                                       style={{ background: letterBg, color: letterColor }}
                                     >
                                       {optionLetters[ci] || ci + 1}
@@ -1093,7 +1258,6 @@ const StudentHome = () => {
                       })}
                     </div>
 
-                    {/* Footer actions */}
                     <div className="mt-5 flex gap-3">
                       {activeQS.hasSubmitted ? (
                         <>
@@ -1106,7 +1270,7 @@ const StudentHome = () => {
                                   quizResults: null,
                                 })
                               }
-                              className="flex-1 py-2.5 rounded-lg font-bold text-white text-sm transition-all hover:opacity-90 hover:shadow-md active:scale-[0.98]"
+                              className="flex-1 py-3 rounded-lg font-bold text-white text-sm transition-all hover:opacity-90 hover:shadow-md active:scale-[0.98]"
                               style={{ background: 'linear-gradient(135deg, #0f2147 0%, #203f78 100%)' }}
                             >
                               Try Again
@@ -1125,7 +1289,7 @@ const StudentHome = () => {
                                 });
                               }
                             }}
-                            className="flex-1 py-2.5 rounded-lg font-semibold text-sm transition-all hover:shadow-sm active:scale-[0.98]"
+                            className="flex-1 py-3 rounded-lg font-semibold text-sm transition-all hover:shadow-sm active:scale-[0.98]"
                             style={{ background: '#f1f5f9', color: '#334155', border: '1.5px solid #e2e8f0' }}
                           >
                             ← Back to Lessons
@@ -1162,7 +1326,27 @@ const StudentHome = () => {
           </div>
         </div>
       </div>
-    </div>
+
+      {/* ── FLOATING SUPPORT BUTTON (FAB) ── */}
+      <DraggableFAB onOpen={() => setSupportOpen(true)} />
+
+      <SupportSidebar
+        open={supportOpen}
+        onClose={() => setSupportOpen(false)}
+      />
+
+      <FeedbackModal
+        open={feedbackOpen}
+        onClose={() => setFeedbackOpen(false)}
+      />
+
+
+      <CertificateModal
+        open={certificateOpen}
+        onClose={() => setCertificateOpen(false)}
+        certificateUrl={certificateUrl}
+      />
+    </div >
   );
 };
 
