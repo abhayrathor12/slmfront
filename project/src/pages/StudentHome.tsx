@@ -292,6 +292,9 @@ const StudentHome = () => {
     }
   }, []);
 
+
+
+
   useEffect(() => {
     setHasVideo(!!selectedPage?.video_url);
     setCanGoNext(!selectedPage?.video_url || selectedPage?.completed);
@@ -576,7 +579,7 @@ const StudentHome = () => {
     }
   };
   useEffect(() => {
-    console.log("User Data:", user);
+
   }, [user]);
   const filteredTopics = topics
     .map((topic) => ({
@@ -598,6 +601,121 @@ const StudentHome = () => {
       }
     }
   }, [filteredTopics, defaultOpened]);
+
+
+  useEffect(() => {
+    if (!selectedPage) return;
+
+    const images = document.querySelectorAll('.zoomable');
+
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightboxImg');
+    const lightboxCaption = document.getElementById('lightboxCaption');
+    const lightboxCounter = document.getElementById('lightboxCounter');
+    const lightboxPrev = document.getElementById('lightboxPrev');
+    const lightboxNext = document.getElementById('lightboxNext');
+    const lightboxClose = document.getElementById('lightboxClose');
+
+    if (!images.length || !lightbox) return;
+
+    let current = 0;
+
+    const update = () => {
+      const img = images[current] as HTMLImageElement;
+      lightboxImg!.setAttribute('src', img.src);
+      lightboxImg!.setAttribute('alt', img.alt);
+      lightboxCaption!.textContent =
+        img.dataset.caption || img.alt;
+      lightboxCounter!.textContent =
+        `${current + 1} / ${images.length}`;
+
+      lightboxPrev?.toggleAttribute('disabled', current === 0);
+      lightboxNext?.toggleAttribute(
+        'disabled',
+        current === images.length - 1
+      );
+    };
+
+    const openLightbox = (index: number) => {
+      current = index;
+      update();
+      lightbox.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    };
+
+    const closeLightbox = () => {
+      lightbox.classList.remove('active');
+      document.body.style.overflow = '';
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!lightbox.classList.contains('active')) return;
+
+      if (e.key === 'Escape') closeLightbox();
+
+      if (e.key === 'ArrowLeft' && current > 0) {
+        current--;
+        update();
+      }
+
+      if (e.key === 'ArrowRight' && current < images.length - 1) {
+        current++;
+        update();
+      }
+    };
+
+    // IMAGE CLICK
+    images.forEach((img, i) => {
+      img.addEventListener('click', () => openLightbox(i));
+    });
+
+    // BACKDROP CLICK
+    const backdropClick = (e: Event) => {
+      if (e.target === lightbox) closeLightbox();
+    };
+    lightbox.addEventListener('click', backdropClick);
+
+    // PREV / NEXT
+    const prevClick = () => {
+      if (current > 0) {
+        current--;
+        update();
+      }
+    };
+
+    const nextClick = () => {
+      if (current < images.length - 1) {
+        current++;
+        update();
+      }
+    };
+
+    lightboxPrev?.addEventListener('click', prevClick);
+    lightboxNext?.addEventListener('click', nextClick);
+
+    // CLOSE BUTTON FIX ✅
+    const closeClick = (e: Event) => {
+      e.stopPropagation();
+      closeLightbox();
+    };
+
+    lightboxClose?.addEventListener('click', closeClick);
+
+    // KEYBOARD
+    document.addEventListener('keydown', handleKeyDown);
+
+    // CLEANUP (VERY IMPORTANT)
+    return () => {
+      document.body.style.overflow = '';
+
+      lightbox.removeEventListener('click', backdropClick);
+      lightboxPrev?.removeEventListener('click', prevClick);
+      lightboxNext?.removeEventListener('click', nextClick);
+      lightboxClose?.removeEventListener('click', closeClick);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+
+  }, [selectedPage]);
 
   if (loading) {
     return (
@@ -657,7 +775,7 @@ const StudentHome = () => {
                   {filteredTopics.length > 0 ? filteredTopics[0].name : 'Course'}
                 </h2>
               </div>
-              <div className="relative">
+              {/* <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <input
                   type="text"
@@ -666,7 +784,7 @@ const StudentHome = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-blue-200 outline-none transition-all"
                 />
-              </div>
+              </div> */}
             </div>
 
             <div className="flex-1 overflow-y-auto p-1 space-y-3">

@@ -24,7 +24,7 @@ const TROUBLE_OPTIONS = [
 ];
 
 const SupportSidebar = ({ open, onClose }: Props) => {
-    const [view, setView] = useState<View>("chat");
+    const [view, setView] = useState<View>("trouble");
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const [screenshot, setScreenshot] = useState<File | null>(null);
@@ -32,6 +32,7 @@ const SupportSidebar = ({ open, onClose }: Props) => {
     const [troubleText, setTroubleText] = useState("");
     const [troubleScreenshot, setTroubleScreenshot] = useState<File | null>(null);
     const [submitted, setSubmitted] = useState(false);
+    const [chatUnlocked, setChatUnlocked] = useState(false);
     const bottomRef = useRef<HTMLDivElement>(null);
     const [selectedModule, setSelectedModule] = useState<number | null>(null);
     const [modules, setModules] = useState<any[]>([]);
@@ -49,7 +50,10 @@ const SupportSidebar = ({ open, onClose }: Props) => {
     useEffect(() => {
         if (open) {
             fetchConversation();
-            setView("chat");
+            // Only go to trouble view on first open (chat not yet unlocked)
+            if (!chatUnlocked) {
+                setView("trouble");
+            }
             setSubmitted(false);
         }
     }, [open]);
@@ -109,6 +113,13 @@ const SupportSidebar = ({ open, onClose }: Props) => {
             setSelectedModule(null);
             setSelectedLab("");
             setTroubleScreenshot(null);
+
+            // After a short delay, switch to chat view and unlock it permanently
+            setTimeout(() => {
+                setChatUnlocked(true);
+                setView("chat");
+                fetchConversation();
+            }, 2000);
         } catch (err) {
             console.error(err);
         }
@@ -129,7 +140,7 @@ const SupportSidebar = ({ open, onClose }: Props) => {
             {/* HEADER */}
             <div className="flex items-center justify-between px-4 py-3 shrink-0" style={{ background: "#203f78" }}>
                 <div className="flex items-center gap-2">
-                    {view !== "chat" && (
+                    {view !== "chat" && chatUnlocked && (
                         <button
                             onClick={reset}
                             className="flex items-center gap-1 bg-white/20 hover:bg-white/30 transition-colors text-white text-xs font-semibold px-2.5 py-1 rounded-full mr-1"
@@ -156,21 +167,6 @@ const SupportSidebar = ({ open, onClose }: Props) => {
             {/* ── CHAT VIEW ── */}
             {view === "chat" && (
                 <>
-                    {/* Quick action — only "Having Trouble?" now */}
-                    <div className="px-3 pt-3 pb-2 shrink-0 border-b border-gray-100">
-                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-0.5">Quick Actions</p>
-                        <button
-                            onClick={() => { setView("trouble"); setSubmitted(false); }}
-                            className="w-full flex items-center gap-3 p-3 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 transition-all text-left"
-                        >
-                            <span className="text-2xl leading-none">🐞</span>
-                            <div>
-                                <p className="font-semibold text-red-800 text-sm leading-tight">Having Trouble?</p>
-                                <p className="text-xs text-red-600 leading-tight mt-0.5">Report an issue to our team</p>
-                            </div>
-                        </button>
-                    </div>
-
                     {/* Messages */}
                     <div className="flex-1 overflow-y-auto p-4 space-y-3">
                         {messages.length === 0 && (
@@ -210,6 +206,15 @@ const SupportSidebar = ({ open, onClose }: Props) => {
                             </div>
                         )}
                         <div className="flex gap-2 items-center">
+                            {/* 🐞 Quick action button — inline with input */}
+                            <button
+                                onClick={() => { setView("trouble"); setSubmitted(false); }}
+                                title="Report an issue"
+                                className="w-9 h-9 rounded-xl flex items-center justify-center bg-red-50 hover:bg-red-100 border border-red-200 transition-colors shrink-0 text-base"
+                            >
+                                🐞
+                            </button>
+
                             <input
                                 type="text"
                                 value={input}
@@ -243,10 +248,7 @@ const SupportSidebar = ({ open, onClose }: Props) => {
                         <div className="text-center py-16 space-y-3">
                             <div className="text-5xl">✅</div>
                             <p className="font-semibold text-gray-800">Report received!</p>
-                            <p className="text-sm text-gray-500">Our team will look into this shortly.</p>
-                            <button onClick={reset} className="mt-2 text-sm px-5 py-2 rounded-xl text-white font-semibold" style={{ background: "#203f78" }}>
-                                Back to Chat
-                            </button>
+                            <p className="text-sm text-gray-500">Taking you to chat...</p>
                         </div>
                     ) : (
                         <>
@@ -342,6 +344,16 @@ const SupportSidebar = ({ open, onClose }: Props) => {
                             >
                                 Submit Report
                             </button>
+
+                            {/* Skip to chat — only shown once chat has been unlocked */}
+                            {chatUnlocked && (
+                                <button
+                                    onClick={reset}
+                                    className="w-full py-2 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                                >
+                                    Skip — go to chat
+                                </button>
+                            )}
                         </>
                     )}
                 </div>
