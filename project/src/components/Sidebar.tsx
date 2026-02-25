@@ -11,6 +11,8 @@ import {
   Menu,
   X,
   User,
+  Award,
+  MessageCircle,
 } from 'lucide-react';
 import { logout } from '../utils/auth';
 import { toast } from 'react-toastify';
@@ -27,8 +29,8 @@ const Sidebar = () => {
     { path: '/admin/modules', icon: Layers, label: 'Modules' },
     { path: '/admin/maincontents', icon: FileText, label: 'Main Contents' },
     { path: '/admin/pages', icon: File, label: 'Pages' },
-    { path: '/admin/certificate', icon: File, label: 'Certificate' },
-    { path: '/admin/chats', icon: File, label: 'Chats' },
+    { path: '/admin/certificate', icon: Award, label: 'Certificate' },
+    { path: '/admin/chats', icon: MessageCircle, label: 'Chats' },
     { path: '/admin/quizzes', icon: ClipboardList, label: 'Quizzes' },
   ];
 

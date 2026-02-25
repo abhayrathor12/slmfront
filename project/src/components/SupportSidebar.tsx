@@ -49,12 +49,30 @@ const SupportSidebar = ({ open, onClose }: Props) => {
 
     useEffect(() => {
         if (open) {
-            fetchConversation();
-            // Only go to trouble view on first open (chat not yet unlocked)
-            if (!chatUnlocked) {
-                setView("trouble");
-            }
-            setSubmitted(false);
+            const loadConversation = async () => {
+                try {
+                    const res = await api.get("/accounts/conversation/");
+                    const msgs = res.data.messages || [];
+
+                    setMessages(msgs);
+
+                    // 🟢 If no messages → show trouble view
+                    if (msgs.length === 0) {
+                        setView("trouble");
+                        setChatUnlocked(false);
+                    } else {
+                        // 🔵 If messages exist → open chat directly
+                        setView("chat");
+                        setChatUnlocked(true);
+                    }
+
+                    setSubmitted(false);
+                } catch (err) {
+                    console.error(err);
+                }
+            };
+
+            loadConversation();
         }
     }, [open]);
 
@@ -209,10 +227,10 @@ const SupportSidebar = ({ open, onClose }: Props) => {
                             {/* 🐞 Quick action button — inline with input */}
                             <button
                                 onClick={() => { setView("trouble"); setSubmitted(false); }}
-                                title="Report an issue"
+                                title="Quict Action"
                                 className="w-9 h-9 rounded-xl flex items-center justify-center bg-red-50 hover:bg-red-100 border border-red-200 transition-colors shrink-0 text-base"
                             >
-                                🐞
+                                ⚡
                             </button>
 
                             <input

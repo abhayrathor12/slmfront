@@ -104,7 +104,30 @@ const AdminChats = () => {
     }, [messages]);
 
     /* ───────────── Send Message ───────────── */
+    const handleDelete = async (convoId: number) => {
+        const confirmDelete = window.confirm(
+            "Are you sure you want to delete this conversation?"
+        );
 
+        if (!confirmDelete) return;
+
+        try {
+            await api.delete(`/accounts/admin/conversation/${convoId}/delete/`);
+
+            toast.success("Conversation deleted");
+
+            // remove from state without refetch
+            setConversations(prev =>
+                prev.filter(c => c.id !== convoId)
+            );
+            setFiltered(prev =>
+                prev.filter(c => c.id !== convoId)
+            );
+
+        } catch {
+            toast.error("Failed to delete conversation");
+        }
+    };
     const sendMessage = async () => {
         if (!input.trim() || !id) return;
 
@@ -255,14 +278,19 @@ const AdminChats = () => {
                                                     <td className="py-3 px-4 text-sm text-gray-500">
                                                         {fmtDateTime(convo.created_at)}
                                                     </td>
-                                                    <td className="py-3 px-4">
+                                                    <td className="py-3 px-4 flex gap-4">
                                                         <button
-                                                            onClick={() =>
-                                                                navigate(`/admin/chats/${convo.id}`)
-                                                            }
+                                                            onClick={() => navigate(`/admin/chats/${convo.id}`)}
                                                             className="text-sm text-blue-600 hover:text-blue-800 font-medium"
                                                         >
                                                             Open Chat
+                                                        </button>
+
+                                                        <button
+                                                            onClick={() => handleDelete(convo.id)}
+                                                            className="text-sm text-red-600 hover:text-red-800 font-medium"
+                                                        >
+                                                            Delete
                                                         </button>
                                                     </td>
                                                 </tr>

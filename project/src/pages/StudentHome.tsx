@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+
 import {
   Search,
   BookOpen,
@@ -210,6 +211,7 @@ const StudentHome = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedModules, setExpandedModules] = useState<Set<number>>(new Set());
   const [expandedMainContents, setExpandedMainContents] = useState<Set<number>>(new Set());
+  const [hoveredPage, setHoveredPage] = useState<{ id: number; x: number; y: number } | null>(null);
 
   const [progressSummary, setProgressSummary] = useState<ProgressSummary>({
     total_modules: 0,
@@ -868,7 +870,31 @@ const StudentHome = () => {
                                                   className="absolute left-0 top-1/2 h-px w-3 bg-gray-300"
                                                   style={{ transform: 'translateY(-50%)' }}
                                                 />
+
+                                                {/* Tooltip */}
+                                                {hoveredPage?.id === page.id && (
+                                                  <div
+                                                    className="fixed z-[9999] bg-gray-900 text-white text-xs rounded-lg px-3 py-1.5 shadow-xl pointer-events-none"
+                                                    style={{
+                                                      left: hoveredPage.x + 15,
+                                                      top: hoveredPage.y,
+                                                      transform: 'translateY(-50%)',
+                                                      maxWidth: '220px',
+                                                      wordBreak: 'break-word'
+                                                    }}
+                                                  >
+                                                    {page.title}
+                                                    <div
+                                                      className="absolute right-full top-1/2 -translate-y-1/2"
+                                                      style={{ borderWidth: '5px', borderStyle: 'solid', borderColor: 'transparent #111827 transparent transparent' }}
+                                                    />
+                                                  </div>
+                                                )}
+
                                                 <div
+                                                  onMouseEnter={(e) => setHoveredPage({ id: page.id, x: e.clientX, y: e.clientY })}
+                                                  onMouseMove={(e) => setHoveredPage({ id: page.id, x: e.clientX, y: e.clientY })}
+                                                  onMouseLeave={() => setHoveredPage(null)}
                                                   onClick={async () => {
                                                     if (locked) {
                                                       toast.error('Please complete the previous module first');
@@ -897,7 +923,8 @@ const StudentHome = () => {
                                                     </span>
                                                   </div>
                                                   <span
-                                                    className={`text-xs font-medium whitespace-nowrap flex-shrink-0 ${isActive ? 'text-[#203f78]' : 'text-gray-400'}`}
+                                                    className={`text-xs font-medium whitespace-nowrap flex-shrink-0 ${isActive ? 'text-[#203f78]' : 'text-gray-400'
+                                                      }`}
                                                   >
                                                     {page.formatted_duration}
                                                   </span>
