@@ -26,7 +26,7 @@ const passingYears = Array.from({ length: 8 }, (_, i) => `${2024 + i}`);
 const interestOptions = [
   { value: "startup", label: "Startup", icon: "🚀" },
   { value: "jobs", label: "Jobs", icon: "💼" },
-  { value: "not_sure", label: "Not Sure", icon: "🔭" },
+  { value: "not_sure", label: "Exploring Career Paths", icon: "🌱" },
 ];
 
 const COLOR = "#203f78";
@@ -34,6 +34,7 @@ const COLOR = "#203f78";
 // ── TextInput ─────────────────────────────────────────────────────────────────
 function TextInput({ label, icon: Icon, style: extraStyle, ...props }: any) {
   const [focused, setFocused] = useState(false);
+  const [readOnly, setReadOnly] = useState(true);
   return (
     <div style={extraStyle}>
       <label style={{
@@ -52,7 +53,9 @@ function TextInput({ label, icon: Icon, style: extraStyle, ...props }: any) {
         }} />
         <input
           {...props}
-          onFocus={() => setFocused(true)}
+          autoComplete={props.autoComplete ?? "new-password"}
+          readOnly={readOnly}
+          onFocus={() => { setFocused(true); setReadOnly(false); }}
           onBlur={() => setFocused(false)}
           style={{
             width: "100%", padding: "10px 12px 10px 36px",
@@ -520,8 +523,8 @@ export default function Registration() {
               <TextInput label="First Name *" icon={User} type="text" placeholder="John" value={form.firstName} onChange={set("firstName")} />
               <TextInput label="Last Name *" icon={User} type="text" placeholder="Doe" value={form.lastName} onChange={set("lastName")} />
               <TextInput label="Mobile *" icon={Phone} type="tel" placeholder="+91 98765 43210" value={form.mobile} onChange={set("mobile")} />
-              <TextInput label="City *" icon={MapPin} type="text" placeholder="Your city" value={form.city} onChange={set("city")} />
-              <TextInput label="Password *" icon={Lock} type="password" placeholder="Enter password" value={form.password} onChange={set("password")} style={{ gridColumn: "1 / -1" }} />
+              <TextInput label="City *" icon={MapPin} type="text" autoComplete="new-password" placeholder="Your city" value={form.city} onChange={set("city")} />
+              <TextInput label="Password *" icon={Lock} type="password" autoComplete="new-password" placeholder="Enter password" value={form.password} onChange={set("password")} style={{ gridColumn: "1 / -1" }} />
             </div>
 
             <SecTitle>I am a…</SecTitle>
@@ -531,7 +534,7 @@ export default function Registration() {
               <RoleCard
                 active={role === "student"}
                 onClick={() => setRole(role === "student" ? null : "student")}
-                title="Participant"
+                title="Student"
               />
               <RoleCard
                 active={role === "professional"}
