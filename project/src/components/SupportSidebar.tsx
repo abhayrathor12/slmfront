@@ -38,6 +38,35 @@ const SupportSidebar = ({ open, onClose }: Props) => {
     const [modules, setModules] = useState<any[]>([]);
     const [selectedLab, setSelectedLab] = useState<string>("");
 
+    // ── Clipboard paste handler ──
+    const handlePasteImage = (
+        e: React.ClipboardEvent | ClipboardEvent,
+        setter: (f: File) => void
+    ) => {
+        const items = e.clipboardData?.items;
+        if (!items) return;
+        for (const item of Array.from(items)) {
+            if (item.type.startsWith("image/")) {
+                const file = item.getAsFile();
+                if (file) setter(file);
+                e.preventDefault();
+                break;
+            }
+        }
+    };
+
+    // ── Global paste listener for trouble view ──
+    useEffect(() => {
+        if (view !== "trouble" || submitted) return;
+
+        const onGlobalPaste = (e: ClipboardEvent) => {
+            handlePasteImage(e, setTroubleScreenshot);
+        };
+
+        window.addEventListener("paste", onGlobalPaste);
+        return () => window.removeEventListener("paste", onGlobalPaste);
+    }, [view, submitted]);
+
     const fetchConversation = async () => {
         try {
             const res = await api.get("/accounts/conversation/");
@@ -56,12 +85,10 @@ const SupportSidebar = ({ open, onClose }: Props) => {
 
                     setMessages(msgs);
 
-                    // 🟢 If no messages → show trouble view
                     if (msgs.length === 0) {
                         setView("trouble");
                         setChatUnlocked(false);
                     } else {
-                        // 🔵 If messages exist → open chat directly
                         setView("chat");
                         setChatUnlocked(true);
                     }
@@ -132,7 +159,6 @@ const SupportSidebar = ({ open, onClose }: Props) => {
             setSelectedLab("");
             setTroubleScreenshot(null);
 
-            // After a short delay, switch to chat view and unlock it permanently
             setTimeout(() => {
                 setChatUnlocked(true);
                 setView("chat");
@@ -224,29 +250,43 @@ const SupportSidebar = ({ open, onClose }: Props) => {
                             </div>
                         )}
                         <div className="flex gap-2 items-center">
-                            {/* 🐞 Quick action button — inline with input */}
+                            {/* Quick action button */}
                             <button
                                 onClick={() => { setView("trouble"); setSubmitted(false); }}
-                                title="Quict Action"
+                                title="Quick Action"
                                 className="w-9 h-9 rounded-xl flex items-center justify-center bg-red-50 hover:bg-red-100 border border-red-200 transition-colors shrink-0 text-base"
                             >
                                 ⚡
                             </button>
 
+                            {/* Text input — Ctrl+V pastes image from clipboard */}
                             <input
                                 type="text"
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                                placeholder="Type a message..."
+                                onPaste={(e) => handlePasteImage(e, setScreenshot)}
+                                placeholder="Type a message or paste screenshot…"
                                 className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none"
                                 onFocus={(e) => (e.target.style.boxShadow = "0 0 0 2px #203f78")}
                                 onBlur={(e) => (e.target.style.boxShadow = "none")}
                             />
-                            <label className="w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer bg-gray-100 hover:bg-gray-200 transition-colors shrink-0 text-base">
+
+                            {/* File / clipboard attach button */}
+                            <label
+                                className="w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer bg-gray-100 hover:bg-gray-200 transition-colors shrink-0 text-base"
+                                onPaste={(e) => handlePasteImage(e, setScreenshot)}
+                                title="Paste image (Ctrl+V) or click to upload"
+                            >
                                 📎
-                                <input type="file" accept="image/*" className="hidden" onChange={(e) => setScreenshot(e.target.files?.[0] || null)} />
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => setScreenshot(e.target.files?.[0] || null)}
+                                />
                             </label>
+
                             <button
                                 onClick={handleSend}
                                 className="w-9 h-9 rounded-xl flex items-center justify-center text-white shrink-0"
@@ -338,12 +378,18 @@ const SupportSidebar = ({ open, onClose }: Props) => {
 
                             <div>
                                 <label className="text-xs font-medium text-gray-600 block mb-1.5">
-                                    Attach screenshot <span className="text-gray-400 font-normal">(optional)</span>
+                                    Attach screenshot <span className="text-gray-400 font-normal">(optional — click or paste Ctrl+V)</span>
                                 </label>
-                                <label className="flex items-center gap-2 border-2 border-dashed border-gray-200 rounded-xl p-3 cursor-pointer hover:border-gray-300 transition-colors">
+                                <label
+                                    className="flex items-center gap-2 border-2 border-dashed border-gray-200 rounded-xl p-3 cursor-pointer hover:border-gray-300 transition-colors"
+                                    onPaste={(e) => handlePasteImage(e, setTroubleScreenshot)}
+                                    title="Paste image (Ctrl+V) or click to upload"
+                                    tabIndex={0}
+                                    onKeyDown={(e) => {/* allow focus for paste */ }}
+                                >
                                     <span className="text-lg">📎</span>
                                     <span className="text-xs text-gray-500 truncate">
-                                        {troubleScreenshot ? troubleScreenshot.name : "Click to upload image"}
+                                        {troubleScreenshot ? troubleScreenshot.name : "Click to upload or Ctrl+V to paste"}
                                     </span>
                                     <input
                                         type="file"
@@ -352,6 +398,8 @@ const SupportSidebar = ({ open, onClose }: Props) => {
                                         onChange={(e) => setTroubleScreenshot(e.target.files?.[0] || null)}
                                     />
                                 </label>
+
+
                             </div>
 
                             <button
@@ -363,7 +411,6 @@ const SupportSidebar = ({ open, onClose }: Props) => {
                                 Submit Report
                             </button>
 
-                            {/* Skip to chat — only shown once chat has been unlocked */}
                             {chatUnlocked && (
                                 <button
                                     onClick={reset}

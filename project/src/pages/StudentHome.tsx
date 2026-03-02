@@ -212,7 +212,7 @@ const StudentHome = () => {
   const [expandedModules, setExpandedModules] = useState<Set<number>>(new Set());
   const [expandedMainContents, setExpandedMainContents] = useState<Set<number>>(new Set());
   const [hoveredPage, setHoveredPage] = useState<{ id: number; x: number; y: number } | null>(null);
-
+  const contentRef = useRef<HTMLDivElement>(null);
   const [progressSummary, setProgressSummary] = useState<ProgressSummary>({
     total_modules: 0,
     completed_modules: 0,
@@ -593,6 +593,12 @@ const StudentHome = () => {
       ),
     }))
     .filter((topic) => topic.modules.length > 0);
+
+  useEffect(() => {
+    if (contentRef.current) {
+      contentRef.current.scrollTop = 0;
+    }
+  }, [selectedPage?.id]);
 
   useEffect(() => {
     if (filteredTopics.length > 0 && !defaultOpened) {
@@ -1011,7 +1017,7 @@ const StudentHome = () => {
                   title={sidebarOpen ? "Close sidebar" : "Open sidebar"}
                 >
                   {sidebarOpen && !isMobile ? (
-                    <X className="w-5 h-5 text-gray-600" />
+                    <ArrowLeft className="w-5 h-5 text-gray-600" />
                   ) : (
                     <Menu className="w-5 h-5 text-gray-600" />
                   )}
@@ -1124,7 +1130,7 @@ const StudentHome = () => {
                             allowFullScreen
                           />
                         ) : (
-                          <div className="p-4 sm:p-6 overflow-y-auto h-full prose prose-sm sm:prose max-w-none">
+                          <div ref={contentRef} className="p-4 sm:p-6 overflow-y-auto h-full prose prose-sm sm:prose max-w-none">
                             <div dangerouslySetInnerHTML={{ __html: selectedPage?.content || '' }} />
                           </div>
                         )}
