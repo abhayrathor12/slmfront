@@ -14,12 +14,14 @@ interface Page {
   order: number;
   time_duration: number;
   video_id?: string | null;
+  mux_account?: number | null;
 }
+
 interface MainContent {
   id: number;
   title: string;
-  module: number; // Changed to number (primary key)
-  module_detail: { id: number; title: string }; // Added for module details
+  module: number;
+  module_detail: { id: number; title: string };
 }
 
 interface Module {
@@ -33,28 +35,39 @@ interface Topic {
   name: string;
 }
 
+interface MuxAccount {
+  id: number;
+  name: string;
+}
+
 const PageManagement = () => {
   const [pages, setPages] = useState<Page[]>([]);
   const [mainContents, setMainContents] = useState<MainContent[]>([]);
   const [modules, setModules] = useState<Module[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
+  const [muxAccounts, setMuxAccounts] = useState<MuxAccount[]>([]);
+
   const [filteredTopics, setFilteredTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [previewContent, setPreviewContent] = useState<string | null>(null);
   const [editingPage, setEditingPage] = useState<Page | null>(null);
+
   const [expandedTopics, setExpandedTopics] = useState<Set<number>>(new Set());
   const [expandedModules, setExpandedModules] = useState<Set<number>>(new Set());
   const [expandedMainContents, setExpandedMainContents] = useState<Set<number>>(new Set());
+
   const [formData, setFormData] = useState({
     title: '',
     content: '',
     main_content: '',
     video_id: '',
+    mux_account: '',
     order: 1,
     time_duration: 0,
   });
+
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -72,11 +85,12 @@ const PageManagement = () => {
         )
       );
       const moduleIdsWithMatches = new Set(
-        mainContents.filter((content) => mainContentIdsWithMatches.has(content.id)).map((content) => content.module_detail.id) // Use module_detail.id
+        mainContents.filter((content) => mainContentIdsWithMatches.has(content.id)).map((content) => content.module_detail.id)
       );
       const topicIdsWithMatches = new Set(
         modules.filter((module) => moduleIdsWithMatches.has(module.id)).map((module) => module.topic)
       );
+
       setFilteredTopics(topics.filter((topic) => topicIdsWithMatches.has(topic.id)));
       setExpandedTopics(new Set(topicIdsWithMatches));
       setExpandedModules(new Set(moduleIdsWithMatches));
@@ -91,23 +105,25 @@ const PageManagement = () => {
 
   const fetchData = async () => {
     try {
-      const [pagesRes, mainContentsRes, modulesRes, topicsRes] = await Promise.all([
+      const [pagesRes, mainContentsRes, modulesRes, topicsRes, muxAccountsRes] = await Promise.all([
         api.get('/api/admin/pages/'),
         api.get('/api/maincontents/'),
         api.get('/api/modules/'),
         api.get('/api/topics/'),
+        api.get('/api/mux-accounts/'),
       ]);
 
-      // ✅ Normalize pages
+      // Normalize pages
       const cleanedPages: Page[] = pagesRes.data.map((p: any) => ({
         ...p,
         title: p.title || '',
         content: p.content || '',
         main_content: p.main_content?.id ?? p.main_content,
         time_duration: p.time_duration || 0,
+        mux_account: p.mux_account || null,
       }));
 
-      // ✅ Normalize mainContents (IMPORTANT FIX)
+      // Normalize mainContents
       const normalizedMainContents: MainContent[] = mainContentsRes.data.map((mc: any) => ({
         ...mc,
         module_detail: mc.module_detail
@@ -122,8 +138,8 @@ const PageManagement = () => {
       setMainContents(normalizedMainContents);
       setModules(modulesRes.data);
       setTopics(topicsRes.data);
+      setMuxAccounts(muxAccountsRes.data);
       setFilteredTopics(topicsRes.data);
-
     } catch (error) {
       toast.error('Failed to fetch data');
     } finally {
@@ -131,19 +147,22 @@ const PageManagement = () => {
     }
   };
 
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title || !formData.content || !formData.main_content) {
       toast.error('Please fill in all required fields');
       return;
     }
+
     setSubmitting(true);
+
     const payload = {
       ...formData,
       main_content: parseInt(formData.main_content),
+      mux_account: formData.mux_account ? parseInt(formData.mux_account) : null,
       time_duration: parseInt(formData.time_duration.toString()),
     };
+
     try {
       if (editingPage) {
         await api.put(`/api/pages/${editingPage.id}/`, payload);
@@ -166,16 +185,19 @@ const PageManagement = () => {
     setFormData({
       title: page.title,
       content: page.content,
-      video_id: page.video_id || '',   // ✅ ADD
-      main_content:
-        (typeof page.main_content === 'number'
+      video_id: page.video_id || '',
+      mux_account: page.mux_account?.toString() || '',
+      main_content: (
+        typeof page.main_content === 'number'
           ? page.main_content
-          : page.main_content.id).toString(),
+          : page.main_content.id
+      ).toString(),
       order: page.order,
       time_duration: page.time_duration,
     });
     setShowForm(true);
   };
+
   const handleDelete = async (id: number) => {
     if (!confirm('Are you sure you want to delete this page?')) return;
     try {
@@ -192,6 +214,8 @@ const PageManagement = () => {
       title: '',
       content: '',
       main_content: '',
+      video_id: '',
+      mux_account: '',
       order: 1,
       time_duration: 0,
     });
@@ -243,7 +267,7 @@ const PageManagement = () => {
           ? pages
             .filter((page) =>
               mainContents
-                .filter((content) => content.module_detail.id === module.id) // Use module_detail.id
+                .filter((content) => content.module_detail.id === module.id)
                 .map((content) => content.id)
                 .includes(typeof page.main_content === 'number' ? page.main_content : page.main_content.id)
             )
@@ -255,7 +279,7 @@ const PageManagement = () => {
 
   const getMainContentsByModule = (moduleId: number) => {
     return mainContents
-      .filter((content) => content.module_detail.id === moduleId) // Use module_detail.id
+      .filter((content) => content.module_detail.id === moduleId)
       .filter((content) =>
         searchQuery
           ? pages
@@ -292,6 +316,7 @@ const PageManagement = () => {
             Add Page
           </button>
         </div>
+
         {showForm && (
           <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
@@ -299,9 +324,7 @@ const PageManagement = () => {
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Main Content
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Main Content</label>
                 <select
                   value={formData.main_content}
                   onChange={(e) => setFormData({ ...formData, main_content: e.target.value })}
@@ -325,6 +348,7 @@ const PageManagement = () => {
                   ))}
                 </select>
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
                 <input
@@ -335,6 +359,7 @@ const PageManagement = () => {
                   placeholder="Enter page title"
                 />
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Content</label>
                 <textarea
@@ -345,6 +370,7 @@ const PageManagement = () => {
                   placeholder="Enter page content (HTML supported)"
                 />
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Bunny Video ID (Optional)
@@ -352,15 +378,30 @@ const PageManagement = () => {
                 <input
                   type="text"
                   value={formData.video_id}
-                  onChange={(e) =>
-                    setFormData({ ...formData, video_id: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, video_id: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   placeholder="Enter Bunny video ID (leave empty for theory page)"
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   If provided, this page will show video instead of content.
                 </p>
+              </div>
+
+              {/* Mux Account Dropdown */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Mux Account</label>
+                <select
+                  value={formData.mux_account}
+                  onChange={(e) => setFormData({ ...formData, mux_account: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                >
+                  <option value="">Select Mux Account</option>
+                  {muxAccounts.map((account) => (
+                    <option key={account.id} value={account.id}>
+                      {account.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
@@ -373,6 +414,7 @@ const PageManagement = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 />
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Time Duration (minutes)</label>
                 <input
@@ -384,6 +426,7 @@ const PageManagement = () => {
                   placeholder="Enter duration in minutes"
                 />
               </div>
+
               <div className="flex gap-3">
                 <button
                   type="submit"
@@ -403,6 +446,7 @@ const PageManagement = () => {
             </form>
           </div>
         )}
+
         <div className="bg-white rounded-xl shadow-sm p-6">
           <div className="mb-4">
             <div className="relative">
@@ -416,6 +460,7 @@ const PageManagement = () => {
               />
             </div>
           </div>
+
           {filteredTopics.length > 0 ? (
             <div className="space-y-4">
               {filteredTopics.map((topic) => {
@@ -439,6 +484,7 @@ const PageManagement = () => {
                         </span>
                       </div>
                     </div>
+
                     {isTopicExpanded && topicModules.length > 0 && (
                       <div className="pl-6 space-y-2 py-2">
                         {topicModules.map((module) => {
@@ -462,6 +508,7 @@ const PageManagement = () => {
                                   </span>
                                 </div>
                               </div>
+
                               {isModuleExpanded && moduleMainContents.length > 0 && (
                                 <div className="pl-6 space-y-2 py-2">
                                   {moduleMainContents.map((mainContent) => {
@@ -485,6 +532,7 @@ const PageManagement = () => {
                                             </span>
                                           </div>
                                         </div>
+
                                         {isMainContentExpanded && mainContentPages.length > 0 && (
                                           <div className="overflow-x-auto">
                                             <table className="w-full">
@@ -539,6 +587,7 @@ const PageManagement = () => {
                                             </table>
                                           </div>
                                         )}
+
                                         {isMainContentExpanded && mainContentPages.length === 0 && (
                                           <div className="p-8 text-center text-gray-500">
                                             No pages found for this main content
@@ -549,6 +598,7 @@ const PageManagement = () => {
                                   })}
                                 </div>
                               )}
+
                               {isModuleExpanded && moduleMainContents.length === 0 && (
                                 <div className="p-8 text-center text-gray-500">
                                   No main contents found for this module
@@ -559,6 +609,7 @@ const PageManagement = () => {
                         })}
                       </div>
                     )}
+
                     {isTopicExpanded && topicModules.length === 0 && (
                       <div className="p-8 text-center text-gray-500">
                         No modules found for this topic
@@ -572,6 +623,7 @@ const PageManagement = () => {
             <EmptyState message="No topics found" />
           )}
         </div>
+
         {previewContent && (
           <div
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
