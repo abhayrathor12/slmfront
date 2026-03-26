@@ -1,7 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-
 import {
-  Search,
   BookOpen,
   BookText,
   Trophy,
@@ -19,7 +17,6 @@ import {
   Layers,
   MessageSquare,
 } from 'lucide-react';
-import { MdSupportAgent } from "react-icons/md";
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { logout, getUser } from '../utils/auth';
@@ -29,6 +26,9 @@ import SupportSidebar from "../components/SupportSidebar";
 import FeedbackModal from "../components/Feedbackmodal";
 import avaimage from '../public/avatar2.png';
 import CertificateModal from "../components/CertificateModal";
+import CertificateLockedModal from "../components/CertificateLockedModal";
+import Hls from "hls.js";
+
 interface Page {
   id: number;
   title: string;
@@ -119,8 +119,8 @@ const defaultQuizState = (): QuizState => ({
 
 const DraggableFAB = ({ onOpen }: { onOpen: () => void }) => {
   const STORAGE_KEY = 'fab_position_y';
-  const FAB_SIZE = 64; // w-16 = 64px
-  const MARGIN = 24;   // bottom/top margin
+  const FAB_SIZE = 64;
+  const MARGIN = 24;
 
   const getSavedY = () => {
     try {
@@ -138,7 +138,7 @@ const DraggableFAB = ({ onOpen }: { onOpen: () => void }) => {
   const [posY, setPosY] = useState<number>(() => {
     const saved = getSavedY();
     if (saved !== null) return clampY(saved);
-    return window.innerHeight - FAB_SIZE - MARGIN - 40; // default: near bottom
+    return window.innerHeight - FAB_SIZE - MARGIN - 40;
   });
 
   const isDragging = useRef(false);
@@ -189,7 +189,7 @@ const DraggableFAB = ({ onOpen }: { onOpen: () => void }) => {
           className="w-16 h-16 rounded-full shadow-xl flex items-center justify-center transition-all hover:scale-110 hover:shadow-2xl active:scale-95"
           style={{ background: "linear-gradient(135deg, #0f2147 0%, #203f78 60%, #2d5aa0 100%)" }}
           title="Chat with Sathi"
-          tabIndex={-1} // pointer events handled by parent
+          tabIndex={-1}
         >
           <img src={avaimage} alt="Sathi" className="w-14 h-14 object-contain pointer-events-none" />
         </button>
@@ -200,14 +200,16 @@ const DraggableFAB = ({ onOpen }: { onOpen: () => void }) => {
     </div>
   );
 };
+
 const StudentHome = () => {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [supportOpen, setSupportOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [certificateEligible, setCertificateEligible] = useState(false);
   const [loading, setLoading] = useState(true);
   const [certificateOpen, setCertificateOpen] = useState(false);
+  const [certificateLockedOpen, setCertificateLockedOpen] = useState(false);
   const [certificateUrl, setCertificateUrl] = useState<string | null>(null);
-  const [hasVideo, setHasVideo] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedModules, setExpandedModules] = useState<Set<number>>(new Set());
   const [expandedMainContents, setExpandedMainContents] = useState<Set<number>>(new Set());
@@ -223,17 +225,17 @@ const StudentHome = () => {
   const [selectedPage, setSelectedPage] = useState<PageDetail | null>(null);
   const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
   const [pageLoading, setPageLoading] = useState(false);
-
   const [quizMap, setQuizMap] = useState<{ [mcId: number]: QuizState }>({});
   const [activeQuizMcId, setActiveQuizMcId] = useState<number | null>(null);
   const [showQuiz, setShowQuiz] = useState(false);
-
   const [activeItem, setActiveItem] = useState<string | number | null>(null);
   const [canGoNext, setCanGoNext] = useState(true);
   const [defaultOpened, setDefaultOpened] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  const iframeRef = useRef<HTMLIFrameElement>(null);
+  // Video Ref for HLS Player
+  const videoRef = useRef<HTMLVideoElement>(null);
+
   const navigate = useNavigate();
   const user = getUser();
 
@@ -255,11 +257,8 @@ const StudentHome = () => {
     const checkMobile = () => {
       const mobile = window.innerWidth < 1024;
       setIsMobile(mobile);
-      if (!mobile) {
-        setSidebarOpen(true);
-      } else {
-        setSidebarOpen(false);
-      }
+      if (!mobile) setSidebarOpen(true);
+      else setSidebarOpen(false);
     };
     checkMobile();
     window.addEventListener('resize', checkMobile);
@@ -270,100 +269,74 @@ const StudentHome = () => {
     try {
       const res = await api.get('/accounts/certificate/');
       setCertificateUrl(res.data.certificate_url || res.data.url || null);
-    } catch {
-      // not yet earned — stays null
-    }
+    } catch { }
   };
 
-
+  const checkCertificateEligibility = async () => {
+    try {
+      const res = await api.get("/certificate/eligibility/");
+      setCertificateEligible(res.data.eligible);
+    } catch {
+      setCertificateEligible(false);
+    }
+  };
 
   useEffect(() => {
     fetchData();
     fetchProgressSummary();
     fetchCertificate();
+    checkCertificateEligibility();
   }, []);
 
+  // HLS Video Player Logic
   useEffect(() => {
-    const scriptId = 'bunny-playerjs-script';
-    if (!document.getElementById(scriptId)) {
-      const script = document.createElement('script');
-      script.id = scriptId;
-      script.src = 'https://assets.mediadelivery.net/playerjs/playerjs-latest.min.js';
-      script.async = true;
-      document.body.appendChild(script);
-    }
-  }, []);
+    if (!selectedPage?.video_url || !videoRef.current) return;
 
+    const video = videoRef.current;
+    let hls: Hls | null = null;
 
-
-
-  useEffect(() => {
-    setHasVideo(!!selectedPage?.video_url);
-    setCanGoNext(!selectedPage?.video_url || selectedPage?.completed);
-
-    if (!selectedPage?.video_url) return;
-
-    const iframe = iframeRef.current;
-    if (!iframe) return;
-
-    let player: any;
-    let maxWatchedTime = 0;
-    let duration = 0;
-    let videoFinished = false;
-
-    const initializePlayer = () => {
-      if (!(window as any).playerjs) return;
-
-      player = new (window as any).playerjs.Player(iframe);
-
-      player.on("ready", () => {
-        player.getDuration((d: number) => {
-          duration = d;
+    const setupVideo = () => {
+      if (Hls.isSupported()) {
+        hls = new Hls({
+          enableWorker: true,
+          lowLatencyMode: true,
         });
+        hls.loadSource(selectedPage.video_url!);
+        hls.attachMedia(video);
 
-        player.on("timeupdate", (data: any) => {
-          const current = data.seconds;
-          if (!videoFinished && current > maxWatchedTime + 1) {
-            player.setCurrentTime(maxWatchedTime);
-            return;
-          }
-          if (current > maxWatchedTime) {
-            maxWatchedTime = current;
-          }
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          setCanGoNext(false);
         });
-
-        player.on("seeked", (data: any) => {
-          const current = data.seconds;
-          if (!videoFinished && current > maxWatchedTime + 1) {
-            player.setCurrentTime(maxWatchedTime);
-          }
-        });
-
-        player.on("ended", () => {
-          videoFinished = true;
-          maxWatchedTime = duration;
-          setCanGoNext(true);
-        });
-      });
+      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        video.src = selectedPage.video_url!;
+        setCanGoNext(false);
+      }
     };
 
-    const checkInterval = setInterval(() => {
-      if ((window as any).playerjs) {
-        clearInterval(checkInterval);
-        initializePlayer();
-      }
-    }, 200);
+    setupVideo();
 
     return () => {
-      clearInterval(checkInterval);
-      if (player) {
-        try {
-          player.off("timeupdate");
-          player.off("seeked");
-          player.off("ended");
-        } catch { }
+      if (hls) {
+        hls.destroy();
+      }
+      if (video) {
+        video.src = '';
+        video.load();
       }
     };
+  }, [selectedPage?.video_url]);
+
+  // Enable Next button when video finishes
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleEnded = () => {
+      setCanGoNext(true);
+    };
+
+    video.addEventListener('ended', handleEnded);
+    return () => video.removeEventListener('ended', handleEnded);
   }, [selectedPage?.id]);
 
   const fetchData = async () => {
@@ -375,7 +348,6 @@ const StudentHome = () => {
           .map((m) => ({
             ...m,
             completion_percentage: m.completion_percentage || 0,
-            time_duration: m.formatted_duration || '',
           }))
           .sort((a, b) => a.order - b.order),
       }));
@@ -400,16 +372,6 @@ const StudentHome = () => {
     logout();
     toast.success('Logged out successfully');
     navigate('/login');
-  };
-
-  const isModuleLocked = (module: Module) => {
-    const topic = topics.find((t) => t.modules.some((m) => m.id === module.id));
-    if (!topic) return false;
-    const sortedModules = [...topic.modules].sort((a, b) => a.order - b.order);
-    const moduleIndex = sortedModules.findIndex((m) => m.id === module.id);
-    if (moduleIndex === 0) return false;
-    const prevModule = sortedModules[moduleIndex - 1];
-    return (prevModule.completion_percentage ?? 0) < 100;
   };
 
   const fetchQuizForMc = async (mcId: number) => {
@@ -452,11 +414,8 @@ const StudentHome = () => {
   const toggleMainContentExpand = async (mcId: number) => {
     setExpandedMainContents((prev) => {
       const next = new Set(prev);
-      if (next.has(mcId)) {
-        next.delete(mcId);
-      } else {
-        next.add(mcId);
-      }
+      if (next.has(mcId)) next.delete(mcId);
+      else next.add(mcId);
       return next;
     });
     await fetchQuizForMc(mcId);
@@ -479,10 +438,10 @@ const StudentHome = () => {
     setActiveItem(pageId);
     setSelectedModuleId(moduleId);
     closeSidebarOnMobile();
+
     try {
       const pageRes = await api.get(`/pages/${pageId}`);
       setSelectedPage(pageRes.data);
-
       const mcId = pageRes.data.main_content.id;
       await fetchQuizForMc(mcId);
       updateQuizState(mcId, {
@@ -490,6 +449,7 @@ const StudentHome = () => {
         hasSubmitted: false,
         quizResults: null,
       });
+      setCanGoNext(!pageRes.data.video_url);
     } catch (err: any) {
       toast.error(err.response?.data?.detail || 'Failed to load page');
     } finally {
@@ -503,6 +463,7 @@ const StudentHome = () => {
       toast.success('Page marked as completed!');
       await fetchData();
       await fetchProgressSummary();
+      await checkCertificateEligibility();
     } catch {
       toast.error('Failed to complete page');
     }
@@ -510,7 +471,6 @@ const StudentHome = () => {
 
   const handleNext = async () => {
     if (!selectedPage || !selectedModuleId || !canGoNext) return;
-
     await completePage(selectedPage.id);
     await fetchData();
 
@@ -529,7 +489,6 @@ const StudentHome = () => {
 
   const handlePrevious = async () => {
     if (!selectedPage || !selectedModuleId) return;
-
     const currentModule = topics.flatMap((t) => t.modules).find((m) => m.id === selectedModuleId);
     if (!currentModule?.main_contents) return;
 
@@ -550,10 +509,13 @@ const StudentHome = () => {
       toast.error('Please answer all questions');
       return;
     }
+
     updateQuizState(mcId, { submitting: true, hasSubmitted: true });
+
     try {
       const response = await api.post(`/api/quizzes/${qs.quiz.id}/submit/`, { answers: qs.answers });
       updateQuizState(mcId, { quizResults: response.data, submitting: false });
+
       if (response.data.passed) {
         toast.success(`Quiz passed! Score: ${response.data.percentage}%`);
         await completeMainContent(mcId);
@@ -572,6 +534,7 @@ const StudentHome = () => {
       toast.success('Section completed!');
       await fetchData();
       await fetchProgressSummary();
+      await checkCertificateEligibility();
       setSelectedPage(null);
       setShowQuiz(false);
       setActiveQuizMcId(null);
@@ -580,9 +543,7 @@ const StudentHome = () => {
       toast.error('Failed to complete section');
     }
   };
-  useEffect(() => {
 
-  }, [user]);
   const filteredTopics = topics
     .map((topic) => ({
       ...topic,
@@ -610,121 +571,6 @@ const StudentHome = () => {
     }
   }, [filteredTopics, defaultOpened]);
 
-
-  useEffect(() => {
-    if (!selectedPage) return;
-
-    const images = document.querySelectorAll('.zoomable');
-
-    const lightbox = document.getElementById('lightbox');
-    const lightboxImg = document.getElementById('lightboxImg');
-    const lightboxCaption = document.getElementById('lightboxCaption');
-    const lightboxCounter = document.getElementById('lightboxCounter');
-    const lightboxPrev = document.getElementById('lightboxPrev');
-    const lightboxNext = document.getElementById('lightboxNext');
-    const lightboxClose = document.getElementById('lightboxClose');
-
-    if (!images.length || !lightbox) return;
-
-    let current = 0;
-
-    const update = () => {
-      const img = images[current] as HTMLImageElement;
-      lightboxImg!.setAttribute('src', img.src);
-      lightboxImg!.setAttribute('alt', img.alt);
-      lightboxCaption!.textContent =
-        img.dataset.caption || img.alt;
-      lightboxCounter!.textContent =
-        `${current + 1} / ${images.length}`;
-
-      lightboxPrev?.toggleAttribute('disabled', current === 0);
-      lightboxNext?.toggleAttribute(
-        'disabled',
-        current === images.length - 1
-      );
-    };
-
-    const openLightbox = (index: number) => {
-      current = index;
-      update();
-      lightbox.classList.add('active');
-      document.body.style.overflow = 'hidden';
-    };
-
-    const closeLightbox = () => {
-      lightbox.classList.remove('active');
-      document.body.style.overflow = '';
-    };
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!lightbox.classList.contains('active')) return;
-
-      if (e.key === 'Escape') closeLightbox();
-
-      if (e.key === 'ArrowLeft' && current > 0) {
-        current--;
-        update();
-      }
-
-      if (e.key === 'ArrowRight' && current < images.length - 1) {
-        current++;
-        update();
-      }
-    };
-
-    // IMAGE CLICK
-    images.forEach((img, i) => {
-      img.addEventListener('click', () => openLightbox(i));
-    });
-
-    // BACKDROP CLICK
-    const backdropClick = (e: Event) => {
-      if (e.target === lightbox) closeLightbox();
-    };
-    lightbox.addEventListener('click', backdropClick);
-
-    // PREV / NEXT
-    const prevClick = () => {
-      if (current > 0) {
-        current--;
-        update();
-      }
-    };
-
-    const nextClick = () => {
-      if (current < images.length - 1) {
-        current++;
-        update();
-      }
-    };
-
-    lightboxPrev?.addEventListener('click', prevClick);
-    lightboxNext?.addEventListener('click', nextClick);
-
-    // CLOSE BUTTON FIX ✅
-    const closeClick = (e: Event) => {
-      e.stopPropagation();
-      closeLightbox();
-    };
-
-    lightboxClose?.addEventListener('click', closeClick);
-
-    // KEYBOARD
-    document.addEventListener('keydown', handleKeyDown);
-
-    // CLEANUP (VERY IMPORTANT)
-    return () => {
-      document.body.style.overflow = '';
-
-      lightbox.removeEventListener('click', backdropClick);
-      lightboxPrev?.removeEventListener('click', prevClick);
-      lightboxNext?.removeEventListener('click', nextClick);
-      lightboxClose?.removeEventListener('click', closeClick);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-
-  }, [selectedPage]);
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -744,8 +590,6 @@ const StudentHome = () => {
 
       <div className="flex flex-col h-[calc(100vh-64px)]">
         <div className="flex flex-1 overflow-hidden relative">
-
-          {/* ── MOBILE OVERLAY BACKDROP ── */}
           {isMobile && sidebarOpen && (
             <div
               className="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm"
@@ -753,7 +597,7 @@ const StudentHome = () => {
             />
           )}
 
-          {/* ── SIDEBAR ── */}
+          {/* SIDEBAR */}
           <div
             className={`
               ${isMobile
@@ -783,16 +627,6 @@ const StudentHome = () => {
                   {filteredTopics.length > 0 ? filteredTopics[0].name : 'Course'}
                 </h2>
               </div>
-              {/* <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
-                  type="text"
-                  placeholder="Search modules..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-blue-200 outline-none transition-all"
-                />
-              </div> */}
             </div>
 
             <div className="flex-1 overflow-y-auto p-1 space-y-3">
@@ -828,7 +662,7 @@ const StudentHome = () => {
                           <div className="ml-6 mt-1 space-y-2 border-l-2 border-gray-200 pl-3">
                             {module.main_contents
                               .sort((a, b) => a.order - b.order)
-                              .map((mc, mcIndex, mcArr) => {
+                              .map((mc, mcIndex) => {
                                 const mcExpanded = expandedMainContents.has(mc.id);
                                 const mcQuizState = getQuizState(mc.id);
                                 const hasQuiz = !!mcQuizState.quiz;
@@ -845,22 +679,9 @@ const StudentHome = () => {
                                         <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-[#203f78] flex-shrink-0" />
                                       )}
                                       <BookText className="w-4 h-4 text-[#203f78] flex-shrink-0" />
-                                      {(() => {
-                                        const isLab = /lab/i.test(mc.title);
-                                        const moduleNumber = mcArr
-                                          .slice(0, mcIndex + 1)
-                                          .filter((item) => !/lab/i.test(item.title)).length;
-                                        return (
-                                          <span
-                                            className={`text-sm font-semibold text-[#203f78] transition-all ${mcExpanded
-                                              ? 'break-words leading-snug'
-                                              : 'truncate whitespace-nowrap overflow-hidden'
-                                              }`}
-                                          >
-                                            {isLab ? mc.title : `Module ${moduleNumber}: ${mc.title}`}
-                                          </span>
-                                        );
-                                      })()}
+                                      <span className={`text-sm font-semibold text-[#203f78] transition-all ${mcExpanded ? 'break-words leading-snug' : 'truncate whitespace-nowrap overflow-hidden'}`}>
+                                        {mc.title}
+                                      </span>
                                     </div>
 
                                     {mcExpanded && (
@@ -870,46 +691,21 @@ const StudentHome = () => {
                                           .map((page) => {
                                             const isActive = activeItem === page.id;
                                             const locked = (page as any).locked;
+
                                             return (
                                               <div key={page.id} className="relative">
-                                                <div
-                                                  className="absolute left-0 top-1/2 h-px w-3 bg-gray-300"
-                                                  style={{ transform: 'translateY(-50%)' }}
-                                                />
-
-                                                {/* Tooltip */}
-                                                {hoveredPage?.id === page.id && (
-                                                  <div
-                                                    className="fixed z-[9999] bg-gray-900 text-white text-xs rounded-lg px-3 py-1.5 shadow-xl pointer-events-none"
-                                                    style={{
-                                                      left: hoveredPage.x + 15,
-                                                      top: hoveredPage.y,
-                                                      transform: 'translateY(-50%)',
-                                                      maxWidth: '220px',
-                                                      wordBreak: 'break-word'
-                                                    }}
-                                                  >
-                                                    {page.title}
-                                                    <div
-                                                      className="absolute right-full top-1/2 -translate-y-1/2"
-                                                      style={{ borderWidth: '5px', borderStyle: 'solid', borderColor: 'transparent #111827 transparent transparent' }}
-                                                    />
-                                                  </div>
-                                                )}
-
                                                 <div
                                                   onMouseEnter={(e) => setHoveredPage({ id: page.id, x: e.clientX, y: e.clientY })}
                                                   onMouseMove={(e) => setHoveredPage({ id: page.id, x: e.clientX, y: e.clientY })}
                                                   onMouseLeave={() => setHoveredPage(null)}
-                                                  onClick={async () => {
+                                                  onClick={() => {
                                                     if (locked) {
                                                       toast.error('Please complete the previous module first');
                                                       return;
                                                     }
-                                                    await handlePageClick(page.id, module.id);
+                                                    handlePageClick(page.id, module.id);
                                                   }}
-                                                  className={`relative flex items-center justify-between gap-2 pl-4 pr-2 py-2.5 rounded-lg transition-all group ${locked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
-                                                    } ${isActive ? 'bg-indigo-100' : 'hover:bg-indigo-50'}`}
+                                                  className={`relative flex items-center justify-between gap-2 pl-4 pr-2 py-2.5 rounded-lg transition-all group ${locked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'} ${isActive ? 'bg-indigo-100' : 'hover:bg-indigo-50'}`}
                                                 >
                                                   <div className="flex items-center gap-2 flex-1 min-w-0">
                                                     {page.completed ? (
@@ -919,19 +715,12 @@ const StudentHome = () => {
                                                     ) : (
                                                       <Circle className="w-4 h-4 text-gray-400 flex-shrink-0" />
                                                     )}
-                                                    <FileText
-                                                      className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-[#203f78]' : 'text-gray-400'}`}
-                                                    />
-                                                    <span
-                                                      className={`text-sm truncate block ${isActive ? 'text-[#203f78] font-semibold' : 'text-gray-600'}`}
-                                                    >
+                                                    <FileText className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-[#203f78]' : 'text-gray-400'}`} />
+                                                    <span className={`text-sm truncate block ${isActive ? 'text-[#203f78] font-semibold' : 'text-gray-600'}`}>
                                                       {page.title}
                                                     </span>
                                                   </div>
-                                                  <span
-                                                    className={`text-xs font-medium whitespace-nowrap flex-shrink-0 ${isActive ? 'text-[#203f78]' : 'text-gray-400'
-                                                      }`}
-                                                  >
+                                                  <span className={`text-xs font-medium whitespace-nowrap flex-shrink-0 ${isActive ? 'text-[#203f78]' : 'text-gray-400'}`}>
                                                     {page.formatted_duration}
                                                   </span>
                                                 </div>
@@ -942,10 +731,6 @@ const StudentHome = () => {
                                         {hasQuiz && (
                                           <div className="relative">
                                             <div
-                                              className="absolute left-0 top-1/2 h-px w-3 bg-gray-300"
-                                              style={{ transform: 'translateY(-50%)' }}
-                                            />
-                                            <div
                                               onClick={() => {
                                                 setShowQuiz(true);
                                                 setActiveQuizMcId(mc.id);
@@ -953,14 +738,9 @@ const StudentHome = () => {
                                                 setSelectedPage(null);
                                                 closeSidebarOnMobile();
                                               }}
-                                              className={`relative flex items-center gap-2 pl-4 pr-2 py-2.5 rounded-lg cursor-pointer transition-all mt-1 ${activeItem === `quiz-${mc.id}`
-                                                ? 'bg-indigo-100 text-[#203f78] font-semibold'
-                                                : 'text-gray-600 hover:bg-indigo-50'
-                                                }`}
+                                              className={`relative flex items-center gap-2 pl-4 pr-2 py-2.5 rounded-lg cursor-pointer transition-all mt-1 ${activeItem === `quiz-${mc.id}` ? 'bg-indigo-100 text-[#203f78] font-semibold' : 'text-gray-600 hover:bg-indigo-50'}`}
                                             >
-                                              <Award
-                                                className={`w-4 h-4 flex-shrink-0 ${activeItem === `quiz-${mc.id}` ? 'text-amber-600' : 'text-amber-500'}`}
-                                              />
+                                              <Award className={`w-4 h-4 flex-shrink-0 ${activeItem === `quiz-${mc.id}` ? 'text-amber-600' : 'text-amber-500'}`} />
                                               <span className="text-sm truncate block">Knowledge Check</span>
                                             </div>
                                           </div>
@@ -976,40 +756,41 @@ const StudentHome = () => {
                     );
                   })}
                 </div>
-
               ))}
 
-              {/* ── CERTIFICATE TAB ── */}
+              {/* Certificate */}
               <div className="shrink-0 px-3 py-2 border-t border-gray-200">
                 <div
                   onClick={() => {
+                    if (!certificateEligible) {
+                      setCertificateLockedOpen(true);
+                      return;
+                    }
                     setCertificateOpen(true);
                     if (isMobile) setSidebarOpen(false);
                   }}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all hover:bg-indigo-50 group"
-                  style={{ border: '1px solid #c7d4ee', borderLeft: '4px solid #203f78' }}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group ${certificateEligible ? "cursor-pointer hover:bg-indigo-50" : "cursor-pointer opacity-80"}`}
+                  style={{ border: "1px solid #c7d4ee", borderLeft: "4px solid #203f78" }}
                 >
                   <Award className="w-4 h-4 flex-shrink-0 text-[#203f78]" />
                   <div className="flex-1 min-w-0">
-                    <span className="text-sm font-semibold text-[#203f78]">
-                      My Certificate
-                    </span>
-                    <p className="text-xs text-[#203f78]/60 truncate">View &amp; download</p>
+                    <span className="text-sm font-semibold text-[#203f78]">My Certificate</span>
+                    <p className="text-xs text-[#203f78]/60 truncate">View & download</p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-[#203f78]/40 flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                  {certificateEligible ? (
+                    <ChevronRight className="w-4 h-4 text-[#203f78]/40 flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                  ) : (
+                    <Lock className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                  )}
                 </div>
               </div>
-
             </div>
           </div>
 
-          {/* ── MAIN CONTENT AREA ── */}
+          {/* MAIN CONTENT AREA */}
           <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-
-            {/* Sticky top bar */}
+            {/* Top Bar */}
             <div className="sticky top-0 z-20 bg-white border-b border-gray-200 px-3 py-2.5 flex items-center justify-between shrink-0 shadow-sm gap-2">
-
-              {/* LEFT — sidebar toggle + page title */}
               <div className="flex items-center gap-2 min-w-0 flex-1">
                 <button
                   onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -1022,12 +803,8 @@ const StudentHome = () => {
                     <Menu className="w-5 h-5 text-gray-600" />
                   )}
                 </button>
-
                 {selectedPage && !showQuiz && (
-                  <h2
-                    className="text-sm sm:text-base font-semibold text-[#203f78] truncate"
-                    title={selectedPage.title}
-                  >
+                  <h2 className="text-sm sm:text-base font-semibold text-[#203f78] truncate" title={selectedPage.title}>
                     {selectedPage.title}
                   </h2>
                 )}
@@ -1038,10 +815,7 @@ const StudentHome = () => {
                 )}
               </div>
 
-              {/* RIGHT — trophy pill + feedback button */}
               <div className="flex items-center gap-2 flex-shrink-0">
-
-                {/* Trophy pill */}
                 <div className="flex items-center gap-1.5 bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 px-2.5 py-1.5 rounded-xl shadow-sm">
                   <Trophy className="w-4 h-4 text-yellow-500 flex-shrink-0" />
                   <span className="text-xs sm:text-sm font-bold text-yellow-800">
@@ -1052,32 +826,20 @@ const StudentHome = () => {
                   </span>
                 </div>
 
-                {/* Feedback button — replaces Support button */}
                 <button
                   onClick={() => setFeedbackOpen(true)}
                   className="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-2 rounded-xl text-white text-sm font-semibold transition-all hover:brightness-110 shadow-sm"
                   style={{ background: "linear-gradient(135deg, #203f78 0%, #2d5aa0 100%)" }}
                 >
                   <MessageSquare className="w-4 h-4 text-white" />
-                  <span className="hidden sm:inline text-sm">Feedback</span>
+                  <span className="hidden sm:inline">Feedback</span>
                 </button>
-                {/* <button
-                  onClick={() => setCertificateOpen(true)}
-                  className="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-2 rounded-xl text-white text-sm font-semibold transition-all hover:brightness-110 shadow-sm"
-                  style={{ background: 'linear-gradient(135deg, #b8860b 0%, #daa520 100%)' }}
-                >
-                  <Award className="w-4 h-4 text-white" />
-                  <span className="hidden sm:inline text-sm">Certificate</span>
-                </button> */}
-
               </div>
             </div>
 
-            {/* Scrollable content */}
+            {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto">
               <div className="h-full p-2 sm:p-4">
-
-                {/* Nothing selected */}
                 {!selectedPage && !showQuiz && (
                   <div className="h-full flex items-center justify-center">
                     <div className="text-center max-w-sm px-6">
@@ -1093,25 +855,15 @@ const StudentHome = () => {
                           ? 'Tap the menu icon to browse modules and select a page.'
                           : 'Choose a module from the sidebar and click on any page to begin.'}
                       </p>
-                      {isMobile && (
-                        <button
-                          onClick={() => setSidebarOpen(true)}
-                          className="flex items-center gap-2 mx-auto px-5 py-2.5 rounded-xl text-white font-semibold text-sm shadow-md"
-                          style={{ background: 'linear-gradient(135deg, #203f78 0%, #2d5aa0 100%)' }}
-                        >
-                          <Menu className="w-4 h-4" />
-                          Browse Modules
-                        </button>
-                      )}
                     </div>
                   </div>
                 )}
 
-                {/* Page view */}
+                {/* Page Content with Video */}
                 {!showQuiz && selectedPage && (
                   <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden flex flex-col h-[calc(100vh-130px)] sm:h-[calc(100vh-120px)]">
                     <div className="flex-1 p-2 sm:p-3 min-h-0">
-                      <div className="relative w-full h-full border-2 border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
+                      <div className="relative w-full h-full border-2 border-gray-200 rounded-lg overflow-hidden bg-black shadow-sm">
                         {pageLoading && (
                           <div className="absolute inset-0 z-10 bg-white/70 backdrop-blur-sm flex items-center justify-center">
                             <div
@@ -1122,41 +874,34 @@ const StudentHome = () => {
                         )}
 
                         {selectedPage?.video_url ? (
-                          <iframe
-                            ref={iframeRef}
-                            src={selectedPage.video_url}
-                            className="w-full h-full border-0"
-                            allow="accelerometer; encrypted-media; gyroscope; picture-in-picture;"
-                            allowFullScreen
+                          <video
+                            ref={videoRef}
+                            controls
+                            className="w-full h-full"
+                            playsInline
                           />
                         ) : (
-                          <div ref={contentRef} className="p-4 sm:p-6 overflow-y-auto h-full prose prose-sm sm:prose max-w-none">
+                          <div ref={contentRef} className="p-4 sm:p-6 overflow-y-auto h-full prose prose-sm sm:prose max-w-none bg-white">
                             <div dangerouslySetInnerHTML={{ __html: selectedPage?.content || '' }} />
                           </div>
                         )}
                       </div>
                     </div>
 
-                    {/* Navigation bar */}
+                    {/* Navigation Bar */}
                     <div className="shrink-0 px-3 py-2.5 bg-gray-50 border-t border-gray-200">
                       <div className="flex justify-between items-center gap-2">
                         <button
                           onClick={handlePrevious}
-                          disabled={
-                            !selectedPage ||
-                            !selectedModuleId ||
-                            (() => {
-                              const currentModule = topics
-                                .flatMap((t) => t.modules)
-                                .find((m) => m.id === selectedModuleId);
-                              if (!currentModule?.main_contents) return true;
-                              const allPages = currentModule.main_contents
-                                .sort((a, b) => a.order - b.order)
-                                .flatMap((mc) => (mc.pages || []).sort((a, b) => a.order - b.order));
-                              const currentIndex = allPages.findIndex((p) => p.id === selectedPage.id);
-                              return currentIndex <= 0;
-                            })()
-                          }
+                          disabled={!selectedPage || !selectedModuleId || (() => {
+                            const currentModule = topics.flatMap((t) => t.modules).find((m) => m.id === selectedModuleId);
+                            if (!currentModule?.main_contents) return true;
+                            const allPages = currentModule.main_contents
+                              .sort((a, b) => a.order - b.order)
+                              .flatMap((mc) => (mc.pages || []).sort((a, b) => a.order - b.order));
+                            const currentIndex = allPages.findIndex((p) => p.id === selectedPage.id);
+                            return currentIndex <= 0;
+                          })()}
                           className="flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 transition-all font-semibold border-2 border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm"
                         >
                           <ArrowLeft className="w-4 h-4" />
@@ -1165,9 +910,7 @@ const StudentHome = () => {
 
                         {(() => {
                           if (!selectedPage || !selectedModuleId) return null;
-                          const currentModule = topics
-                            .flatMap((t) => t.modules)
-                            .find((m) => m.id === selectedModuleId);
+                          const currentModule = topics.flatMap((t) => t.modules).find((m) => m.id === selectedModuleId);
                           if (!currentModule?.main_contents) return null;
 
                           const allPages = currentModule.main_contents
@@ -1175,13 +918,9 @@ const StudentHome = () => {
                             .flatMap((mc) => (mc.pages || []).sort((a, b) => a.order - b.order));
 
                           const currentIndex = allPages.findIndex((p) => p.id === selectedPage.id);
-
-                          const currentMc = currentModule.main_contents.find(
-                            (mc) => mc.id === selectedPage.main_content.id
-                          );
+                          const currentMc = currentModule.main_contents.find((mc) => mc.id === selectedPage.main_content.id);
                           const currentMcPages = (currentMc?.pages || []).sort((a, b) => a.order - b.order);
-                          const currentMcIndex = currentMcPages.findIndex((p) => p.id === selectedPage.id);
-                          const isLastPageOfMc = currentMcIndex === currentMcPages.length - 1;
+                          const isLastPageOfMc = currentMcPages.findIndex((p) => p.id === selectedPage.id) === currentMcPages.length - 1;
 
                           const buttonBase = `flex items-center justify-center gap-1.5 px-4 sm:px-6 py-2 rounded-lg transition-all font-semibold text-xs sm:text-sm shadow-sm`;
 
@@ -1236,7 +975,6 @@ const StudentHome = () => {
                     </div>
                   </div>
                 )}
-
                 {/* Quiz view */}
                 {showQuiz && activeQuizMcId && activeQS && activeQS.quiz && (
                   <div className="w-full pb-6">
@@ -1490,7 +1228,10 @@ const StudentHome = () => {
         open={feedbackOpen}
         onClose={() => setFeedbackOpen(false)}
       />
-
+      <CertificateLockedModal
+        open={certificateLockedOpen}
+        onClose={() => setCertificateLockedOpen(false)}
+      />
 
       <CertificateModal
         open={certificateOpen}
