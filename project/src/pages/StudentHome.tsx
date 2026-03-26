@@ -368,6 +368,40 @@ const StudentHome = () => {
     }
   };
 
+  useEffect(() => {
+    if (!selectedPage) return;
+
+    const images = document.querySelectorAll(".zoomable");
+
+    images.forEach((img) => {
+      img.addEventListener("click", () => {
+        const src = (img as HTMLImageElement).src;
+
+        const overlay = document.createElement("div");
+        overlay.style.position = "fixed";
+        overlay.style.top = "0";
+        overlay.style.left = "0";
+        overlay.style.width = "100%";
+        overlay.style.height = "100%";
+        overlay.style.background = "rgba(0,0,0,0.8)";
+        overlay.style.display = "flex";
+        overlay.style.alignItems = "center";
+        overlay.style.justifyContent = "center";
+        overlay.style.zIndex = "9999";
+
+        const image = document.createElement("img");
+        image.src = src;
+        image.style.maxWidth = "90%";
+        image.style.maxHeight = "90%";
+
+        overlay.appendChild(image);
+
+        overlay.onclick = () => document.body.removeChild(overlay);
+
+        document.body.appendChild(overlay);
+      });
+    });
+  }, [selectedPage]);
   const handleLogout = () => {
     logout();
     toast.success('Logged out successfully');
