@@ -877,7 +877,7 @@ const StudentHome = () => {
                           <video
                             ref={videoRef}
                             controls
-                            className="w-full h-full"
+                            className="w-full h-full object-cover"
                             playsInline
                           />
                         ) : (
