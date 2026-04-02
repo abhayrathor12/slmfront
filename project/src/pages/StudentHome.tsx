@@ -281,12 +281,79 @@ const StudentHome = () => {
     }
   };
 
+  const openLastPage = async () => {
+
+    try {
+
+      const res = await api.get("/accounts/last-page/get/");
+
+      const pageId = res.data?.page_id;
+
+      // ✅ CASE 1 — restore last page
+      if (pageId) {
+
+        const pageRes = await api.get(`/pages/${pageId}`);
+
+        setSelectedPage(pageRes.data);
+        setActiveItem(pageId);
+
+        const module = topics
+          .flatMap(t => t.modules)
+          .find(m =>
+            m.main_contents?.some(mc =>
+              mc.pages?.some(p => p.id === pageId)
+            )
+          );
+
+        if (module) {
+
+          setSelectedModuleId(module.id);
+
+          setExpandedModules(new Set([module.id]));
+
+          const mc = module.main_contents?.find(mc =>
+            mc.pages?.some(p => p.id === pageId)
+          );
+
+          if (mc) {
+            setExpandedMainContents(new Set([mc.id]));
+            await fetchQuizForMc(mc.id);
+          }
+        }
+
+      }
+
+      // ✅ CASE 2 — no last page → open first module
+      else {
+
+        const firstModule = topics[0]?.modules?.[0];
+
+        if (firstModule) {
+          setExpandedModules(new Set([firstModule.id]));
+        }
+
+      }
+
+    } catch (err) {
+      console.warn("Could not restore last page", err);
+    }
+
+  };
+
   useEffect(() => {
     fetchData();
     fetchProgressSummary();
     fetchCertificate();
     checkCertificateEligibility();
+
   }, []);
+  useEffect(() => {
+
+    if (!topics.length) return;
+
+    openLastPage();
+
+  }, [topics]);
 
   // HLS Video Player Logic
   useEffect(() => {
@@ -369,6 +436,7 @@ const StudentHome = () => {
   };
 
   useEffect(() => {
+
     if (!selectedPage) return;
 
     const images = document.querySelectorAll(".zoomable");
@@ -474,6 +542,9 @@ const StudentHome = () => {
     closeSidebarOnMobile();
 
     try {
+      await api.post("/accounts/last-page/save/", {
+        page_id: pageId
+      });
       const pageRes = await api.get(`/pages/${pageId}`);
       setSelectedPage(pageRes.data);
       const mcId = pageRes.data.main_content.id;
@@ -484,6 +555,8 @@ const StudentHome = () => {
         quizResults: null,
       });
       setCanGoNext(!pageRes.data.video_url);
+
+      setPageLoading(true);
     } catch (err: any) {
       toast.error(err.response?.data?.detail || 'Failed to load page');
     } finally {
@@ -595,15 +668,7 @@ const StudentHome = () => {
     }
   }, [selectedPage?.id]);
 
-  useEffect(() => {
-    if (filteredTopics.length > 0 && !defaultOpened) {
-      const firstModule = filteredTopics[0]?.modules?.[0];
-      if (firstModule) {
-        setExpandedModules(new Set([firstModule.id]));
-        setDefaultOpened(true);
-      }
-    }
-  }, [filteredTopics, defaultOpened]);
+
 
   if (loading) {
     return (
