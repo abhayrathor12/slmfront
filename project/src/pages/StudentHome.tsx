@@ -16,6 +16,8 @@ import {
   Lock,
   Layers,
   MessageSquare,
+  PlayCircle,
+  Tv
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
@@ -117,6 +119,7 @@ const defaultQuizState = (): QuizState => ({
   submitting: false,
 });
 
+
 const DraggableFAB = ({ onOpen }: { onOpen: () => void }) => {
   const STORAGE_KEY = 'fab_position_y';
   const FAB_SIZE = 64;
@@ -202,6 +205,8 @@ const DraggableFAB = ({ onOpen }: { onOpen: () => void }) => {
 };
 
 const StudentHome = () => {
+  const [showOverview, setShowOverview] = useState(false);
+  const OVERVIEW_VIDEO_URL = "YOUR_VIDEO_URL_HERE";
   const [topics, setTopics] = useState<Topic[]>([]);
   const [supportOpen, setSupportOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
@@ -729,6 +734,26 @@ const StudentHome = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto p-1 space-y-3">
+              <div className="px-3 pt-2 pb-1">
+                <button
+                  onClick={() => {
+                    setShowOverview(true);
+                    setSelectedPage(null);
+                    setShowQuiz(false);
+                    setActiveItem('overview');
+                    setActiveQuizMcId(null);
+                    closeSidebarOnMobile();
+                  }}
+                  className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-lg transition-all font-semibold text-sm border ${activeItem === 'overview'
+                    ? 'bg-indigo-100 text-[#203f78] border-[#203f78]'
+                    : 'bg-indigo-50 text-gray-700 border-gray-200 hover:text-[#203f78]'
+                    }`}
+                >
+                  <Tv className="w-4 h-4 flex-shrink-0" />
+                  Overview
+                  <PlayCircle className="w-4 h-4 flex-shrink-0 ml-auto" />
+                </button>
+              </div>
               {filteredTopics.map((topic) => (
                 <div key={topic.id} className="space-y-3">
                   {topic.modules.map((module) => {
@@ -987,7 +1012,7 @@ const StudentHome = () => {
             {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto">
               <div className="h-full p-2 sm:p-4">
-                {!selectedPage && !showQuiz && (
+                {!selectedPage && !showQuiz && !showOverview && (
                   <div className="h-full flex items-center justify-center">
                     <div className="text-center max-w-sm px-6">
                       <div className="mb-6 relative">
@@ -1002,6 +1027,20 @@ const StudentHome = () => {
                           ? 'Tap the menu icon to browse modules and select a page.'
                           : 'Choose a module from the sidebar and click on any page to begin.'}
                       </p>
+                    </div>
+                  </div>
+                )}
+                {showOverview && activeItem === 'overview' && (
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden flex flex-col h-[calc(100vh-130px)] sm:h-[calc(100vh-120px)]">
+                    <div className="flex-1 p-2 sm:p-3 min-h-0">
+                      <div className="relative w-full h-full border-2 border-gray-200 rounded-lg overflow-hidden bg-black shadow-sm">
+                        <video
+                          src={OVERVIEW_VIDEO_URL}
+                          controls
+                          className="w-full h-full object-contain"
+                          playsInline
+                        />
+                      </div>
                     </div>
                   </div>
                 )}
