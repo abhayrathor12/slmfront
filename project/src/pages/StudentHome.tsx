@@ -762,28 +762,56 @@ const StudentHome = () => {
                             {module.main_contents
                               .sort((a, b) => a.order - b.order)
                               .map((mc, mcIndex) => {
+                                const isFirstModule = topics.flatMap(t => t.modules)[0]?.id === module.id;
+                                const isLocked = !isFirstModule || mcIndex >= 4;
+
                                 const mcExpanded = expandedMainContents.has(mc.id);
                                 const mcQuizState = getQuizState(mc.id);
                                 const hasQuiz = !!mcQuizState.quiz;
 
                                 return (
                                   <div key={mc.id}>
+                                    {/* ── Section header row ── */}
                                     <div
-                                      onClick={() => toggleMainContentExpand(mc.id)}
-                                      className="flex items-center gap-2 py-2 px-2 rounded-lg cursor-pointer hover:bg-blue-50 transition-colors group"
+                                      onClick={() => {
+                                        if (isLocked) {
+                                          toast.error('This section is not accessible yet.');
+                                          return;
+                                        }
+                                        toggleMainContentExpand(mc.id);
+                                      }}
+                                      className={`flex items-center gap-2 py-2 px-2 rounded-lg transition-colors group ${isLocked
+                                        ? 'cursor-not-allowed opacity-60'
+                                        : 'cursor-pointer hover:bg-blue-50'
+                                        }`}
                                     >
-                                      {mcExpanded ? (
+                                      {/* Icon: lock when inaccessible, chevron otherwise */}
+                                      {isLocked ? (
+                                        <Lock className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                      ) : mcExpanded ? (
                                         <ChevronDown className="w-4 h-4 text-[#203f78] flex-shrink-0" />
                                       ) : (
                                         <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-[#203f78] flex-shrink-0" />
                                       )}
-                                      <BookText className="w-4 h-4 text-[#203f78] flex-shrink-0" />
-                                      <span className={`text-sm font-semibold text-[#203f78] transition-all ${mcExpanded ? 'break-words leading-snug' : 'truncate whitespace-nowrap overflow-hidden'}`}>
+
+                                      <BookText
+                                        className={`w-4 h-4 flex-shrink-0 ${isLocked ? 'text-gray-400' : 'text-[#203f78]'
+                                          }`}
+                                      />
+
+                                      <span
+                                        className={`text-sm font-semibold transition-all ${isLocked ? 'text-gray-400' : 'text-[#203f78]'
+                                          } ${mcExpanded && !isLocked
+                                            ? 'break-words leading-snug'
+                                            : 'truncate whitespace-nowrap overflow-hidden'
+                                          }`}
+                                      >
                                         {mc.title}
                                       </span>
                                     </div>
 
-                                    {mcExpanded && (
+                                    {/* ── Pages + quiz (hidden when locked) ── */}
+                                    {!isLocked && mcExpanded && (
                                       <div className="ml-3 mt-1 space-y-1">
                                         {mc.pages
                                           .sort((a, b) => a.order - b.order)
@@ -794,8 +822,12 @@ const StudentHome = () => {
                                             return (
                                               <div key={page.id} className="relative">
                                                 <div
-                                                  onMouseEnter={(e) => setHoveredPage({ id: page.id, x: e.clientX, y: e.clientY })}
-                                                  onMouseMove={(e) => setHoveredPage({ id: page.id, x: e.clientX, y: e.clientY })}
+                                                  onMouseEnter={(e) =>
+                                                    setHoveredPage({ id: page.id, x: e.clientX, y: e.clientY })
+                                                  }
+                                                  onMouseMove={(e) =>
+                                                    setHoveredPage({ id: page.id, x: e.clientX, y: e.clientY })
+                                                  }
                                                   onMouseLeave={() => setHoveredPage(null)}
                                                   onClick={() => {
                                                     if (locked) {
@@ -804,7 +836,8 @@ const StudentHome = () => {
                                                     }
                                                     handlePageClick(page.id, module.id);
                                                   }}
-                                                  className={`relative flex items-center justify-between gap-2 pl-4 pr-2 py-2.5 rounded-lg transition-all group ${locked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'} ${isActive ? 'bg-indigo-100' : 'hover:bg-indigo-50'}`}
+                                                  className={`relative flex items-center justify-between gap-2 pl-4 pr-2 py-2.5 rounded-lg transition-all group ${locked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
+                                                    } ${isActive ? 'bg-indigo-100' : 'hover:bg-indigo-50'}`}
                                                 >
                                                   <div className="flex items-center gap-2 flex-1 min-w-0">
                                                     {page.completed ? (
@@ -814,12 +847,21 @@ const StudentHome = () => {
                                                     ) : (
                                                       <Circle className="w-4 h-4 text-gray-400 flex-shrink-0" />
                                                     )}
-                                                    <FileText className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-[#203f78]' : 'text-gray-400'}`} />
-                                                    <span className={`text-sm truncate block ${isActive ? 'text-[#203f78] font-semibold' : 'text-gray-600'}`}>
+                                                    <FileText
+                                                      className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-[#203f78]' : 'text-gray-400'
+                                                        }`}
+                                                    />
+                                                    <span
+                                                      className={`text-sm truncate block ${isActive ? 'text-[#203f78] font-semibold' : 'text-gray-600'
+                                                        }`}
+                                                    >
                                                       {page.title}
                                                     </span>
                                                   </div>
-                                                  <span className={`text-xs font-medium whitespace-nowrap flex-shrink-0 ${isActive ? 'text-[#203f78]' : 'text-gray-400'}`}>
+                                                  <span
+                                                    className={`text-xs font-medium whitespace-nowrap flex-shrink-0 ${isActive ? 'text-[#203f78]' : 'text-gray-400'
+                                                      }`}
+                                                  >
                                                     {page.formatted_duration}
                                                   </span>
                                                 </div>
@@ -837,9 +879,15 @@ const StudentHome = () => {
                                                 setSelectedPage(null);
                                                 closeSidebarOnMobile();
                                               }}
-                                              className={`relative flex items-center gap-2 pl-4 pr-2 py-2.5 rounded-lg cursor-pointer transition-all mt-1 ${activeItem === `quiz-${mc.id}` ? 'bg-indigo-100 text-[#203f78] font-semibold' : 'text-gray-600 hover:bg-indigo-50'}`}
+                                              className={`relative flex items-center gap-2 pl-4 pr-2 py-2.5 rounded-lg cursor-pointer transition-all mt-1 ${activeItem === `quiz-${mc.id}`
+                                                ? 'bg-indigo-100 text-[#203f78] font-semibold'
+                                                : 'text-gray-600 hover:bg-indigo-50'
+                                                }`}
                                             >
-                                              <Award className={`w-4 h-4 flex-shrink-0 ${activeItem === `quiz-${mc.id}` ? 'text-amber-600' : 'text-amber-500'}`} />
+                                              <Award
+                                                className={`w-4 h-4 flex-shrink-0 ${activeItem === `quiz-${mc.id}` ? 'text-amber-600' : 'text-amber-500'
+                                                  }`}
+                                              />
                                               <span className="text-sm truncate block">Knowledge Check</span>
                                             </div>
                                           </div>
