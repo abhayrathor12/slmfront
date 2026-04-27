@@ -206,7 +206,7 @@ const DraggableFAB = ({ onOpen }: { onOpen: () => void }) => {
 
 const StudentHome = () => {
   const [showOverview, setShowOverview] = useState(false);
-  const OVERVIEW_VIDEO_URL = "YOUR_VIDEO_URL_HERE";
+  const OVERVIEW_VIDEO_URL = "https://drive.google.com/file/d/11Xo8ZieAe41fltT8NZOaxJlvU6gj86ru/preview";
   const [topics, setTopics] = useState<Topic[]>([]);
   const [supportOpen, setSupportOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
@@ -1034,11 +1034,11 @@ const StudentHome = () => {
                   <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden flex flex-col h-[calc(100vh-130px)] sm:h-[calc(100vh-120px)]">
                     <div className="flex-1 p-2 sm:p-3 min-h-0">
                       <div className="relative w-full h-full border-2 border-gray-200 rounded-lg overflow-hidden bg-black shadow-sm">
-                        <video
+                        <iframe
                           src={OVERVIEW_VIDEO_URL}
-                          controls
-                          className="w-full h-full object-contain"
-                          playsInline
+                          className="w-full h-full"
+                          allow="autoplay"
+                          allowFullScreen
                         />
                       </div>
                     </div>
