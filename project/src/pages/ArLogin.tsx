@@ -483,18 +483,18 @@ function ScrollModelStrip() {
 }
 
 useGLTF.preload(MODEL_PATH);
-
-
 const F40_MODEL_PATH = new URL("../public/f40_engine.glb", import.meta.url).href;
 
 /* ══════════════════════════════════════════
-   F40 MODEL INNER — mouse drag rotation
+   F40 MODEL INNER — auto-rotate + drag
 ══════════════════════════════════════════ */
 function F40ModelInner({
     rotationRef,
+    isDragging,
     onReady,
 }: {
     rotationRef: React.MutableRefObject<{ x: number; y: number }>;
+    isDragging: React.MutableRefObject<boolean>;
     onReady?: () => void;
 }) {
     const { scene } = useGLTF(F40_MODEL_PATH);
@@ -503,6 +503,7 @@ function F40ModelInner({
     const currentRotY = useRef(0);
     const currentRotX = useRef(0);
     const readyCalled = useRef(false);
+    const autoRotateY = useRef(0);
 
     const cloned = useRef<THREE.Group | null>(null);
     if (!cloned.current) {
@@ -514,30 +515,53 @@ function F40ModelInner({
                 m.castShadow = true;
                 m.receiveShadow = true;
 
-                const fixMaterial = (mat: THREE.Material): THREE.Material => {
-                    if (mat instanceof THREE.MeshStandardMaterial) {
-                        mat.needsUpdate = true;
-                        if (!mat.map) {
-                            mat.metalness = Math.min(mat.metalness, 0.8);
-                            mat.roughness = Math.max(mat.roughness, 0.2);
-                        }
-                        return mat;
+                // ── DEEP CLONE materials so we're not mutating shared refs ──
+                const fixMat = (mat: THREE.Material): THREE.Material => {
+                    const clonedMat = mat.clone(); // clone first!
+
+                    if (clonedMat instanceof THREE.MeshStandardMaterial) {
+                        clonedMat.metalness = Math.min(clonedMat.metalness ?? 0.5, 0.75);
+                        clonedMat.roughness = Math.max(clonedMat.roughness ?? 0.4, 0.25);
+                        clonedMat.envMapIntensity = 1.2;
+                        clonedMat.needsUpdate = true;
+                        return clonedMat;
                     }
-                    if (mat instanceof THREE.MeshBasicMaterial) {
-                        const color = (mat as THREE.MeshBasicMaterial).color?.clone() ?? new THREE.Color(0x888888);
+
+                    // MeshBasicMaterial has no lighting — swap to Standard keeping original color
+                    if (clonedMat instanceof THREE.MeshBasicMaterial) {
+                        const origColor = (clonedMat as THREE.MeshBasicMaterial).color?.clone()
+                            ?? new THREE.Color(0x888888);
+                        const map = (clonedMat as any).map ?? null;
                         return new THREE.MeshStandardMaterial({
-                            color,
-                            metalness: 0.4,
-                            roughness: 0.6,
+                            color: origColor,
+                            map,
+                            metalness: 0.45,
+                            roughness: 0.55,
+                            envMapIntensity: 1.2,
                         });
                     }
-                    return mat;
+
+                    // MeshPhongMaterial → Standard
+                    if (clonedMat instanceof THREE.MeshPhongMaterial) {
+                        const origColor = (clonedMat as THREE.MeshPhongMaterial).color?.clone()
+                            ?? new THREE.Color(0x888888);
+                        const map = (clonedMat as any).map ?? null;
+                        return new THREE.MeshStandardMaterial({
+                            color: origColor,
+                            map,
+                            metalness: 0.5,
+                            roughness: 0.4,
+                            envMapIntensity: 1.2,
+                        });
+                    }
+
+                    return clonedMat;
                 };
 
                 if (Array.isArray(m.material)) {
-                    m.material = m.material.map(fixMaterial) as THREE.Material[];
+                    m.material = m.material.map(fixMat) as THREE.Material[];
                 } else {
-                    m.material = fixMaterial(m.material);
+                    m.material = fixMat(m.material);
                 }
             }
         });
@@ -547,7 +571,7 @@ function F40ModelInner({
         const s = box.getSize(new THREE.Vector3());
         const maxDim = Math.max(s.x, s.y, s.z);
         const fovRad = (42 * Math.PI) / 180;
-        const dist = (maxDim / 2 / Math.tan(fovRad / 2)) * 1.1;
+        const dist = (maxDim / 2 / Math.tan(fovRad / 2)) * 1.05; // tighter = bigger
         (camera as THREE.PerspectiveCamera).position.set(0, 0, dist);
     }
 
@@ -556,6 +580,16 @@ function F40ModelInner({
         if (!readyCalled.current) { readyCalled.current = true; onReady?.(); }
 
         const lerp = 1 - Math.pow(0.03, delta);
+
+        if (!isDragging.current) {
+            // Auto-rotate slowly on Y
+            autoRotateY.current += delta * 0.35; // ~20°/sec
+            rotationRef.current.y = autoRotateY.current;
+        } else {
+            // Sync auto-rotate offset so it doesn't snap when drag ends
+            autoRotateY.current = rotationRef.current.y;
+        }
+
         currentRotY.current += (rotationRef.current.y - currentRotY.current) * lerp;
         currentRotX.current += (rotationRef.current.x - currentRotX.current) * lerp;
 
@@ -572,14 +606,15 @@ function F40ModelInner({
 }
 
 /* ══════════════════════════════════════════
-   HERO MODEL VIEWER — mouse drag, no buttons
+   HERO MODEL VIEWER
 ══════════════════════════════════════════ */
 function HeroModelViewer() {
     const [modelReady, setModelReady] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const onReady = useCallback(() => setModelReady(true), []);
-    const rotationRef = useRef({ x: -0.15, y: 0.3 });
+    const rotationRef = useRef({ x: -0.12, y: 0 });
     const dragState = useRef({ dragging: false, lastX: 0, lastY: 0 });
+    const isDragging = useRef(false);
 
     useEffect(() => {
         const el = containerRef.current;
@@ -587,6 +622,7 @@ function HeroModelViewer() {
 
         const onMouseDown = (e: MouseEvent) => {
             dragState.current.dragging = true;
+            isDragging.current = true;
             dragState.current.lastX = e.clientX;
             dragState.current.lastY = e.clientY;
             el.style.cursor = "grabbing";
@@ -603,10 +639,12 @@ function HeroModelViewer() {
         };
         const onMouseUp = () => {
             dragState.current.dragging = false;
+            isDragging.current = false;
             el.style.cursor = "grab";
         };
         const onTouchStart = (e: TouchEvent) => {
             dragState.current.dragging = true;
+            isDragging.current = true;
             dragState.current.lastX = e.touches[0].clientX;
             dragState.current.lastY = e.touches[0].clientY;
         };
@@ -620,7 +658,10 @@ function HeroModelViewer() {
             rotationRef.current.x += dy * 0.008;
             rotationRef.current.x = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, rotationRef.current.x));
         };
-        const onTouchEnd = () => { dragState.current.dragging = false; };
+        const onTouchEnd = () => {
+            dragState.current.dragging = false;
+            isDragging.current = false;
+        };
 
         el.addEventListener("mousedown", onMouseDown);
         window.addEventListener("mousemove", onMouseMove);
@@ -642,7 +683,7 @@ function HeroModelViewer() {
     return (
         <div ref={containerRef} style={{
             position: "absolute",
-            right: "-200px",
+            right: "-80px",      // ← moved left vs "-200px" before
             bottom: "100px",
             height: "90vh",
             minWidth: 620,
@@ -678,14 +719,20 @@ function HeroModelViewer() {
                     shadows
                     dpr={[1, 2]}
                 >
-                    <ambientLight intensity={0.5} />
-                    <directionalLight position={[4, 6, 5]} intensity={1.8} castShadow color="#ffffff" />
-                    <directionalLight position={[-4, 2, -3]} intensity={0.6} color="#c8d8ff" />
-                    <pointLight position={[0, 4, 3]} intensity={1.2} color="#ffffff" />
-                    <pointLight position={[-3, -1, 2]} intensity={0.5} color="#00e0ff" />
+                    {/* Balanced lights — no color tinting, pure white to show true material colors */}
+                    <ambientLight intensity={0.7} />
+                    <directionalLight position={[5, 8, 5]} intensity={2.0} castShadow color="#ffffff" />
+                    <directionalLight position={[-5, 3, -4]} intensity={0.8} color="#ffffff" />
+                    <directionalLight position={[0, -4, 3]} intensity={0.4} color="#ffffff" />
+                    <pointLight position={[3, 2, 4]} intensity={0.6} color="#ffffff" />
+
                     <Suspense fallback={null}>
-                        <Environment preset="warehouse" />
-                        <F40ModelInner rotationRef={rotationRef} onReady={onReady} />
+                        <Environment preset="studio" />
+                        <F40ModelInner
+                            rotationRef={rotationRef}
+                            isDragging={isDragging}
+                            onReady={onReady}
+                        />
                         <ContactShadows
                             position={[0, -1.9, 0]}
                             opacity={0.3}

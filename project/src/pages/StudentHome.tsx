@@ -840,20 +840,13 @@ const StudentHome = () => {
                                       <div className="ml-3 mt-1 space-y-1">
                                         {mc.pages
                                           .sort((a, b) => a.order - b.order)
-                                          .map((page) => {
+                                          .map((page, pageIndex) => {
                                             const isActive = activeItem === page.id;
-                                            const locked = (page as any).locked;
+                                            const locked = (page as any).locked || pageIndex >= 4;
 
                                             return (
-                                              <div key={page.id} className="relative">
+                                              <div key={page.id} className="relative group/page">
                                                 <div
-                                                  onMouseEnter={(e) =>
-                                                    setHoveredPage({ id: page.id, x: e.clientX, y: e.clientY })
-                                                  }
-                                                  onMouseMove={(e) =>
-                                                    setHoveredPage({ id: page.id, x: e.clientX, y: e.clientY })
-                                                  }
-                                                  onMouseLeave={() => setHoveredPage(null)}
                                                   onClick={() => {
                                                     if (locked) {
                                                       toast.error('Please complete the previous module first');
@@ -890,8 +883,16 @@ const StudentHome = () => {
                                                     {page.formatted_duration}
                                                   </span>
                                                 </div>
-                                              </div>
-                                            );
+
+                                                {/* Tooltip */}
+                                                <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 z-50 hidden group-hover/page:block pointer-events-none">
+                                                  <div className="bg-gray-900 text-white text-xs font-medium px-2.5 py-1.5 rounded-lg shadow-xl whitespace-nowrap max-w-[200px] truncate">
+                                                    {page.title}
+                                                    {/* Arrow */}
+                                                    <span className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-gray-900" />
+                                                  </div>
+                                                </div>
+                                              </div>);
                                           })}
 
                                         {hasQuiz && (
