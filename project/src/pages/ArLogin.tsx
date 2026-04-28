@@ -483,7 +483,7 @@ function ScrollModelStrip() {
 }
 
 useGLTF.preload(MODEL_PATH);
-const F40_MODEL_PATH = new URL("../public/f40_engine.glb", import.meta.url).href;
+const F40_MODEL_PATH = new URL("../public/f40_engine1.glb", import.meta.url).href;
 
 /* ══════════════════════════════════════════
    F40 MODEL INNER — auto-rotate + drag
@@ -512,57 +512,16 @@ function F40ModelInner({
         cloned.current.traverse((child) => {
             if ((child as THREE.Mesh).isMesh) {
                 const m = child as THREE.Mesh;
+
                 m.castShadow = true;
                 m.receiveShadow = true;
+                m.material = new THREE.MeshStandardMaterial({
+                    color: new THREE.Color("#5f5c5c"),
+                    metalness: 0.85,
+                    roughness: 0.25,
+                    envMapIntensity: 1.5,
+                });
 
-                // ── DEEP CLONE materials so we're not mutating shared refs ──
-                const fixMat = (mat: THREE.Material): THREE.Material => {
-                    const clonedMat = mat.clone(); // clone first!
-
-                    if (clonedMat instanceof THREE.MeshStandardMaterial) {
-                        clonedMat.metalness = Math.min(clonedMat.metalness ?? 0.5, 0.75);
-                        clonedMat.roughness = Math.max(clonedMat.roughness ?? 0.4, 0.25);
-                        clonedMat.envMapIntensity = 1.2;
-                        clonedMat.needsUpdate = true;
-                        return clonedMat;
-                    }
-
-                    // MeshBasicMaterial has no lighting — swap to Standard keeping original color
-                    if (clonedMat instanceof THREE.MeshBasicMaterial) {
-                        const origColor = (clonedMat as THREE.MeshBasicMaterial).color?.clone()
-                            ?? new THREE.Color(0x888888);
-                        const map = (clonedMat as any).map ?? null;
-                        return new THREE.MeshStandardMaterial({
-                            color: origColor,
-                            map,
-                            metalness: 0.45,
-                            roughness: 0.55,
-                            envMapIntensity: 1.2,
-                        });
-                    }
-
-                    // MeshPhongMaterial → Standard
-                    if (clonedMat instanceof THREE.MeshPhongMaterial) {
-                        const origColor = (clonedMat as THREE.MeshPhongMaterial).color?.clone()
-                            ?? new THREE.Color(0x888888);
-                        const map = (clonedMat as any).map ?? null;
-                        return new THREE.MeshStandardMaterial({
-                            color: origColor,
-                            map,
-                            metalness: 0.5,
-                            roughness: 0.4,
-                            envMapIntensity: 1.2,
-                        });
-                    }
-
-                    return clonedMat;
-                };
-
-                if (Array.isArray(m.material)) {
-                    m.material = m.material.map(fixMat) as THREE.Material[];
-                } else {
-                    m.material = fixMat(m.material);
-                }
             }
         });
 
@@ -720,9 +679,9 @@ function HeroModelViewer() {
                     dpr={[1, 2]}
                 >
                     {/* Balanced lights — no color tinting, pure white to show true material colors */}
-                    <ambientLight intensity={0.7} />
-                    <directionalLight position={[5, 8, 5]} intensity={2.0} castShadow color="#ffffff" />
-                    <directionalLight position={[-5, 3, -4]} intensity={0.8} color="#ffffff" />
+                    <ambientLight intensity={0.15} />
+                    <directionalLight position={[5, 8, 5]} intensity={0.8} castShadow color="#ffffff" />
+                    <directionalLight position={[-5, 3, -4]} intensity={0.3} color="#ffffff" />
                     <directionalLight position={[0, -4, 3]} intensity={0.4} color="#ffffff" />
                     <pointLight position={[3, 2, 4]} intensity={0.6} color="#ffffff" />
 

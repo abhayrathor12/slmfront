@@ -17,10 +17,10 @@ interface Message {
 type View = "chat" | "trouble";
 
 const TROUBLE_OPTIONS = [
-    { id: "quiz", icon: "📝", label: "Quiz Issue" },
-    { id: "lab", icon: "🧪", label: "Lab Issue" },
-    { id: "content", icon: "📚", label: "Content Issue" },
-    { id: "other", icon: "🔧", label: "Other Issue" },
+    { id: "quiz", icon: "📝", label: "Quiz Feedback" },
+    { id: "lab", icon: "🧪", label: "Lab Support" },
+    { id: "content", icon: "📚", label: "Content Feedback" },
+    { id: "other", icon: "🔧", label: "Other Assistant" },
 ];
 
 const SupportSidebar = ({ open, onClose }: Props) => {
@@ -311,8 +311,8 @@ const SupportSidebar = ({ open, onClose }: Props) => {
                     ) : (
                         <>
                             <div>
-                                <p className="font-semibold text-gray-800 text-sm mb-0.5">🐞 Report an Issue</p>
-                                <p className="text-xs text-gray-400">Select the issue type and describe what happened</p>
+                                <p className="font-semibold text-gray-800 text-sm mb-0.5"> Enhance your Study Experience </p>
+                                <p className="text-xs text-gray-400">Pick a category and share your thoughts</p>
                             </div>
 
                             <div className="grid grid-cols-2 gap-2">
@@ -364,7 +364,7 @@ const SupportSidebar = ({ open, onClose }: Props) => {
                             )}
 
                             <div>
-                                <label className="text-xs font-medium text-gray-600 block mb-1.5">Describe the issue</label>
+                                <label className="text-xs font-medium text-gray-600 block mb-1.5">Describe in detail</label>
                                 <textarea
                                     value={troubleText}
                                     onChange={(e) => setTroubleText(e.target.value)}
