@@ -591,7 +591,7 @@ const StudentHome = () => {
 
     const allPages = updatedModule.main_contents
       .sort((a, b) => a.order - b.order)
-      .flatMap((mc) => (mc.pages || []).sort((a, b) => a.order - b.order));
+      .flatMap((mc) => (mc.pages || []).sort((a, b) => a.order - b.order).slice(0, 4)); // 👈 cap at 4 per mc
 
     const currentIndex = allPages.findIndex((p) => p.id === selectedPage.id);
     if (currentIndex < allPages.length - 1) {
@@ -606,7 +606,8 @@ const StudentHome = () => {
 
     const allPages = currentModule.main_contents
       .sort((a, b) => a.order - b.order)
-      .flatMap((mc) => (mc.pages || []).sort((a, b) => a.order - b.order));
+      .flatMap((mc) => (mc.pages || []).sort((a, b) => a.order - b.order).slice(0, 4)); // 👈
+
 
     const currentIndex = allPages.findIndex((p) => p.id === selectedPage.id);
     if (currentIndex > 0) {
@@ -885,11 +886,11 @@ const StudentHome = () => {
                                                 </div>
 
                                                 {/* Tooltip */}
-                                                <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 z-50 hidden group-hover/page:block pointer-events-none">
-                                                  <div className="bg-gray-900 text-white text-xs font-medium px-2.5 py-1.5 rounded-lg shadow-xl whitespace-nowrap max-w-[200px] truncate">
+                                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 hidden group-hover/page:block pointer-events-none">
+                                                  <div className="bg-gray-900 text-white text-xs font-medium px-2.5 py-1.5 rounded-lg shadow-xl whitespace-normal break-words max-w-[220px] text-center">
                                                     {page.title}
                                                     {/* Arrow */}
-                                                    <span className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-gray-900" />
+                                                    <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
                                                   </div>
                                                 </div>
                                               </div>);
@@ -1106,7 +1107,9 @@ const StudentHome = () => {
 
                           const currentIndex = allPages.findIndex((p) => p.id === selectedPage.id);
                           const currentMc = currentModule.main_contents.find((mc) => mc.id === selectedPage.main_content.id);
-                          const currentMcPages = (currentMc?.pages || []).sort((a, b) => a.order - b.order);
+                          const currentMcPages = (currentMc?.pages || [])
+                            .sort((a, b) => a.order - b.order)
+                            .slice(0, 4);
                           const isLastPageOfMc = currentMcPages.findIndex((p) => p.id === selectedPage.id) === currentMcPages.length - 1;
 
                           const buttonBase = `flex items-center justify-center gap-1.5 px-4 sm:px-6 py-2 rounded-lg transition-all font-semibold text-xs sm:text-sm shadow-sm`;
