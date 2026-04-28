@@ -152,7 +152,7 @@ function SpecPanel({ data, show }: { data: PanelData; show: boolean }) {
                                 <span style={{ fontFamily: "'DM Mono',monospace", fontSize: 8, letterSpacing: 1, color: "rgba(228,238,248,.38)", textTransform: "uppercase" }}>
                                     {s.label}
                                 </span>
-                                <span style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: 12, color: data.accent }}>
+                                <span style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: 10, color: data.accent }}>
                                     {s.value}
                                 </span>
                             </div>
@@ -227,7 +227,8 @@ function DegreeRing({ p }: { p: number }) {
 /* ══════════════════════════════════════════
    PHASE INDICATOR
 ══════════════════════════════════════════ */
-const PHASES = ["Hardware", "Display", "Tracking", "Platform"];
+// ── CHANGED: phases now reflect industrial XR use-cases ──
+const PHASES = ["Assembly", "Facility", "Training", "Safety"];
 
 function PhaseBar({ p }: { p: number }) {
     const active = Math.min(3, Math.floor(p * 4));
@@ -266,47 +267,59 @@ function PhaseBar({ p }: { p: number }) {
 }
 
 /* ══════════════════════════════════════════
-   ALL PANEL DATA
+   ALL PANEL DATA  ── CHANGED to industrial XR content ──
 ══════════════════════════════════════════ */
 const PANELS: PanelData[] = [
     {
-        side: "left", tag: "// Hardware", title: "Meta Quest 3", subtitle: "Snapdragon XR2 Gen 2 platform",
+        side: "left",
+        tag: "// Engine Assembly",
+        title: "V8 Block Build",
+        subtitle: "Live guided engine assembly training",
         accent: "#00e0ff",
         stats: [
-            { label: "Processor", value: "XR2 Gen 2" },
-            { label: "RAM", value: "8 GB LPDDR5", bar: 80 },
-            { label: "Storage", value: "128 – 512 GB", bar: 60 },
-            { label: "Weight", value: "515 g", bar: 48 },
+            { label: "Operator Training", value: "Guided Assembly Steps" },
+            { label: "Simulation Practice", value: "Repeatable Hands-on Tasks", bar: 86 },
+            { label: "Skill Assessment", value: "Process Validation Test", bar: 82 },
+            { label: "Final Evaluation", value: "Quality + Speed Score", bar: 94 },
         ],
     },
     {
-        side: "right", tag: "// Optics", title: "Pancake Lenses", subtitle: "Local-dimming LCD per eye",
+        side: "right",
+        tag: "// Company Tour",
+        title: "Virtual Facility",
+        subtitle: "Immersive plant floor walkthrough",
         accent: "#7c4dff",
         stats: [
-            { label: "Resolution", value: "2064 × 2208" },
-            { label: "Refresh Rate", value: "120 Hz", bar: 90 },
-            { label: "Field of View", value: "110° × 96°", bar: 78 },
-            { label: "PPD", value: "25 PPD", bar: 55 },
+            { label: "Facility Training", value: "Guided Area Walkthrough" },
+            { label: "Zone Practice", value: "Explore Departments Interactively", bar: 84 },
+            { label: "Location Test", value: "Identify Zones & Equipment", bar: 78 },
+            { label: "Understanding Score", value: "Navigation + Awareness", bar: 90 },
         ],
     },
     {
-        side: "left", tag: "// Tracking", title: "6DoF Spatial", subtitle: "Inside-out AI hand tracking",
+        side: "left",
+        tag: "// Workforce Training",
+        title: "Operator Skills",
+        subtitle: "Hands-on VR skill certification",
         accent: "#00ff9d",
         stats: [
-            { label: "Cameras", value: "4 Wide-angle" },
-            { label: "Latency", value: "< 10 ms", bar: 95 },
-            { label: "Hand Tracking", value: "v2.0 AI", bar: 88 },
-            { label: "Eye Tracking", value: "Native", bar: 80 },
+            { label: "Skill Training", value: "Step-wise Task Learning" },
+            { label: "Hands-on Practice", value: "Repeatable Job Simulation", bar: 88 },
+            { label: "Skill Test", value: "Real Task Validation", bar: 85 },
+            { label: "Certification Score", value: "Performance + Accuracy", bar: 94 },
         ],
     },
     {
-        side: "right", tag: "// Platform", title: "Horizon OS", subtitle: "Mixed reality app ecosystem",
+        side: "right",
+        tag: "// Safety Protocol",
+        title: "Hazard Simulation",
+        subtitle: "Zero-risk emergency response drills",
         accent: "#e8b84b",
         stats: [
-            { label: "App Library", value: "500+ titles", bar: 70 },
-            { label: "Passthrough", value: "Full colour", bar: 92 },
-            { label: "PC Link", value: "Air + USB-C" },
-            { label: "Battery", value: "2.5 – 3 hr", bar: 42 },
+            { label: "Safety Training", value: "Hazard Awareness Learning" },
+            { label: "Emergency Practice", value: "Simulated Risk Scenarios", bar: 87 },
+            { label: "Response Test", value: "Action & Decision Check", bar: 83 },
+            { label: "Safety Score", value: "Reaction + Compliance", bar: 95 },
         ],
     },
 ];
@@ -369,17 +382,17 @@ function ScrollModelStrip() {
             transparent 70%)`,
                 }} />
 
-                {/* Header */}
+                {/* ── CHANGED: top moved from 32 → 88 so it clears the fixed navbar ── */}
                 <div style={{
-                    position: "absolute", top: 32, left: "50%", transform: "translateX(-50%)",
+                    position: "absolute", top: 88, left: "50%", transform: "translateX(-50%)",
                     textAlign: "center", zIndex: 25, whiteSpace: "nowrap",
                 }}>
                     <div style={{ fontFamily: "'DM Mono',monospace", fontSize: 8, letterSpacing: 4, color: "rgba(0,224,255,.4)", textTransform: "uppercase", marginBottom: 7 }}>
             // Interactive 360° Breakdown
                     </div>
                     <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: 20, color: "#e4eef8" }}>
-                        Meta Quest 3 — <span style={{ background: "linear-gradient(90deg,#00e0ff,#7c4dff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
-                            Spec Explorer
+                        Industrial XR — <span style={{ background: "linear-gradient(90deg,#00e0ff,#7c4dff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+                            Experience Explorer
                         </span>
                     </div>
                 </div>
@@ -470,6 +483,234 @@ function ScrollModelStrip() {
 }
 
 useGLTF.preload(MODEL_PATH);
+
+
+const F40_MODEL_PATH = new URL("../public/f40_engine.glb", import.meta.url).href;
+
+/* ══════════════════════════════════════════
+   F40 MODEL INNER — mouse drag rotation
+══════════════════════════════════════════ */
+function F40ModelInner({
+    rotationRef,
+    onReady,
+}: {
+    rotationRef: React.MutableRefObject<{ x: number; y: number }>;
+    onReady?: () => void;
+}) {
+    const { scene } = useGLTF(F40_MODEL_PATH);
+    const groupRef = useRef<THREE.Group>(null);
+    const { camera } = useThree();
+    const currentRotY = useRef(0);
+    const currentRotX = useRef(0);
+    const readyCalled = useRef(false);
+
+    const cloned = useRef<THREE.Group | null>(null);
+    if (!cloned.current) {
+        cloned.current = scene.clone(true);
+
+        cloned.current.traverse((child) => {
+            if ((child as THREE.Mesh).isMesh) {
+                const m = child as THREE.Mesh;
+                m.castShadow = true;
+                m.receiveShadow = true;
+
+                const fixMaterial = (mat: THREE.Material): THREE.Material => {
+                    if (mat instanceof THREE.MeshStandardMaterial) {
+                        mat.needsUpdate = true;
+                        if (!mat.map) {
+                            mat.metalness = Math.min(mat.metalness, 0.8);
+                            mat.roughness = Math.max(mat.roughness, 0.2);
+                        }
+                        return mat;
+                    }
+                    if (mat instanceof THREE.MeshBasicMaterial) {
+                        const color = (mat as THREE.MeshBasicMaterial).color?.clone() ?? new THREE.Color(0x888888);
+                        return new THREE.MeshStandardMaterial({
+                            color,
+                            metalness: 0.4,
+                            roughness: 0.6,
+                        });
+                    }
+                    return mat;
+                };
+
+                if (Array.isArray(m.material)) {
+                    m.material = m.material.map(fixMaterial) as THREE.Material[];
+                } else {
+                    m.material = fixMaterial(m.material);
+                }
+            }
+        });
+
+        centerModel(cloned.current);
+        const box = new THREE.Box3().setFromObject(cloned.current);
+        const s = box.getSize(new THREE.Vector3());
+        const maxDim = Math.max(s.x, s.y, s.z);
+        const fovRad = (42 * Math.PI) / 180;
+        const dist = (maxDim / 2 / Math.tan(fovRad / 2)) * 1.1;
+        (camera as THREE.PerspectiveCamera).position.set(0, 0, dist);
+    }
+
+    useFrame((_, delta) => {
+        if (!groupRef.current) return;
+        if (!readyCalled.current) { readyCalled.current = true; onReady?.(); }
+
+        const lerp = 1 - Math.pow(0.03, delta);
+        currentRotY.current += (rotationRef.current.y - currentRotY.current) * lerp;
+        currentRotX.current += (rotationRef.current.x - currentRotX.current) * lerp;
+
+        groupRef.current.rotation.y = currentRotY.current;
+        groupRef.current.rotation.x = currentRotX.current;
+        groupRef.current.position.y = Math.sin(Date.now() * 0.0009) * 0.03;
+    });
+
+    return (
+        <group ref={groupRef} dispose={null}>
+            <primitive object={cloned.current!} />
+        </group>
+    );
+}
+
+/* ══════════════════════════════════════════
+   HERO MODEL VIEWER — mouse drag, no buttons
+══════════════════════════════════════════ */
+function HeroModelViewer() {
+    const [modelReady, setModelReady] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const onReady = useCallback(() => setModelReady(true), []);
+    const rotationRef = useRef({ x: -0.15, y: 0.3 });
+    const dragState = useRef({ dragging: false, lastX: 0, lastY: 0 });
+
+    useEffect(() => {
+        const el = containerRef.current;
+        if (!el) return;
+
+        const onMouseDown = (e: MouseEvent) => {
+            dragState.current.dragging = true;
+            dragState.current.lastX = e.clientX;
+            dragState.current.lastY = e.clientY;
+            el.style.cursor = "grabbing";
+        };
+        const onMouseMove = (e: MouseEvent) => {
+            if (!dragState.current.dragging) return;
+            const dx = e.clientX - dragState.current.lastX;
+            const dy = e.clientY - dragState.current.lastY;
+            dragState.current.lastX = e.clientX;
+            dragState.current.lastY = e.clientY;
+            rotationRef.current.y += dx * 0.008;
+            rotationRef.current.x += dy * 0.008;
+            rotationRef.current.x = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, rotationRef.current.x));
+        };
+        const onMouseUp = () => {
+            dragState.current.dragging = false;
+            el.style.cursor = "grab";
+        };
+        const onTouchStart = (e: TouchEvent) => {
+            dragState.current.dragging = true;
+            dragState.current.lastX = e.touches[0].clientX;
+            dragState.current.lastY = e.touches[0].clientY;
+        };
+        const onTouchMove = (e: TouchEvent) => {
+            if (!dragState.current.dragging) return;
+            const dx = e.touches[0].clientX - dragState.current.lastX;
+            const dy = e.touches[0].clientY - dragState.current.lastY;
+            dragState.current.lastX = e.touches[0].clientX;
+            dragState.current.lastY = e.touches[0].clientY;
+            rotationRef.current.y += dx * 0.008;
+            rotationRef.current.x += dy * 0.008;
+            rotationRef.current.x = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, rotationRef.current.x));
+        };
+        const onTouchEnd = () => { dragState.current.dragging = false; };
+
+        el.addEventListener("mousedown", onMouseDown);
+        window.addEventListener("mousemove", onMouseMove);
+        window.addEventListener("mouseup", onMouseUp);
+        el.addEventListener("touchstart", onTouchStart);
+        window.addEventListener("touchmove", onTouchMove);
+        window.addEventListener("touchend", onTouchEnd);
+
+        return () => {
+            el.removeEventListener("mousedown", onMouseDown);
+            window.removeEventListener("mousemove", onMouseMove);
+            window.removeEventListener("mouseup", onMouseUp);
+            el.removeEventListener("touchstart", onTouchStart);
+            window.removeEventListener("touchmove", onTouchMove);
+            window.removeEventListener("touchend", onTouchEnd);
+        };
+    }, []);
+
+    return (
+        <div ref={containerRef} style={{
+            position: "absolute",
+            right: "-200px",
+            bottom: "100px",
+            height: "90vh",
+            minWidth: 620,
+            zIndex: 1,
+            cursor: "grab",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "flex-end",
+        }}>
+            <div style={{ width: "100%", flex: 1, position: "relative" }}>
+                {!modelReady && (
+                    <div style={{
+                        position: "absolute", inset: 0, display: "flex",
+                        alignItems: "center", justifyContent: "center",
+                        flexDirection: "column", gap: 12,
+                    }}>
+                        <div style={{
+                            width: 44, height: 44, borderRadius: "50%",
+                            border: "1.5px solid rgba(0,224,255,.08)",
+                            borderTop: "1.5px solid #00e0ff",
+                            animation: "spinLoad 1s linear infinite",
+                        }} />
+                        <div style={{ fontFamily: "'DM Mono',monospace", fontSize: 8, letterSpacing: 3, color: "rgba(0,224,255,.4)" }}>
+                            LOADING MODEL…
+                        </div>
+                    </div>
+                )}
+                <Canvas
+                    camera={{ position: [0, 0, 5], fov: 42 }}
+                    gl={{ antialias: true, alpha: true }}
+                    style={{ background: "transparent", width: "100%", height: "100%" }}
+                    shadows
+                    dpr={[1, 2]}
+                >
+                    <ambientLight intensity={0.5} />
+                    <directionalLight position={[4, 6, 5]} intensity={1.8} castShadow color="#ffffff" />
+                    <directionalLight position={[-4, 2, -3]} intensity={0.6} color="#c8d8ff" />
+                    <pointLight position={[0, 4, 3]} intensity={1.2} color="#ffffff" />
+                    <pointLight position={[-3, -1, 2]} intensity={0.5} color="#00e0ff" />
+                    <Suspense fallback={null}>
+                        <Environment preset="warehouse" />
+                        <F40ModelInner rotationRef={rotationRef} onReady={onReady} />
+                        <ContactShadows
+                            position={[0, -1.9, 0]}
+                            opacity={0.3}
+                            scale={8}
+                            blur={3}
+                            far={5}
+                            color="#001633"
+                        />
+                    </Suspense>
+                </Canvas>
+            </div>
+
+            <div style={{
+                fontFamily: "'DM Mono',monospace", fontSize: 8,
+                letterSpacing: 3, color: "rgba(0,224,255,.35)",
+                textTransform: "uppercase", marginTop: 10,
+                opacity: modelReady ? 1 : 0, transition: "opacity 0.5s ease",
+            }}>
+                ← Drag to rotate →
+            </div>
+        </div>
+    );
+}
+
+useGLTF.preload(F40_MODEL_PATH);
 /* ══════════════════════════════════════════
    HEADSET SVG — reacts to scroll progress
 ══════════════════════════════════════════ */
@@ -835,30 +1076,17 @@ export default function LandingPage() {
                         </div>
                     </div>
 
-                    {/* RIGHT COLUMN — replace the entire right div */}
+                    {/* RIGHT COLUMN */}
                     <div style={{
                         position: "relative",
                         display: "flex",
-                        alignItems: "flex-end",       // anchor to bottom of grid cell
+                        alignItems: "flex-end",
                         justifyContent: "center",
                         minHeight: "100vh",
-                        overflow: "visible",          // allow image to bleed out
+                        overflow: "visible",
                     }}>
-                        <img
-                            src={heroar2}
-                            style={{
-                                position: "absolute",
-                                right: "-160px",
-                                bottom: "180px",       // sit it at the bottom edge of the section
-                                height: "80vh",       // taller than viewport — fills more space
-                                width: "auto",         // let height drive, width follows naturally
-                                maxWidth: "none",      // prevent any container from squishing it
-                                objectFit: "contain",
-                                zIndex: 1,
-                            }}
-                        />
-                    </div>
-                </div>
+                        <HeroModelViewer />
+                    </div>                </div>
 
                 {/* scroll cue */}
                 <div style={{ position: "absolute", bottom: 28, left: "50%", transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>

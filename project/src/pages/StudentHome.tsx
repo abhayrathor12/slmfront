@@ -206,7 +206,7 @@ const DraggableFAB = ({ onOpen }: { onOpen: () => void }) => {
 
 const StudentHome = () => {
   const [showOverview, setShowOverview] = useState(false);
-  const OVERVIEW_VIDEO_URL = "https://drive.google.com/file/d/1Sy5bzG21LbuQJTrBNSeAyGQqbA0_WKgf/preview";
+  const OVERVIEW_VIDEO_URL = "https://drive.google.com/file/d/1_IvnQJRcuzgSydc91iKaqDB8iA-qL6wg/preview";
   const [topics, setTopics] = useState<Topic[]>([]);
   const [supportOpen, setSupportOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
