@@ -116,7 +116,7 @@ const Login = () => {
     { href: '#highlights', label: 'Highlights' },
     { href: '#content', label: 'Content' },
     { href: '#why-this-works', label: 'Why It Works' },
-    { href: '#coordinator', label: 'Programme Coordinator' },
+    { href: '#coordinator', label: 'Program Director-Industry 4.0' },
     { href: '#certificate', label: 'Certificate' },
     { href: '#contact', label: 'Contact' },
   ];
@@ -592,7 +592,7 @@ const Login = () => {
 
           {/* PROGRAMME COORDINATOR */}
           <section id="coordinator" className="rounded-2xl p-5 sm:p-8 scroll-mt-24">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-[#203f78]">Programme Coordinator</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-[#203f78]">Program Director-Industry 4.0</h2>
             <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 items-start">
               <div className="flex-shrink-0 mx-auto sm:mx-0">
                 <div className="relative w-36 h-36 sm:w-48 sm:h-48">

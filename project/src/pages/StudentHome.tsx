@@ -478,7 +478,15 @@ const StudentHome = () => {
   const handleLogout = () => {
     logout();
     toast.success('Logged out successfully');
-    navigate('/login');
+
+    // Get first topic id (or adjust if needed)
+    const topicId = topics?.[0]?.id;
+
+    if (topicId === 11) {
+      navigate('/AR-VR');
+    } else {
+      navigate('/login'); // default (includes topic id 10)
+    }
   };
 
   const fetchQuizForMc = async (mcId: number) => {

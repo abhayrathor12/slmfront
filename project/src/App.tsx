@@ -20,6 +20,7 @@ import PageDesign from './pages/page_design';
 import Certificate from './pages/Certificate';
 import Chats from './pages/Adminchat';
 import ARVRLogin from './pages/ArLogin';
+import ArRegister from './pages/ArRegistration';
 function App() {
   return (
     <BrowserRouter>
@@ -40,6 +41,7 @@ function App() {
         <Route path="/AR-VR" element={<ARVRLogin />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="/register" element={<Registration />} />
+        <Route path="/ar-register" element={<ArRegister />} />
         <Route
           path="/admin_home"
           element={
