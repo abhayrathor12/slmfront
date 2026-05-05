@@ -13,6 +13,87 @@ import coe2 from '../public/DSC03520.jpg';
 import coe3 from '../public/coe3.png';
 import coe4 from '../public/coe4.jpg';
 
+// ── Moved OUTSIDE Login to prevent remount on every render ──
+const LoginForm = ({
+  showLogo,
+  biglogo,
+  email,
+  setEmail,
+  password,
+  setPassword,
+  showPassword,
+  setShowPassword,
+  loading,
+  handleSubmit,
+}) => (
+  <div className="w-full bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
+    {showLogo && (
+      <div className="flex justify-center mb-5">
+        <img src={biglogo} className="w-16 h-16 object-contain" alt="logo" />
+      </div>
+    )}
+    <h2 className="text-xl font-bold text-center mb-1 text-[#203f78]">Welcome Back!</h2>
+    <p className="text-center text-sm text-gray-500 mb-6">Sign in to access your dashboard</p>
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div>
+        <label className="block text-sm font-medium mb-2 text-gray-700">Email</label>
+        <input
+          type="email"
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#203f78] focus:border-transparent transition-all"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={loading}
+          placeholder="Enter your email"
+          required
+        />
+      </div>
+      <div className="relative">
+        <label className="block text-sm font-medium mb-2 text-gray-700">Password</label>
+        <input
+          type={showPassword ? 'text' : 'password'}
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#203f78] focus:border-transparent transition-all"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          disabled={loading}
+          placeholder="Enter your password"
+        />
+        <button
+          type="button"
+          onClick={() => setShowPassword(!showPassword)}
+          className="absolute right-4 top-[42px] text-gray-500 hover:text-[#203f78] transition-colors"
+        >
+          {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+        </button>
+      </div>
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full h-12 bg-gradient-to-r from-[#203f78] to-[#2c5a9e] text-white rounded-lg font-semibold flex items-center justify-center gap-2 hover:shadow-lg transition-all transform hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed"
+      >
+        {loading ? (
+          <span className="flex items-center gap-2">
+            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            Signing in...
+          </span>
+        ) : (
+          <>
+            Sign In
+            <GraduationCap size={20} />
+          </>
+        )}
+      </button>
+    </form>
+    <div className="mt-6 pt-4 border-t border-gray-100 text-center">
+      <p className="text-xs text-gray-600">
+        New to Technoviz?{' '}
+        <a href="/register" className="font-semibold text-[#203f78] hover:underline">
+          Create account
+        </a>
+      </p>
+    </div>
+  </div>
+);
+
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -80,7 +161,6 @@ const Login = () => {
         return;
       }
 
-      // Walk forward — last section whose top has crossed 120px wins
       let current = '';
       for (const id of sections) {
         const el = document.getElementById(id);
@@ -100,7 +180,6 @@ const Login = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Contact removed from navLinks
   const navLinks = [
     { href: '#overview', label: 'Overview' },
     { href: '#coe', label: 'CoE' },
@@ -111,74 +190,18 @@ const Login = () => {
     { href: '#certificate', label: 'Certificate' },
   ];
 
-  const LoginForm = ({ showLogo = false }) => (
-    <div className="w-full bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
-      {showLogo && (
-        <div className="flex justify-center mb-5">
-          <img src={biglogo} className="w-16 h-16 object-contain" alt="logo" />
-        </div>
-      )}
-      <h2 className="text-xl font-bold text-center mb-1 text-[#203f78]">Welcome Back!</h2>
-      <p className="text-center text-sm text-gray-500 mb-6">Sign in to access your dashboard</p>
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div>
-          <label className="block text-sm font-medium mb-2 text-gray-700">Email</label>
-          <input
-            type="email"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#203f78] focus:border-transparent transition-all"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={loading}
-            placeholder="Enter your email"
-            required
-          />
-        </div>
-        <div className="relative">
-          <label className="block text-sm font-medium mb-2 text-gray-700">Password</label>
-          <input
-            type={showPassword ? 'text' : 'password'}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#203f78] focus:border-transparent transition-all"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            disabled={loading}
-            placeholder="Enter your password"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-4 top-[42px] text-gray-500 hover:text-[#203f78] transition-colors"
-          >
-            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-          </button>
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full h-12 bg-gradient-to-r from-[#203f78] to-[#2c5a9e] text-white rounded-lg font-semibold flex items-center justify-center gap-2 hover:shadow-lg transition-all transform hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed"
-        >
-          {loading ? (
-            <span className="flex items-center gap-2">
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Signing in...
-            </span>
-          ) : (
-            <>
-              Sign In
-              <GraduationCap size={20} />
-            </>
-          )}
-        </button>
-      </form>
-      <div className="mt-6 pt-4 border-t border-gray-100 text-center">
-        <p className="text-xs text-gray-600">
-          New to Technoviz?{' '}
-          <a href="/register" className="font-semibold text-[#203f78] hover:underline">
-            Create account
-          </a>
-        </p>
-      </div>
-    </div>
-  );
+  // Shared props passed to both LoginForm instances
+  const loginFormProps = {
+    biglogo,
+    email,
+    setEmail,
+    password,
+    setPassword,
+    showPassword,
+    setShowPassword,
+    loading,
+    handleSubmit,
+  };
 
   return (
     <div className="bg-gradient-to-br from-gray-50 to-blue-50/30 min-h-screen scroll-smooth">
@@ -758,7 +781,7 @@ const Login = () => {
 
           {/* Mobile: login form shown inline before content sections */}
           <div id="login-form" className="lg:hidden px-6 py-10 space-y-6">
-            <LoginForm showLogo={true} />
+            <LoginForm {...loginFormProps} showLogo={true} />
             <section id="contact" className="bg-gradient-to-br from-[#203f78] to-[#2c5a9e] rounded-2xl p-6 sm:p-8 shadow-md text-white">
               <h2 className="text-lg sm:text-xl font-bold mb-4">Get In Touch</h2>
               <div className="space-y-3">
@@ -779,7 +802,7 @@ const Login = () => {
           {/* Desktop: sticky — pins at top-16 (below navbar), no independent scroll */}
           <div className="hidden lg:flex w-full items-start justify-center px-8 xl:px-12 sticky top-16 self-start pt-10">
             <div className="w-full max-w-[420px]">
-              <LoginForm showLogo={false} />
+              <LoginForm {...loginFormProps} showLogo={false} />
 
               {/* Contact — shown below login form on desktop */}
               <section id="contact" className="mt-6 rounded-2xl overflow-hidden border border-gray-200 shadow-lg bg-white">
@@ -861,10 +884,10 @@ const Login = () => {
 
             </div>
           </div>
-        </div >
+        </div>
 
-      </div >
-    </div >
+      </div>
+    </div>
   );
 };
 
