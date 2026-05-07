@@ -25,6 +25,7 @@ const LoginForm = ({
   setShowPassword,
   loading,
   handleSubmit,
+  contact,
 }) => (
   <div className="w-full bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
     {showLogo && (
@@ -83,6 +84,7 @@ const LoginForm = ({
         )}
       </button>
     </form>
+
     <div className="mt-6 pt-4 border-t border-gray-100 text-center">
       <p className="text-xs text-gray-600">
         New to Technoviz?{' '}
@@ -90,6 +92,44 @@ const LoginForm = ({
           Create account
         </a>
       </p>
+    </div>
+
+    {/* Contact — part of the form card */}
+    <div className="mt-4 pt-4 border-t border-gray-100">
+      <p className="text-[9px] font-bold tracking-widest uppercase text-gray-400 mb-2">Get In Touch</p>
+      <div className="space-y-1.5">
+        <a
+          href="tel:+919999765380"
+          className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-gray-50 hover:bg-blue-50 border border-transparent hover:border-[#203f78]/20 transition-all group"
+        >
+          <svg className="w-3.5 h-3.5 text-[#203f78] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 8V5z" />
+          </svg>
+          <span className="text-xs font-medium text-[#203f78]">+91-9999765380</span>
+        </a>
+
+        <a
+          href={`mailto:${contact?.email || "contact@technovizautomation.com"}`}
+          className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-gray-50 hover:bg-blue-50 border border-transparent hover:border-[#203f78]/20 transition-all group"
+        >
+          <Mail size={13} className="text-[#203f78] flex-shrink-0" />
+          <span className="text-xs font-medium text-[#203f78] truncate">
+            {contact?.email || "contact@technovizautomation.com"}
+          </span>
+        </a>
+        <a
+          href={contact?.website || "https://www.technovizautomation.com"}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-gray-50 hover:bg-blue-50 border border-transparent hover:border-[#203f78]/20 transition-all group"
+        >
+          <Globe size={13} className="text-[#203f78] flex-shrink-0" />
+          <span className="text-xs font-medium text-[#203f78] truncate">
+            {contact?.website || "www.technovizautomation.com"}
+          </span>
+        </a>
+
+      </div>
     </div>
   </div>
 );
@@ -201,6 +241,7 @@ const Login = () => {
     setShowPassword,
     loading,
     handleSubmit,
+    contact: programmeData?.contact,
   };
 
   return (
@@ -780,108 +821,14 @@ const Login = () => {
         <div className="w-full lg:w-2/5 xl:w-5/12 border-l border-gray-200/60">
 
           {/* Mobile: login form shown inline before content sections */}
-          <div id="login-form" className="lg:hidden px-6 py-10 space-y-6">
+          <div id="login-form" className="lg:hidden px-6 py-10">
             <LoginForm {...loginFormProps} showLogo={true} />
-            <section id="contact" className="bg-gradient-to-br from-[#203f78] to-[#2c5a9e] rounded-2xl p-6 sm:p-8 shadow-md text-white">
-              <h2 className="text-lg sm:text-xl font-bold mb-4">Get In Touch</h2>
-              <div className="space-y-3">
-                <p className="flex items-center gap-3 text-sm">
-                  <Globe size={18} className="flex-shrink-0" />
-                  <a href={programmeData?.contact?.website || "#"} target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-200 break-all">
-                    {programmeData?.contact?.website || "www.technovizautomation.com"}
-                  </a>
-                </p>
-                <p className="flex items-center gap-3 text-sm">
-                  <Mail size={18} className="flex-shrink-0" />
-                  <span className="break-all">{programmeData?.contact?.email || "contact@technovizautomation.com"}</span>
-                </p>
-              </div>
-            </section>
           </div>
 
           {/* Desktop: sticky — pins at top-16 (below navbar), no independent scroll */}
           <div className="hidden lg:flex w-full items-start justify-center px-8 xl:px-12 sticky top-16 self-start pt-10">
             <div className="w-full max-w-[420px]">
               <LoginForm {...loginFormProps} showLogo={false} />
-
-              {/* Contact — shown below login form on desktop */}
-              <section id="contact" className="mt-6 rounded-2xl overflow-hidden border border-gray-200 shadow-lg bg-white">
-                {/* Thin accent bar at top */}
-                <div className="h-1 w-full bg-gradient-to-r from-[#203f78] via-[#4a7fd4] to-[#203f78]" />
-
-                <div className="px-4 py-3">
-                  {/* Header row */}
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-1 h-4 rounded-full bg-[#203f78]" />
-                    <h2 className="text-xs font-bold tracking-widest uppercase text-gray-600">Get In Touch</h2>
-                  </div>
-
-                  {/* Contact rows */}
-                  <div className="space-y-1.5">
-
-                    {/* Website */}
-                    <a
-                      href={programmeData?.contact?.website || "https://www.technovizautomation.com"}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg bg-gray-50 hover:bg-blue-50 border border-transparent hover:border-[#203f78]/20 transition-all group"
-                    >
-                      <div className="w-7 h-7 rounded-md bg-[#203f78]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[#203f78] transition-colors">
-                        <Globe size={13} className="text-[#203f78] group-hover:text-white transition-colors" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-[9px] text-gray-500 font-semibold uppercase tracking-wider leading-none mb-0.5">Website</p>
-                        <p className="text-xs font-semibold text-[#203f78] truncate">
-                          {programmeData?.contact?.website || "www.technovizautomation.com"}
-                        </p>
-                      </div>
-                      <svg className="w-3 h-3 text-gray-300 group-hover:text-[#203f78] ml-auto flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </a>
-
-                    {/* Email */}
-                    <a
-                      href={`mailto:${programmeData?.contact?.email || "contact@technovizautomation.com"}`}
-                      className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg bg-gray-50 hover:bg-blue-50 border border-transparent hover:border-[#203f78]/20 transition-all group"
-                    >
-                      <div className="w-7 h-7 rounded-md bg-[#203f78]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[#203f78] transition-colors">
-                        <Mail size={13} className="text-[#203f78] group-hover:text-white transition-colors" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-[9px] text-gray-500 font-semibold uppercase tracking-wider leading-none mb-0.5">Email</p>
-                        <p className="text-xs font-semibold text-[#203f78] truncate">
-                          {programmeData?.contact?.email || "contact@technovizautomation.com"}
-                        </p>
-                      </div>
-                      <svg className="w-3 h-3 text-gray-300 group-hover:text-[#203f78] ml-auto flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </a>
-
-                    {/* Phone */}
-                    <a
-                      href="tel:+919999765380"
-                      className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg bg-gray-50 hover:bg-blue-50 border border-transparent hover:border-[#203f78]/20 transition-all group"
-                    >
-                      <div className="w-7 h-7 rounded-md bg-[#203f78]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[#203f78] transition-colors">
-                        <svg className="w-3.5 h-3.5 text-[#203f78] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 8V5z" />
-                        </svg>
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-[9px] text-gray-500 font-semibold uppercase tracking-wider leading-none mb-0.5">Phone</p>
-                        <p className="text-xs font-semibold text-[#203f78]">+91-9999765380</p>
-                      </div>
-                      <svg className="w-3 h-3 text-gray-300 group-hover:text-[#203f78] ml-auto flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </a>
-
-                  </div>
-                </div>
-              </section>
-
             </div>
           </div>
         </div>

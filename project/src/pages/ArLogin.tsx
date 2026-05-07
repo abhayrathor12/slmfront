@@ -11,6 +11,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useGLTF, Environment, ContactShadows } from "@react-three/drei";
 import * as THREE from "three";
 import api from '../utils/api';
+import "@fontsource/inter";
 import { toast } from 'react-toastify';
 const MODEL_PATH = new URL("../public/Quest3.glb", import.meta.url).href;
 
@@ -127,23 +128,23 @@ function SpecPanel({ data, show, isMobile }: { data: PanelData; show: boolean; i
                     overflow: "hidden",
                 }}>
                     <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg,${data.accent},transparent)` }} />
-                    <div style={{ fontFamily: "'DM Mono',monospace", fontSize: 11, letterSpacing: 2, color: data.accent, textTransform: "uppercase", marginBottom: 6 }}>
+                    <div style={{ fontFamily: "'Inter',monospace", fontSize: 11, letterSpacing: 1, color: data.accent, textTransform: "uppercase", marginBottom: 6 }}>
                         {data.tag}
                     </div>
-                    <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: 16, color: "#ffffff", lineHeight: 1.1, marginBottom: 2 }}>
+                    <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 16, color: "#f8fbff", lineHeight: 1.1, marginBottom: 2 }}>
                         {data.title}
                     </div>
-                    <div style={{ fontFamily: "'DM Mono',monospace", fontSize: 11, color: "rgba(228,238,248,.88)", marginBottom: 12, lineHeight: 1.4 }}>
+                    <div style={{ fontFamily: "'Inter',monospace", fontSize: 11, color: "rgba(255,255,255,.82)", marginBottom: 12, lineHeight: 1.4 }}>
                         {data.subtitle}
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                         {data.stats.slice(0, 2).map((s) => (
                             <div key={s.label}>
                                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: s.bar !== undefined ? 4 : 0 }}>
-                                    <span style={{ fontFamily: "'DM Mono',monospace", fontSize: 11, letterSpacing: 1, color: "rgba(228,238,248,.88)", textTransform: "uppercase" }}>
+                                    <span style={{ fontFamily: "'Inter',monospace", fontSize: 11, letterSpacing: 1, color: "rgba(255,255,255,.82)", textTransform: "uppercase" }}>
                                         {s.label}
                                     </span>
-                                    <span style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: 11, color: data.accent }}>
+                                    <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: 11, color: data.accent }}>
                                         {s.value}
                                     </span>
                                 </div>
@@ -192,23 +193,23 @@ function SpecPanel({ data, show, isMobile }: { data: PanelData; show: boolean; i
                     width: 40, height: 40, opacity: 0.06,
                     background: `linear-gradient(${isLeft ? "225" : "315"}deg,${data.accent},transparent)`,
                 }} />
-                <div style={{ fontFamily: "'DM Mono',monospace", fontSize: 12, letterSpacing: 3, color: data.accent, textTransform: "uppercase", marginBottom: 9 }}>
+                <div style={{ fontFamily: "'Inter',monospace", fontSize: 12, letterSpacing: 3, color: data.accent, textTransform: "uppercase", marginBottom: 9 }}>
                     {data.tag}
                 </div>
-                <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: 23, color: "#ffffff", lineHeight: 1.1, marginBottom: 3 }}>
+                <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 23, color: "#f8fbff", lineHeight: 1.1, marginBottom: 3 }}>
                     {data.title}
                 </div>
-                <div style={{ fontFamily: "'DM Mono',monospace", fontSize: 13, color: "rgba(228,238,248,.88)", marginBottom: 18, lineHeight: 1.5 }}>
+                <div style={{ fontFamily: "'Inter',monospace", fontSize: 13, color: "rgba(255,255,255,.82)", marginBottom: 18, lineHeight: 1.5 }}>
                     {data.subtitle}
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
                     {data.stats.map((s) => (
                         <div key={s.label}>
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: s.bar !== undefined ? 5 : 0 }}>
-                                <span style={{ fontFamily: "'DM Mono',monospace", fontSize: 12, letterSpacing: 1, color: "rgba(228,238,248,.88)", textTransform: "uppercase" }}>
+                                <span style={{ fontFamily: "'Inter',monospace", fontSize: 12, letterSpacing: 1, color: "rgba(255,255,255,.82)", textTransform: "uppercase" }}>
                                     {s.label}
                                 </span>
-                                <span style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: 13, color: data.accent }}>
+                                <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: 13, color: data.accent }}>
                                     {s.value}
                                 </span>
                             </div>
@@ -234,7 +235,7 @@ function SpecPanel({ data, show, isMobile }: { data: PanelData; show: boolean; i
                             boxShadow: i === 1 ? `0 0 6px ${data.accent}` : "none",
                         }} />
                     ))}
-                    <span style={{ fontFamily: "'DM Mono',monospace", fontSize: 9, color: "rgba(228,238,248,.45)", letterSpacing: 2, marginLeft: 4 }}>
+                    <span style={{ fontFamily: "'Inter',monospace", fontSize: 9, color: "rgba(255,255,255,.65)", letterSpacing: 1, marginLeft: 4 }}>
                         VERIFIED SPECS
                     </span>
                 </div>
@@ -269,8 +270,8 @@ function DegreeRing({ p, isMobile }: { p: number; isMobile?: boolean }) {
                     transform="rotate(-90 32 32)"
                     style={{ filter: "drop-shadow(0 0 4px rgba(0,224,255,0.7))" }}
                 />
-                <text x="32" y="28" textAnchor="middle" fontFamily="'DM Mono',monospace" fontSize="11" fontWeight="bold" fill="#00e0ff">{deg}°</text>
-                <text x="32" y="41" textAnchor="middle" fontFamily="'DM Mono',monospace" fontSize="6.5" fill="rgba(0,224,255,.55)">ROTATE</text>
+                <text x="32" y="28" textAnchor="middle" fontFamily="'Inter',monospace" fontSize="11" fontWeight="bold" fill="#00e0ff">{deg}°</text>
+                <text x="32" y="41" textAnchor="middle" fontFamily="'Inter',monospace" fontSize="6.5" fill="rgba(0,224,255,.55)">ROTATE</text>
             </svg>
         </div>
     );
@@ -306,10 +307,10 @@ function PhaseBar({ p, isMobile }: { p: number; isMobile?: boolean }) {
                             transition: "all .4s ease",
                         }} />
                         <div style={{
-                            fontFamily: "'DM Mono',monospace",
+                            fontFamily: "'Inter',monospace",
                             fontSize: isMobile ? 7 : 8.5,
                             letterSpacing: isMobile ? 1 : 2,
-                            color: i === active ? "#00e0ff" : "rgba(228,238,248,.45)",
+                            color: i === active ? "#00e0ff" : "rgba(255,255,255,.65)",
                             textTransform: "uppercase",
                             transition: "color .4s",
                         }}>{ph}</div>
@@ -456,10 +457,17 @@ function ScrollModelStrip() {
                     position: "absolute", top: isMobile ? 72 : 88, left: "50%", transform: "translateX(-50%)",
                     textAlign: "center", zIndex: 25, whiteSpace: "nowrap",
                 }}>
-                    <div style={{ fontFamily: "'DM Mono',monospace", fontSize: isMobile ? 8 : 9, letterSpacing: isMobile ? 2 : 4, color: "rgba(0,224,255,.6)", textTransform: "uppercase", marginBottom: 7 }}>
+                    <div style={{ fontFamily: "'Inter',monospace", fontSize: isMobile ? 10 : 11, letterSpacing: isMobile ? 2 : 4, color: "rgba(255,255,255,.72)", textTransform: "uppercase", marginBottom: 7 }}>
                         // Interactive 360° Breakdown
                     </div>
-                    <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: isMobile ? 14 : 20, color: "#f0f8ff" }}>
+                    <div style={{
+                        fontFamily: "'Inter',sans-serif",
+                        fontWeight: 700,
+                        fontSize: isMobile ? 18 : 30,
+                        color: "#f8fbff",
+                        letterSpacing: "-0.5px",
+                        textShadow: "0 0 18px rgba(255,255,255,0.08)"
+                    }}>
                         Industrial XR — <span style={{ background: "linear-gradient(90deg,#00e0ff,#7c4dff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
                             Experience Explorer
                         </span>
@@ -484,7 +492,7 @@ function ScrollModelStrip() {
                                 borderTop: "1.5px solid #00e0ff",
                                 animation: "spinLoad 1s linear infinite",
                             }} />
-                            <div style={{ fontFamily: "'DM Mono',monospace", fontSize: 9, letterSpacing: 3, color: "rgba(0,224,255,.55)" }}>LOADING MODEL…</div>
+                            <div style={{ fontFamily: "'Inter',monospace", fontSize: 9, letterSpacing: 3, color: "rgba(0,224,255,.55)" }}>LOADING MODEL…</div>
                         </div>
                     )}
                     <Canvas
@@ -525,7 +533,7 @@ function ScrollModelStrip() {
                         position: "absolute", bottom: isMobile ? 85 : 95, left: "50%", transform: "translateX(-50%)",
                         display: "flex", flexDirection: "column", alignItems: "center", gap: 8, zIndex: 25,
                     }}>
-                        <span style={{ fontFamily: "'DM Mono',monospace", fontSize: 8.5, letterSpacing: 3, color: "rgba(0,224,255,.55)", textTransform: "uppercase" }}>
+                        <span style={{ fontFamily: "'Inter',monospace", fontSize: 8.5, letterSpacing: 3, color: "rgba(0,224,255,.55)", textTransform: "uppercase" }}>
                             Scroll to rotate
                         </span>
                         <div style={{ width: 20, height: 32, border: "1px solid rgba(0,224,255,.22)", borderRadius: 10, display: "flex", justifyContent: "center", paddingTop: 5 }}>
@@ -749,7 +757,7 @@ function HeroModelViewer({ isMobile }: { isMobile?: boolean }) {
                     backdropFilter: "blur(8px)", borderRadius: "999px",
                     opacity: modelReady ? 1 : 0, transition: "opacity 0.6s ease", pointerEvents: "none",
                 }}>
-                    <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: 2, color: "rgba(0,224,255,0.85)", textTransform: "uppercase" }}>
+                    <span style={{ fontFamily: "'Inter', monospace", fontSize: 10, letterSpacing: 1, color: "rgba(0,224,255,0.85)", textTransform: "uppercase" }}>
                         Drag to Interact
                     </span>
                 </div>
@@ -784,7 +792,7 @@ function HeroModelViewer({ isMobile }: { isMobile?: boolean }) {
                             borderTop: "1.5px solid #00e0ff",
                             animation: "spinLoad 1s linear infinite",
                         }} />
-                        <div style={{ fontFamily: "'DM Mono',monospace", fontSize: 9, letterSpacing: 3, color: "rgba(0,224,255,.55)" }}>
+                        <div style={{ fontFamily: "'Inter',monospace", fontSize: 9, letterSpacing: 3, color: "rgba(0,224,255,.55)" }}>
                             LOADING MODEL…
                         </div>
                     </div>
@@ -824,7 +832,7 @@ function HeroModelViewer({ isMobile }: { isMobile?: boolean }) {
                     <path d="M6 14a4 4 0 0 0 4 4h4a4 4 0 0 0 4-4v-2.5" />
                     <path d="M18 11a2 2 0 0 1 4 0v3" />
                 </svg>
-                <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: 2, color: "rgba(0,224,255,0.85)", textTransform: "uppercase" }}>
+                <span style={{ fontFamily: "'Inter', monospace", fontSize: 11, letterSpacing: 1, color: "rgba(0,224,255,0.85)", textTransform: "uppercase" }}>
                     Drag to Interact
                 </span>
             </div>
@@ -977,10 +985,10 @@ function CurrRow({ num, title, hrs, topics, status, open: initOpen }: any) {
     };
     return (
         <div style={{ border: "1px solid rgba(0,224,255,.1)", background: open ? "rgba(0,224,255,.03)" : "transparent", transition: "background .3s" }}>
-            <button onClick={() => setOpen(!open)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "18px 16px", background: "none", border: "none", cursor: "pointer", color: "#e4eef8", textAlign: "left" }}>
-                <span style={{ fontFamily: "'DM Mono',monospace", fontSize: 12, color: "rgba(0,224,255,.65)", width: 26, flexShrink: 0 }}>{num}</span>
-                <span style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: 15, flex: 1 }}>{title}</span>
-                <span style={{ fontFamily: "'DM Mono',monospace", fontSize: 10, color: colors[status] || "#00e0ff", letterSpacing: 1, marginRight: 4, textTransform: "uppercase", flexShrink: 0 }}>{status}</span>
+            <button onClick={() => setOpen(!open)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "18px 16px", background: "none", border: "none", cursor: "pointer", color: "#ffffff", textAlign: "left" }}>
+                <span style={{ fontFamily: "'Inter',monospace", fontSize: 12, color: "rgba(0,224,255,.65)", width: 26, flexShrink: 0 }}>{num}</span>
+                <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: 15, flex: 1 }}>{title}</span>
+                <span style={{ fontFamily: "'Inter',monospace", fontSize: 10, color: colors[status] || "#00e0ff", letterSpacing: 1, marginRight: 4, textTransform: "uppercase", flexShrink: 0 }}>{status}</span>
                 <span style={{ color: "#00e0ff", fontSize: 12, transform: open ? "rotate(90deg)" : "rotate(0deg)", transition: "transform .3s", flexShrink: 0 }}>▶</span>
             </button>
             {open && (
@@ -1054,25 +1062,31 @@ function LoginForm() {
     };
     return (
         <div style={{ padding: "32px 24px" }}>
-            <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: 22, marginBottom: 5 }}>Sign In</div>
-            <div style={{ fontFamily: "'DM Mono',monospace", fontSize: 10, letterSpacing: 2, color: "rgba(228,238,248,.55)", marginBottom: 28, textTransform: "uppercase" }}>Student Portal Access</div>
+            <div style={{
+                fontFamily: "'Inter',sans-serif",
+                fontWeight: 700,
+                fontSize: 28,
+                marginBottom: 6,
+                color: "#ffffff"
+            }}>Sign In</div>
+            <div style={{ fontFamily: "'Inter',monospace", fontSize: 10, letterSpacing: 1, color: "rgba(255,255,255,.72)", marginBottom: 28, textTransform: "uppercase" }}>Student Portal Access</div>
             <form onSubmit={handleSubmit}>
                 <div style={{ marginBottom: 16 }}>
-                    <label style={{ fontFamily: "'DM Mono',monospace", fontSize: 10, letterSpacing: 2, color: "rgba(228,238,248,.65)", textTransform: "uppercase", display: "block", marginBottom: 8 }}>Email Address</label>
-                    <input style={{ width: "100%", background: "rgba(0,224,255,.04)", border: "1px solid rgba(0,224,255,.18)", color: "#e4eef8", fontFamily: "'Exo 2',sans-serif", fontSize: 15, padding: "13px 16px", outline: "none", boxSizing: "border-box" }}
+                    <label style={{ fontFamily: "'Inter',monospace", fontSize: 10, letterSpacing: 1, color: "rgba(255,255,255,.82)", textTransform: "uppercase", display: "block", marginBottom: 8 }}>Email Address</label>
+                    <input style={{ width: "100%", background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.14)", color: "#ffffff", fontFamily: "'Exo 2',sans-serif", fontSize: 15, padding: "13px 16px", outline: "none", boxSizing: "border-box" }}
                         type="email" placeholder="you@xrslm.io" value={email} onChange={(e) => setEmail(e.target.value)} />
                 </div>
                 <div style={{ marginBottom: 20 }}>
-                    <label style={{ fontFamily: "'DM Mono',monospace", fontSize: 10, letterSpacing: 2, color: "rgba(228,238,248,.65)", textTransform: "uppercase", display: "block", marginBottom: 8 }}>Password</label>
-                    <input style={{ width: "100%", background: "rgba(0,224,255,.04)", border: "1px solid rgba(0,224,255,.18)", color: "#e4eef8", fontFamily: "'Exo 2',sans-serif", fontSize: 15, padding: "13px 16px", outline: "none", boxSizing: "border-box" }}
+                    <label style={{ fontFamily: "'Inter',monospace", fontSize: 10, letterSpacing: 1, color: "rgba(255,255,255,.82)", textTransform: "uppercase", display: "block", marginBottom: 8 }}>Password</label>
+                    <input style={{ width: "100%", background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.14)", color: "#ffffff", fontFamily: "'Exo 2',sans-serif", fontSize: 15, padding: "13px 16px", outline: "none", boxSizing: "border-box" }}
                         type="password" placeholder="••••••••••" value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
 
-                <button type="submit" style={{ width: "100%", fontFamily: "'DM Mono',monospace", fontSize: 12, letterSpacing: 3, textTransform: "uppercase", padding: "16px", background: "linear-gradient(135deg,#00e0ff,#7c4dff)", color: "#060c18", border: "none", cursor: "pointer", fontWeight: 700, clipPath: "polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%)", opacity: loading ? .7 : 1, transition: "filter .25s,box-shadow .25s" }}>
+                <button type="submit" style={{ width: "100%", fontFamily: "'Inter',monospace", fontSize: 12, letterSpacing: 3, textTransform: "uppercase", padding: "16px", background: "linear-gradient(135deg,#00e0ff,#7c4dff)", color: "#ffffff", border: "none", cursor: "pointer", fontWeight: 700, clipPath: "polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%)", opacity: loading ? .7 : 1, transition: "filter .25s,box-shadow .25s" }}>
                     {loading ? "Authenticating…" : "Enter Dashboard"}
                 </button>
             </form>
-            {msg && <div style={{ marginTop: 14, fontFamily: "'DM Mono',monospace", fontSize: 11, letterSpacing: 1, color: msg.includes("✓") ? "#00e0ff" : "#ffaa44" }}>{msg}</div>}
+            {msg && <div style={{ marginTop: 14, fontFamily: "'Inter',monospace", fontSize: 11, letterSpacing: 1, color: msg.includes("✓") ? "#00e0ff" : "#ffaa44" }}>{msg}</div>}
             <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid rgba(0,224,255,.1)", textAlign: "center", fontSize: 14, color: "rgba(228,238,248,.6)" }}>
                 New learner? <span onClick={() => navigate("/ar-register")} style={{ color: "#00e0ff", cursor: "pointer" }}>Create New account →</span>
             </div>
@@ -1120,16 +1134,16 @@ function MobileNav({ navLinks, goto, activeNav, onLogin }: { navLinks: any[]; go
                 }}>
                     {navLinks.map(n => (
                         <button key={n.id} onClick={() => { goto(n.id); setOpen(false); }} style={{
-                            fontFamily: "'Syne',sans-serif", fontWeight: 700,
+                            fontFamily: "'Inter',sans-serif", fontWeight: 700,
                             fontSize: 24, color: activeNav === n.id ? "#00e0ff" : "rgba(228,238,248,.7)",
                             background: "none", border: "none", cursor: "pointer", padding: "12px 0",
                             transition: "color .2s",
                         }}>{n.l}</button>
                     ))}
                     <button onClick={() => { onLogin(); setOpen(false); }} style={{
-                        marginTop: 20, fontFamily: "'DM Mono',monospace", fontSize: 14,
-                        letterSpacing: 2, textTransform: "uppercase", padding: "14px 40px",
-                        background: "linear-gradient(135deg,#00e0ff,#7c4dff)", color: "#060c18",
+                        marginTop: 20, fontFamily: "'Inter',monospace", fontSize: 14,
+                        letterSpacing: 1, textTransform: "uppercase", padding: "14px 40px",
+                        background: "linear-gradient(135deg,#00e0ff,#7c4dff)", color: "#ffffff",
                         border: "none", cursor: "pointer", fontWeight: 700,
                         clipPath: "polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%)",
                     }}>Login</button>
@@ -1202,7 +1216,7 @@ export default function LandingPage() {
     const px = isMobile ? "20px" : isTablet ? "32px" : "48px";
 
     return (
-        <div style={{ background: "#060c18", color: "#e4eef8", fontFamily: "'Exo 2',sans-serif" }}>
+        <div style={{ background: "#060c18", color: "#ffffff", fontFamily: "'Exo 2',sans-serif" }}>
             <style>{`
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
@@ -1269,7 +1283,7 @@ input:focus{border-color:#00e0ff!important;box-shadow:0 0 18px rgba(0,224,255,.1
                 borderBottom: navSolid ? "1px solid rgba(0,224,255,.1)" : "1px solid transparent",
                 transition: "background .4s,backdrop-filter .4s,border-color .4s",
             }}>
-                <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: isMobile ? 18 : 20, color: "#00e0ff", letterSpacing: 2 }}>
+                <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: isMobile ? 18 : 20, color: "#00e0ff", letterSpacing: 1 }}>
                     XR<span style={{ color: "#7c4dff" }}>FORGE</span>
                 </div>
 
@@ -1285,9 +1299,9 @@ input:focus{border-color:#00e0ff!important;box-shadow:0 0 18px rgba(0,224,255,.1
                 {/* Desktop login btn */}
                 {!isMobile && (
                     <button onClick={() => goto("login")} style={{
-                        fontFamily: "'DM Mono',monospace", fontSize: 13, letterSpacing: 2, textTransform: "uppercase",
+                        fontFamily: "'Inter',monospace", fontSize: 13, letterSpacing: 1, textTransform: "uppercase",
                         padding: isTablet ? "8px 16px" : "10px 22px",
-                        background: "linear-gradient(135deg,#00e0ff,#7c4dff)", color: "#060c18",
+                        background: "linear-gradient(135deg,#00e0ff,#7c4dff)", color: "#ffffff",
                         border: "none", cursor: "pointer", fontWeight: 700,
                         clipPath: "polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%)",
                     }}>Login</button>
@@ -1315,7 +1329,7 @@ input:focus{border-color:#00e0ff!important;box-shadow:0 0 18px rgba(0,224,255,.1
                     {/* TEXT */}
                     <div>
                         <div className="tag fu" style={{ marginBottom: 22 }}>AR / VR Self-Learning Module</div>
-                        <h1 className="fu d1" style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: isMobile ? "clamp(36px,10vw,56px)" : "clamp(40px,5.5vw,76px)", lineHeight: 1, marginBottom: 22 }}>
+                        <h1 className="fu d1" style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: isMobile ? "clamp(36px,10vw,56px)" : "clamp(40px,5.5vw,76px)", lineHeight: 1, marginBottom: 22 }}>
                             Learn Inside<br /><span className="gt">Virtual Reality</span>
                         </h1>
                         <p className="fu d2 bod" style={{ maxWidth: isMobile ? "100%" : 420, marginBottom: 32, fontSize: isMobile ? 15 : 16 }}>
@@ -1323,14 +1337,14 @@ input:focus{border-color:#00e0ff!important;box-shadow:0 0 18px rgba(0,224,255,.1
                         </p>
                         <div className="fu d3" style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                             <button onClick={() => goto("overview")} style={{
-                                fontFamily: "'DM Mono',monospace", fontSize: isMobile ? 10 : 13, letterSpacing: 2, textTransform: "uppercase",
+                                fontFamily: "'Inter',monospace", fontSize: isMobile ? 10 : 13, letterSpacing: 1, textTransform: "uppercase",
                                 padding: isMobile ? "12px 24px" : "15px 36px",
-                                background: "linear-gradient(135deg,#00e0ff,#7c4dff)", color: "#060c18",
+                                background: "linear-gradient(135deg,#00e0ff,#7c4dff)", color: "#ffffff",
                                 border: "none", cursor: "pointer", fontWeight: 700,
                                 clipPath: "polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%)",
                             }}>Explore Course</button>
                             <button onClick={() => goto("videos")} style={{
-                                fontFamily: "'DM Mono',monospace", fontSize: isMobile ? 10 : 13, letterSpacing: 2, textTransform: "uppercase",
+                                fontFamily: "'Inter',monospace", fontSize: isMobile ? 10 : 13, letterSpacing: 1, textTransform: "uppercase",
                                 padding: isMobile ? "12px 24px" : "15px 36px",
                                 background: "transparent", color: "rgba(228,238,248,.85)",
                                 border: "1px solid rgba(228,238,248,.35)", cursor: "pointer",
@@ -1344,8 +1358,8 @@ input:focus{border-color:#00e0ff!important;box-shadow:0 0 18px rgba(0,224,255,.1
                         }}>
                             {[["40h", "Content"], ["6", "Modules"], ["3", "XR Platforms"], ["Cert", "Included"]].map(([n, l]) => (
                                 <div key={l}>
-                                    <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: isMobile ? 16 : 20, color: "#00e0ff" }}>{n}</div>
-                                    <div style={{ fontFamily: "'DM Mono',monospace", fontSize: 9, letterSpacing: 2, color: "rgba(228,238,248,.82)", textTransform: "uppercase", marginTop: 2 }}>{l}</div>
+                                    <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: isMobile ? 16 : 20, color: "#00e0ff" }}>{n}</div>
+                                    <div style={{ fontFamily: "'Inter',monospace", fontSize: 9, letterSpacing: 1, color: "rgba(228,238,248,.82)", textTransform: "uppercase", marginTop: 2 }}>{l}</div>
                                 </div>
                             ))}
                         </div>
@@ -1368,7 +1382,7 @@ input:focus{border-color:#00e0ff!important;box-shadow:0 0 18px rgba(0,224,255,.1
 
                 {/* scroll cue */}
                 <div style={{ position: "absolute", bottom: 28, left: "50%", transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-                    <div style={{ fontFamily: "'DM Mono',monospace", fontSize: 9, letterSpacing: 3, color: "rgba(228,238,248,.45)", textTransform: "uppercase" }}>Scroll</div>
+                    <div style={{ fontFamily: "'Inter',monospace", fontSize: 9, letterSpacing: 3, color: "rgba(255,255,255,.65)", textTransform: "uppercase" }}>Scroll</div>
                     <div style={{ width: 1, height: 48, background: "linear-gradient(to bottom,rgba(0,224,255,.6),transparent)", animation: "scandown 2s ease-in-out infinite" }} />
                 </div>
             </section>
@@ -1398,7 +1412,7 @@ input:focus{border-color:#00e0ff!important;box-shadow:0 0 18px rgba(0,224,255,.1
                             <div key={l} style={{ marginBottom: 18 }}>
                                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
                                     <span style={{ fontFamily: "'Exo 2',sans-serif", fontSize: 14, color: "rgba(228,238,248,.82)" }}>{l}</span>
-                                    <span style={{ fontFamily: "'DM Mono',monospace", fontSize: 12, color: "#00e0ff" }}>{pct}%</span>
+                                    <span style={{ fontFamily: "'Inter',monospace", fontSize: 12, color: "#00e0ff" }}>{pct}%</span>
                                 </div>
                                 <div className="pb"><div className="pf" style={{ width: `${pct}%` }} /></div>
                             </div>
@@ -1463,7 +1477,7 @@ input:focus{border-color:#00e0ff!important;box-shadow:0 0 18px rgba(0,224,255,.1
                         ].map(({ ic, t, d }) => (
                             <div key={t} className="gc" style={{ background: "rgba(6,12,24,.97)" }}>
                                 <div style={{ fontSize: 28, marginBottom: 12 }}>{ic}</div>
-                                <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: 16, marginBottom: 8, color: "#f0f8ff" }}>{t}</div>
+                                <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: 16, marginBottom: 8, color: "#f0f8ff" }}>{t}</div>
                                 <div style={{ fontSize: 14, lineHeight: 1.75, color: "rgba(228,238,248,.72)" }}>{d}</div>
                             </div>
                         ))}
@@ -1495,7 +1509,7 @@ input:focus{border-color:#00e0ff!important;box-shadow:0 0 18px rgba(0,224,255,.1
                 </div>
                 <div style={{ textAlign: "center", marginTop: 24 }}>
                     <button onClick={() => setShowModules(v => !v)} style={{
-                        fontFamily: "'DM Mono',monospace", fontSize: 11, letterSpacing: 2, textTransform: "uppercase",
+                        fontFamily: "'Inter',monospace", fontSize: 11, letterSpacing: 1, textTransform: "uppercase",
                         padding: "13px 38px", background: "transparent", color: "rgba(228,238,248,.8)",
                         border: "1px solid rgba(0,224,255,.3)", cursor: "pointer",
                         clipPath: "polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%)",
@@ -1525,8 +1539,8 @@ input:focus{border-color:#00e0ff!important;box-shadow:0 0 18px rgba(0,224,255,.1
                         ].map(({ ic, st, lb, d }) => (
                             <div key={lb} className="gc" style={{ textAlign: "center" }}>
                                 <div style={{ fontSize: 32, marginBottom: 12 }}>{ic}</div>
-                                <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: isMobile ? 38 : 46, color: "#00e0ff", lineHeight: 1, marginBottom: 5 }}>{st}</div>
-                                <div style={{ fontFamily: "'DM Mono',monospace", fontSize: 10, letterSpacing: 2, color: "rgba(228,238,248,.90)", textTransform: "uppercase", marginBottom: 12 }}>{lb}</div>
+                                <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: isMobile ? 38 : 46, color: "#00e0ff", lineHeight: 1, marginBottom: 5 }}>{st}</div>
+                                <div style={{ fontFamily: "'Inter',monospace", fontSize: 10, letterSpacing: 1, color: "rgba(228,238,248,.90)", textTransform: "uppercase", marginBottom: 12 }}>{lb}</div>
                                 <div style={{ fontSize: 14, lineHeight: 1.75, color: "rgba(228,238,248,.92)" }}>{d}</div>
                             </div>
                         ))}
@@ -1545,7 +1559,7 @@ input:focus{border-color:#00e0ff!important;box-shadow:0 0 18px rgba(0,224,255,.1
                             <div key={t} style={{ display: "flex", gap: 16, padding: "20px 22px", border: "1px solid rgba(0,224,255,.1)", background: "rgba(0,224,255,.02)" }}>
                                 <div style={{ width: 3, background: "linear-gradient(to bottom,#00e0ff,#7c4dff)", borderRadius: 2, flexShrink: 0 }} />
                                 <div>
-                                    <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: 15, marginBottom: 6 }}>{t}</div>
+                                    <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: 15, marginBottom: 6 }}>{t}</div>
                                     <div style={{ fontSize: 14, lineHeight: 1.75, color: "rgba(228,238,248,.72)" }}>{d}</div>
                                 </div>
                             </div>
@@ -1586,7 +1600,7 @@ input:focus{border-color:#00e0ff!important;box-shadow:0 0 18px rgba(0,224,255,.1
                             )}
                         </div>
                         <div style={{ padding: "12px 16px" }}>
-                            <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: isMobile ? 14 : 15, marginBottom: 2, color: "#f0f8ff" }}>
+                            <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: isMobile ? 14 : 15, marginBottom: 2, color: "#f0f8ff" }}>
                                 {videos.find(v => v.url === activeVideo)?.title || videos[0].title}
                             </div>
                             <div style={{ fontSize: 12, color: "rgba(228,238,248,.75)" }}>Click to play immersive XR demo</div>
@@ -1657,7 +1671,7 @@ input:focus{border-color:#00e0ff!important;box-shadow:0 0 18px rgba(0,224,255,.1
                             {/* Assessment Table */}
                             <div style={{ marginBottom: 32, border: "1px solid rgba(232,184,75,.2)", background: "rgba(232,184,75,.03)" }}>
                                 <div style={{ padding: "16px 22px", borderBottom: "1px solid rgba(232,184,75,.15)" }}>
-                                    <div style={{ fontFamily: "'DM Mono',monospace", fontSize: 10, letterSpacing: 3, color: "rgba(232,184,75,.75)", textTransform: "uppercase", marginBottom: 4 }}>// Assessment & Evaluation</div>
+                                    <div style={{ fontFamily: "'Inter',monospace", fontSize: 10, letterSpacing: 3, color: "rgba(232,184,75,.75)", textTransform: "uppercase", marginBottom: 4 }}>// Assessment & Evaluation</div>
                                 </div>
                                 {[
                                     ["Module-End MCQ Quiz (12 Modules)", "Pass All Quizzes"],
@@ -1665,7 +1679,7 @@ input:focus{border-color:#00e0ff!important;box-shadow:0 0 18px rgba(0,224,255,.1
                                     ["Module Completion", "All 12 Modules Required"],
                                 ].map(([label, value], i, arr) => (
                                     <div key={label} style={{ display: "flex", borderBottom: i < arr.length - 1 ? "1px solid rgba(232,184,75,.1)" : "none" }}>
-                                        <div style={{ flex: 1, padding: "13px 22px", fontFamily: "'DM Mono',monospace", fontSize: isMobile ? 11 : 12, color: "rgba(228,238,248,.82)", borderRight: "1px solid rgba(232,184,75,.1)" }}>
+                                        <div style={{ flex: 1, padding: "13px 22px", fontFamily: "'Inter',monospace", fontSize: isMobile ? 11 : 12, color: "rgba(228,238,248,.82)", borderRight: "1px solid rgba(232,184,75,.1)" }}>
                                             {label}
                                         </div>
                                         <div style={{ flex: 1, padding: "13px 22px", fontFamily: "'Exo 2',sans-serif", fontSize: isMobile ? 12 : 13, color: "#e8b84b", fontWeight: 600 }}>
@@ -1677,7 +1691,7 @@ input:focus{border-color:#00e0ff!important;box-shadow:0 0 18px rgba(0,224,255,.1
 
                             {/* Completion Criteria */}
                             <div style={{ marginBottom: 32 }}>
-                                <div style={{ fontFamily: "'DM Mono',monospace", fontSize: 10, letterSpacing: 3, color: "rgba(0,224,255,.65)", textTransform: "uppercase", marginBottom: 10 }}>// Completion Criteria</div>
+                                <div style={{ fontFamily: "'Inter',monospace", fontSize: 10, letterSpacing: 3, color: "rgba(0,224,255,.65)", textTransform: "uppercase", marginBottom: 10 }}>// Completion Criteria</div>
                                 <p style={{ fontSize: 14, lineHeight: 1.75, color: "rgba(228,238,248,.82)" }}>
                                     Complete all 12 modules, practice with hands-on lab documents, and pass the MCQ quiz at the end of each module to unlock the next module.
                                 </p>
@@ -1685,7 +1699,7 @@ input:focus{border-color:#00e0ff!important;box-shadow:0 0 18px rgba(0,224,255,.1
 
                             {/* Certification bullets */}
                             <div>
-                                <div style={{ fontFamily: "'DM Mono',monospace", fontSize: 10, letterSpacing: 3, color: "rgba(0,224,255,.65)", textTransform: "uppercase", marginBottom: 12 }}>// Certification*</div>
+                                <div style={{ fontFamily: "'Inter',monospace", fontSize: 10, letterSpacing: 3, color: "rgba(0,224,255,.65)", textTransform: "uppercase", marginBottom: 12 }}>// Certification*</div>
                                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                                     {[
                                         'Participants who successfully complete all 12 modules and pass all module-end quizzes will receive a "Certificate of Completion" from XRFORGE.',
@@ -1698,7 +1712,7 @@ input:focus{border-color:#00e0ff!important;box-shadow:0 0 18px rgba(0,224,255,.1
                                         </div>
                                     ))}
                                 </div>
-                                <p style={{ fontSize: 12, color: "rgba(228,238,248,.45)", marginTop: 14, fontStyle: "italic" }}>
+                                <p style={{ fontSize: 12, color: "rgba(255,255,255,.65)", marginTop: 14, fontStyle: "italic" }}>
                                     *Certificates will be issued by XRFORGE and are verifiable through the learning portal.
                                 </p>
                             </div>
@@ -1727,7 +1741,7 @@ input:focus{border-color:#00e0ff!important;box-shadow:0 0 18px rgba(0,224,255,.1
                         {/* Left info panel */}
                         {!isMobile && (
                             <div style={{ padding: isTablet ? "36px 28px" : "48px 40px", borderRight: "1px solid rgba(0,224,255,.1)", background: "linear-gradient(135deg,rgba(0,224,255,.03),rgba(124,77,255,.03))", display: "flex", flexDirection: "column", gap: 0 }}>
-                                <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 800, fontSize: 22, lineHeight: 1.2, marginBottom: 14 }}>
+                                <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 22, lineHeight: 1.2, marginBottom: 14 }}>
                                     Access Your<br /><span className="gt">XR Dashboard</span>
                                 </div>
                                 <p className="bod" style={{ fontSize: 15, marginBottom: 28 }}>
