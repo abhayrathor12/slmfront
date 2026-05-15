@@ -7,7 +7,7 @@ import { useGLTF, Environment, ContactShadows } from "@react-three/drei";
 import * as THREE from "three";
 import api from '../utils/api';
 import "@fontsource/inter";
-
+import smallogo from '../public/logo-.png';
 // ─── Model paths ───────────────────────────────────────────────
 const MODEL_PATH = new URL("../public/Quest3.glb", import.meta.url).href;
 const F40_MODEL_PATH = new URL("../public/f40_engine1.glb", import.meta.url).href;
@@ -841,8 +841,9 @@ const Login = () => {
             <div className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm">
                 <div className="max-w-full px-4 sm:px-6 h-16 flex items-center justify-between">
                     {/* Logo */}
-                    <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: 20, color: "#203f78", letterSpacing: 0.5 }}>
-                        XR<span style={{ color: "#2c5a9e" }}>FORGE</span>
+                    <div className="flex items-center gap-3">
+                        <img src={smallogo} className="w-10 h-10 object-contain" alt="logo" />
+                        <span className="font-bold text-base sm:text-lg text-[#203f78]">Technoviz Automation</span>
                     </div>
 
                     {/* Desktop Nav */}
@@ -856,11 +857,7 @@ const Login = () => {
                         ))}
                     </nav>
 
-                    {/* Desktop Login CTA */}
-                    <a href="#login-form" className="hidden lg:flex items-center gap-2 text-sm font-semibold text-white px-5 py-2 rounded-lg hover:shadow-lg transition-all"
-                        style={{ background: "linear-gradient(135deg,#203f78,#2c5a9e)", fontFamily: "'Inter',sans-serif" }}>
-                        Login
-                    </a>
+
 
                     {/* Mobile Hamburger */}
                     <button className="lg:hidden flex flex-col gap-1.5 p-2 rounded-md hover:bg-gray-100" onClick={() => setMobileNavOpen(!mobileNavOpen)} aria-label="Toggle navigation">
@@ -1083,10 +1080,10 @@ const Login = () => {
                                     </div>
                                 </div>
                                 {/* Thumbnails */}
-                                <div className="flex sm:flex-col gap-3">
+                                <div className="flex flex-row sm:flex-col gap-3 overflow-x-auto sm:overflow-x-visible pb-1 sm:pb-0">
                                     {videos.map((v) => (
                                         <div key={v.title} onClick={() => setActiveVideo(v.url)} className="cursor-pointer rounded-xl overflow-hidden transition-all hover:scale-[1.02]"
-                                            style={{ border: activeVideo === v.url ? "2px solid rgba(32,63,120,.6)" : "1px solid rgba(32,63,120,.14)", minWidth: 130 }}>
+                                            style={{ border: activeVideo === v.url ? "2px solid rgba(32,63,120,.6)" : "1px solid rgba(32,63,120,.14)", minWidth: 130, width: 130 }}>
                                             <div className="bg-blue-50 relative" style={{ height: 90 }}>
                                                 <img src={v.thumb} alt={v.title} className="w-full h-full object-cover" style={{ opacity: activeVideo === v.url ? 1 : 0.75 }} />
                                                 <div className="absolute inset-0 flex items-center justify-center">
