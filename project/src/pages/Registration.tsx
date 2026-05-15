@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 import api from '../utils/api';
-
+import logo from '../public/logo1.png';
 // ── Theme tokens ──────────────────────────────────────────────────
 const NAVY = "#203f78";
 const BLUE = "#2c5a9e";
@@ -454,8 +454,17 @@ export default function SLMRegistration() {
 
         {/* Logo */}
         <div style={{ position: "relative" }}>
-          <a href="/" style={{ fontFamily: FONT, fontWeight: 800, fontSize: 20, color: NAVY, letterSpacing: 1, textDecoration: "none" }}>
-            Technoviz<span style={{ color: BLUE }}>SLM</span>
+          <a href="/" style={{ textDecoration: "none" }}>
+            <img
+              src={logo}
+              alt="TechnovizSLM"
+              style={{
+                height: "42px",
+                width: "auto",
+                objectFit: "contain",
+                display: "block",
+              }}
+            />
           </a>
         </div>
 
